@@ -1,0 +1,110 @@
+% vim: et
+Specification "shift0".
+
+Define is_lbl : lbl -> prop by
+  is_lbl z;
+  is_lbl (s L) := is_lbl L.
+
+Define is_kvar : kont -> prop by
+  nabla k, is_kvar k.
+
+Define is_val : val -> prop,
+       is_expr : expr -> prop by
+  nabla x, is_val x;
+  is_val (lam E) := nabla x, is_expr (E x);
+
+  is_expr (app V U) := is_val V /\ is_val U;
+  is_expr (let E1 E2) := is_expr E1 /\ nabla x, is_expr (E2 x);
+  is_expr (delim L E) := is_lbl L /\ is_expr E;
+  is_expr (shift0 L E) := is_lbl L /\ nabla k, is_expr (E k);
+  is_expr (plug K E) := is_kvar K /\ is_expr E;
+  is_expr (ret V) := is_val V.
+
+
+Define par : expr -> expr -> prop,
+       parv : val -> val -> prop,
+       pard : lbl -> expr -> expr -> prop by
+
+  nabla x, parv x x;
+  parv (lam E) (lam E') := nabla x, par (E x) (E' x);
+
+  par (app V U) (app V' U') := parv V V' /\ parv U U';
+  par (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, par (E2 x) (E2' x);
+  par (delim L E) (delim L E') := is_lbl L /\ pard L E E';
+  par (shift0 L E) (shift0 L E') := is_lbl L /\ nabla k, par (E k) (E' k);
+  par (plug K E) (plug K E') := is_kvar K /\ par E E';
+  par (ret V) (ret V') := parv V V';
+
+  par (app (lam E) V) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (let (ret V) E) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (delim L (ret V)) (ret V') := is_lbl L /\ parv V V';
+  par (let (shift0 L E1) E2) (shift0 L k\ E1' (kons (klet E2') k)) :=
+    is_lbl L /\ nabla k, par (E1 k) (E1' k) /\ nabla x, par (E2 x) (E2' x);
+  par (delim L (shift0 L E)) (E' (kons (kdelim L) kempty)) :=
+    is_lbl L /\ nabla k, par (E k) (E' k);
+  par (delim L (shift0 L' E)) (shift0 L' k\ E' (kons (kdelim L) k)) :=
+    is_lbl L /\ is_lbl L' /\ (L = L' -> false) /\ nabla k, par (E k) (E' k);
+  par (plug (kons (kdelim L) K) E) (plug K E') := is_lbl L /\ is_kvar K /\ par (delim L E) E';
+  par (plug (kons (klet E2) K) E1) (plug K E1') := is_kvar K /\ par (let E1 E2) E1';
+  par (plug kempty E) E' := par E E';
+
+  pard L E E' := par E E';
+  pard L (let E1 E2) (let E1' E2') :=
+    is_lbl L /\ par E1 E1' /\ nabla x, pard L (E2 x) (E2' x);
+  pard L (shift0 L E) (shift0 L k\ E') :=
+    is_lbl L /\ par (E (kons (kdelim L) kempty)) E';
+  pard L (shift0 L' E) (shift0 L k_\ shift0 L' E') :=
+    is_lbl L /\ is_lbl L' /\ (L = L' -> false) /\ nabla k, par (E (kons (kdelim L) k)) (E' k).
+
+Theorem lbl_gnd : forall L, nabla (x : val), is_lbl (L x) -> exists (L' : lbl), L = (y\ L').
+  induction on 1. intros. case H1. search. apply IH to H2. search.
+
+Theorem pars_subv :
+  (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
+  (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')) /\
+  (forall L E E' U U', nabla x, pard L (E x) (E' x) -> parv U U' -> pard L (E U) (E' U')).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply lbl_gnd to H3. apply IH2 to H4 H2. search.
+    apply lbl_gnd to H3. apply IH to H4 H2. search.
+    case H3. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H4 H2. apply IH1 to H3 H2. search.
+    apply IH to H4 H2. apply IH1 to H3 H2. search.
+    apply lbl_gnd to H3. apply IH1 to H4 H2. search.
+    apply lbl_gnd to H4. apply IH to H5 H2. apply IH to H6 H2. case H3. search.
+    apply lbl_gnd to H3. apply IH to H4 H2. search.
+    apply lbl_gnd to H4. apply lbl_gnd to H5. apply IH to H7 H2. case H3. search.
+    apply lbl_gnd to H3. apply IH to H5 H2. case H4. search.
+    case H3. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    search.
+    search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    apply IH to H3 H2. search.
+    apply IH to H4 H2. apply IH2 to H5 H2. search.
+    apply IH to H4 H2. search.
+    apply lbl_gnd to H4. apply IH to H6 H2. search.
+
+Split pars_subv as par_subv, parv_subv, pard_subv.
+
+Theorem pars_diam :
+  (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+  (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3) /\
+  (forall L E E1 E2, pard L E E1 -> pard L E E2 -> exists E3, pard L E1 E3 /\ pard L E2 E3).
+  induction on 1 1 1. split.
+  intros. case H1.
+    case H2. apply IH1 to H3 H5. apply IH1 to H4 H6. search.
+             case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
+    case H2. apply IH to H3 H5. apply IH to H4 H6. search.
+             case H3. apply IH to H4 H6. apply IH1 to H7 H5. apply par_subv to H8 H10. apply par_subv to H9 H11. search.
+             case H3. apply IH to H4 H7. apply IH to H9 H6. witness (shift0 L k\ E7 (kons (klet E6) k)).
+             assert (par (shift0 L (k\E1'1 (kons (klet E2'1) k))) (shift0 L (k\E7 (kons (klet E6) k)))).
+             
+
+
+
