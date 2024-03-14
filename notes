@@ -1,0 +1,1516 @@
+
+example from A General Fine-Grained Reduction Theory for Effect Handlers
+
+handle
+tell 6; iter (fn x -> let y = ask () in tell (x + y)) [2, 3]
+with
+| ask () -> resume 5
+| return () -> ()
+
+===>
+
+handle
+tell 6; let y = ask () in tell (2 + y); iter (fn x -> let y = ask () in tell (x + y)) [3]
+with
+| ask () -> resume 5
+| return () -> ()
+
+===>
+
+handle
+tell 6; let y = ask () in tell (2 + y); iter (fn x -> let y = ask () in tell (x + y)) [3]
+with
+| ask () -> resume 5
+| return () -> ()
+
+K = let y = □ in tell (2 + y); iter (fn x -> let y = ask () in tell (x + y)) [3]
+T = tell 6; □
+
+handle K[T[ask ()]] with ask () -> resume 5 | return () -> ()
+
+===>
+
+T[handle K[5] with ask () -> resume 5 | return () -> ()]
+
+tell 6;
+handle let y = 5 in tell (2 + y); iter (fn x -> let y = ask () in tell (x + y)) [3]
+with ask () -> resume 5 | return () -> ()
+
+===>
+
+tell 6;
+handle tell 7; let y = ask () in tell (3 + y)
+with ask () -> resume 5 | return () -> ()
+
+===>
+
+Control operators
+
+Previous approaches to optimizing and reasoning about code with control operators include:
+* working with the CPS translation and translating back into direct-style code
+* novel delimiter-oriented reduction rules found for shift0 and deep handlers
+
+
+a więc reguła jest taka:
+
+handle To
+handle K[T[do v]] with h,r ↦
+handle T[lift (h v (λx. handle K[x] with h,r))]
+
+...; { T }
+do v;
+... { K }
+
+
+
+common:
+
+    (λx. e) v               →  e[v/x]
+    handle ret v with h,r   →  r v
+    let x = ret v in e      →  e[v/x]
+    lift ret v              →  ret v
+    handle lift e with h,r  →  let x = e in r x
+
+    let x = a in let y = e in f  →  let y = let x = a in e in f
+
+fine-grained:
+
+    handle do v with h,r            →  let f = h v in f r
+    handle let x = a in e with h,r  →  handle a with h, λx. handle e with h,r
+
+tail contexts:
+
+    T ::= □ | let x = e in T
+
+might need tweaking, e.g.
+
+    T ::= ... | handle e with h, λx. T
+
+non-local, proposed:
+
+    handle K[T[do v]] with h,r   (0-free K)
+    →  handle T[lift (h v (λx. handle K[x] with h,r))] with h,r
+    ≡  handle T[lift (let f = h v in f (λx. handle K[x] with h,r))] with h,r
+
+this is reminiscent of the known equivalence for eliminating the return clause,
+suggesting we might somehow move the lifted expr into the return clause
+
+    handle e with h,r = handle let v = e in lift (r v) with h
+
+maybe
+
+    handle T[v] with h, λy. h y (λx. handle K[x] with h,r)
+    ≡ handle T[v] with h, λy. let f = h y in f (λx. handle K[x] with h,r)
+
+(n.b. similar handlers of "open" expressions appear in
+Algebraic Effects and Effect Handlers for Idioms and Arrows)
+
+similarly, we can hoist mismatched operations:
+
+    handle K[T[do v]] with h,r   (n+1-free K)
+    → handle T[v] with h, λy. let u = lift^n (do y) in handle K[u] with h,r
+
+
+handle lift do v; handle lift do v with h,r with (λ_,k. k 5), r
+→c handle lift do v; let x = do v in r x  with (λ_,k. k 5), r
+
+ →f handle lift do v with (λ_,k. k 5), λ_. handle let x = do v in r x with (λ_,k. k 5), r
+ →f do v; handle let x = do v in r x with (λ_,k. k 5), r
+ →f do v; handle do v with (λ_,k. k 5), λx. handle r x with (λ_,k. k 5), r
+ →f do v; let f = (λ_,k. k 5) v in f λx. handle r x with (λ_,k. k 5), r
+ →f do v; let f = (λk. k 5) in f λx. handle r x with (λ_,k. k 5), r
+ →f do v; (λk. k 5) (λx. handle r x with (λ_,k. k 5), r)
+ →f do v; (λx. handle r x with (λ_,k. k 5), r) 5
+ →f do v; handle r 5 with (λ_,k. k 5), r
+
+≡ handle let _ = lift do v in let x = do v in r x  with (λ_,k. k 5), r
+→c handle let x = let _ = lift do v in do v in r x  with (λ_,k. k 5), r
+K = let x = □ in r x
+T = let _ = lift do v in □
+→n handle let _ = lift do v in () with (λ_,k. k 5), λ(). (λ_,k. k 5) v (λx. handle let x = x in r x with h,r)
+
+new rule:
+
+    handle K[T[do v]] with h,r   (n+1-free K)
+    → handle T[()] with h, λ(). let u = lift^n (do v) in handle K[u] with h,r
+
+→n handle () with (λ_,k. k 5), λ(). let u = do v in
+   handle let _ = lift u in () with (λ_,k. k 5), λ(). (λ_,k. k 5) v (λx. handle let x = x in r x with h,r)
+→c let u = do v in
+   handle let _ = u in () with (λ_,k. k 5), λ(). (λ_,k. k 5) v (λx. handle let x = x in r x with h,r)
+→c let u = do v in
+   handle () with (λ_,k. k 5), λ(). (λ_,k. k 5) v (λx. handle let x = x in r x with h,r)
+→c let u = do v in
+   (λ_,k. k 5) v (λx. handle let x = x in r x with h,r)
+→c let u = do v in
+   (λk. k 5) (λx. handle let x = x in r x with h,r)
+→c let u = do v in
+   (λx. handle let x = x in r x with h,r) 5
+→c let u = do v in
+   handle let x = 5 in r x with h,r
+→c do v; handle r 5 with h,r
+
+2023-09-23:
+ramki ogonowe komutują z ewaluacji? coś bardziej skomplikowanego
+
+ale ramki ogonowe wprowadzają zmienne, które chcemy mieć dostępne
+wciąż chcemy handle-stmts
+
+handle-stmts T with h then
+
+może assoc2:
+
+1   let x = handle e with h,λx.r in f  →  handle e with h,λx. let x = r in f
+2   handle e with h,λx. let x = r in f  →  let x = handle e with h,λx.r in f
+
+w którą stronę?
+
+1   E[T[r]]  →  T[E[r]]
+2   T[E[r]]  →  E[T[r]]
+
+ofc. 2, to jest analogiczne do assoc1
+
+statementy, bo mamy dwie formy kontynuacji po wprowadzeniu zmiennej, które są zbędne
+let x = e IN ...
+handle e with h, λx. ...
+
+s ::= let x = e | handle e with h into x | handle s with h | ignore e | { s; ...; s }
+e ::= ret v | do v | v v | { s; ...; e }
+
+
+### TODO
+###
+###    (λx. e) v                   →  e[v/x]
+###    handle ret v with h into x  →  r v
+###    let x = ret v in e          →  e[v/x]
+###    lift ret v                  →  ret v
+###
+###
+###tail contexts:
+###
+###    T ::= □ | let x = e in T
+###
+###might need tweaking, e.g.
+###
+###    T ::= ... | handle e with h, λx. T
+###
+###non-local, proposed:
+###
+###    handle K[T[do v]] with h,r   (0-free K)
+###    →  handle T[lift (h v (λx. handle K[x] with h,r))] with h,r
+###    ≡  handle T[lift (let f = h v in f (λx. handle K[x] with h,r))] with h,r
+
+
+alternatywa:
+
+osobny delimiter dla return clause? właściwie coś takiego robią stmty klamrami ...
+
+⟨ ⟩ : hello shift0
+
+e ::= ret v | let x = e in e | v v | do v | handle e with h | lift e | ⟨ e ⟩
+
+handle e with h, λx. r ≡ ⟨let x = handle e with h in r⟩
+
+    (λx. e) v               →  e[v/x]
+    handle ret v with h     →  ret v
+    let x = ret v in e      →  e[v/x]
+    lift ret v              →  ret v
+
+    let x = a in let y = e in f  →  let y = let x = a in e in f
+
+tail contexts:
+
+    T ::= □ | let x = e in T
+
+non-local, proposed:
+
+    ⟨L[handle K[T[do v]] with h]⟩   (0-free K, ⟨⟩-free L)
+    → ⟨let y = handle T[v] with h in h y (λx. ⟨L[handle K[x] with h]⟩)⟩
+    ≈ ⟨handle T with h; h v (λx. ⟨L[handle K[x] with h]⟩)⟩
+
+chcemy żeby zmienne x i y były dostępne po
+  handle let x = ...; let y = ... with h
+
+tzn. handle nie tworzył nowego zasięgu leksykalnego
+
+albo po prostu możemy wejść handlerami w wyrażenia...
+
+więc w oryginalnym rachunku
+    h(T)[h v (λx. handle K[x] with h,r)
+
+gdzie h(□) = □
+      h(let x = e in T) = handle e with h, λx. T
+      h(handle e with h', λx. T) = ???
+
+chyba można uznać oryginalną formę jako podobną do poprzedniej literatury i wystarczająco prostą
+
+2023-09-24
+
+v ::= x | λx. e
+e ::= ret v | do v | v v | s;e
+s ::= ignore e | let x = e | handle s with h | ⟨ s ⟩ | s;s
+
+overline _e — eval context
+underline e_ — tail context
+
+D — expr tail context
+F — expr eval context
+
+R — stmt tail context
+T — stmt eval context
+
+E — eval context
+
+handle e with h ≡ handle let x = e with h in x
+
+    ⟨L[handle E[D[do v]] with h]⟩   (0-free K, ⟨⟩-free L)
+    → ⟨
+    → ⟨let y = handle D[v] with h in h y (λx. ⟨L[handle E[x] with h]⟩)⟩
+    ≈ ⟨handle T with h; h v (λx. ⟨L[handle K[x] with h]⟩)⟩
+
+2023-09-25
+chyba chcemy też handle i ⟨⟩ w wyrażeniach, bo
+
+    handle ignore e with h  →  ignore handle e with h
+
+alternatywą jest nie mieć handle i lift i po prostu trzymać listę handlerów przy każdym wyrażeniu...
+i zachowywać to przy redukcji
+(może to nie zadziała i to jest rachunek dla leksykalnych handlerów?...)
+przypomina capability passing
+
+v ::= x | λx. e
+f ::= do n v | v v
+e ::= ret v | h^* f^ | let x = e in e | ⟨ e ⟩
+
+alternatively
+e ::= ret v | with hs do n v | with hs lift n app v v | let x = e in e | ⟨ e ⟩
+
+hs ::= · | v, h
+(na pewno może być zmienna?)
+
+lift (e ^ h::hs) → e^hs [do n+1/ do n]
+
+lifta nie można tak o usunąć: gorliwe podstawienie do n+1/do n ominie do, które powstaną dynamicznie
+
+mamy już podstawienie, czemu nie inne metaoperacje?
+stuck metaoperations!
+
+Just as substitution isn't the way we actually implement functions,
+this isn't how we would implement effects.
+
+common:
+    ^h (λx. e) v        →  ^h e[v/x]
+    let x = ret v in e  →  e[v/x]
+    ⟨ret v⟩             →  ret v
+
+with h | | | | do ...
+
+nonlocal:
+
+    ⟨K_n[with h | hs do n v]⟩  →  h v (λx. ⟨K[x]⟩)
+    ⟨C_n[with h | hs do n v]⟩  →  let u = with ⟨C_n[v]⟩ in h v (λx. ⟨cont(C_n[x])⟩)
+    ⟨C_n[with h | hs do n v]⟩  →  with (λxk. h x (λy. preq(C_n)[h v (λx.]let u = ⟨preq(C_n[v]⟩ in h v (λx. ⟨cont(C_n)[x]⟩) ???
+    ⟨C_n[with h | hs do n v]⟩  →  ⟨let u = preq(C_n)[v] in lift (h v (λx. ⟨cont(C_n)[x]⟩))⟩ ???
+    ⟨C_n[with h | hs do n v]⟩  →  let u = ⟨with (let u = ⟨□⟩ in h v λx. ⟨cont(C_n)[x]⟩)∘ do preq(C_n)[v]⟩ in lift (h v (λx. ⟨cont(C_n)[x]⟩))⟩ ???
+    ⟨C_n[with h | hs do n v]⟩  →  ⟨with (let u = ⟨□⟩ in h v λx. ⟨cont(C_n)[x]⟩)∘let u = preq(C_n)[v]⟩ in h v λx. ⟨cont(C_n)[x]⟩
+    ⟨C_n[with h | hs do n v]⟩  →  ⟨preq(C_n)[lift (h v (λx. ⟨cont(C_n)[x]⟩))]⟩
+
+wciąż by się chciało
+
+    ⟨C_n[with h | hs do n v]⟩  →  ⟨preq(C_n)⟩[lift (h v (λx. ⟨cont(C_n)[x]⟩))]⟩
+
+    trzeba zduplikować rozszerzenie kontynuacji: w handlerze i letem
+
+
+fine-grained:
+    ⟨with h | hs do 0 v⟩                  →  with hs app h v (λx.x)
+                                          ≡  let f = with hs app h v in with hs app f (λx.x)
+    ⟨with h | hs do (n+1) v⟩              →  with hs do n v
+    ⟨with h | hs let x = e in e'⟩         →  let x = ⟨^(let x=□ in ⟨e'⟩∘) e⟩ in ⟨e'⟩
+
+aside (rachunek 0):
+
+    let x = e in e'  =  handle e with [], x. e'
+
+return clause i dollar są nie do końca direct-stylowe...
+
+shift+lift wyraża shift0?
+
+efekty = shift + dynamiczne interpretacje
+
+shallow handlers revisited: interpretujemy wszystkie efekty w zasięgu,
+ale delimiter znika w przechwyconej kontynuacji. już wyrażalne głębokimi handlerami + liftem?
+
+Effect handlers a la carte
+
+2023-09-26
+jednak return clause/dolar ma jakąś wartość i nie tak łatwo go zastąpić
+— zapominam, że w środku return clause delimiter znika (wszystko jest liftowane)
+
+2023-09-28
+ANF unika problemu reasocjacji
+
+ale handler też jest letem...
+ponadto komplikujemy inne redukcje.
+ale w sumie handler też używa kontekstów, to czemu nie
+
+może trzeba operację wciągającą delimiter do kontynuacji:
+
+⟨E[capture K] | x. r⟩ → E[λx. ⟨K[x]|x.r⟩]
+
+let k = capture K in h v k
+let k = capture in
+
+⟨T[E[capture K]
+
+⟨T[E[capture K]]
+
+(λk. k 5) K → K[5]
+
+2023-10-03
+
+handle
+  handle f x with h, λx. do x
+with (λx,k. k 5), r
+
+⟨handle
+  ⟨handle f x with h | x. do x⟩
+ with λx,k. k 5
+| x. r⟩
+
+powinno się dać uprościć do
+
+⟨handle
+  ⟨handle f x with h | x. 5⟩
+ with λx,k. k 5
+| x. r⟩
+
+handler do środka:
+
+⟨ ⟨handle handle f x with h with λx,k. k 5 | x. handle do x with λx,k. k 5⟩
+| x. r⟩
+
+handle
+  ⟨⟨handle f x with h | x. do x⟩ | x. r⟩
+with λx,k. k 5
+
+wróćmy do shift0
+
+⟨⟨f x | y. S0 (g y)⟩⟩
+
+⟨ e | x. r ⟩ — delimiter with return clause
+[ e ] — lift
+
+⟨⟨let y = f x in [S0 (g y)]⟩⟩ → ⟨⟨f x | y. ⟨[S0 (g y)]⟩⟩⟩ → ⟨⟨f x | y. S0 (g y)⟩⟩
+
+moglibyśmy mieć
+{{ e | y. E[S0 f]}} → {{ e | y. lift (f (λx. {E[x]}))}}
+
+⟨⟨let y = f x in [S0 (g y)]⟩⟩
+
+2023-10-05
+operację trzeba zliftować na zewnątrz: tam gdzie najzewnętrzniejszy handler, który właśnie obsługuje efekt
+może dałoby się zliftować tyle razy ile trzeba (dla każdego labela... w jakiej kolejności? brzydkie)
+ale można zrobić abort. exception. to nie kosztuje tyle co pełnoprawny handler
+
+⟨C[shift0 f]⟩  →  try ⟨preq(C)[raise f]⟩ finally v. v (λx. ⟨cont(K)[x]⟩)
+⟨E[shift0] f⟩  →  f (λx. ⟨E[x]⟩)
+⟨C[shift0 f]⟩  →  ⟨preq(C)[abort f]⟩ (λx. ⟨cont(C)[x]⟩)
+⟨C[shift0 f]⟩  →  ⟨preq(C)[abort (f (λx. ⟨cont(C)[x]⟩))]⟩
+
+⟨K[abort e]⟩  →  e
+
+C[C f]  →  preq(C)[abort (f (λx. cont(C)[x]))]
+
+second phase
+
+⟨ e ⟩  →  { e } (e closed, no shift0 occurs 0-free in e)
+{ e }  →    e   (e closed, no abort occurs 0-free in e)
+lift e →    e   (e closed, no shift0 or abort occurs inside)
+
+We don't generalize the reduction for abort, assuming that it doesn't occur in source programs
+and arises only from the shift0 reduction, where it is essentially in a tail context (modulo closing delimiters):
+we would only loop there.
+
+jeśli w delimiterze są same aborty, to możemy delimiter zamienić na taki do wyjątków (tani)
+jeśli w delimiterze nie ma żadnych operacji, możemy go usunąć
+
+Optimizing Control with Prequels and Continuations
+
+chyba trzeba
+
+e ::= .... | abort e
+
+abort e = shift0 (λ_. e)
+
+żeby móc zinlinować f...
+
+
+let x = [e]l in [e']l → [let x = e in e']l
+let x = [e]l in p_l → [let x = e in p_l]l
+let x = p_l in [e]l → [let x = p_l in e]l
+
+⟨[e]l⟩l → e
+⟨p_l⟩l → p_l
+[p_l]l → p_l
+
+nie trzeba multikontekstów, aby usunąć parę delimiter-lift
+można napisać gramatykę, dla l-czystych na pierwszej pozycji
+i metafunkcję do usuwania lifta
+
+lift p → p
+⟨s⟩ → delift s
+
+p ::= v | shift0_l' f (l≠l') | let 
+s ::= p | lift e | let x = s in p | let x = p in s | let x = s in s
+
+
+
+⟨C[shift0 f]⟩  →  ⟨preq(C)[abort (f (λx. ⟨cont(C)[x]⟩))]⟩
+⟨C[shift0 f]⟩  →  ⟨preq(C)[f]⟩ (λx. ⟨cont(C)[x]⟩)  ≡  let f = ⟨preq(C)[f]⟩ in f (λx. ⟨cont(C)[x]⟩)
+⟨C[shift0 f]⟩  →  ⟨preq(C)[λ(). f(λx. ⟨cont(C)[x]⟩)]⟩ ()  ≡  let k = ⟨preq(C)[λ(). f(λx. ⟨cont(C)[x]⟩)]⟩ in k ()
+
+let f = (let _ = g x in (λx. 2+x)) in f 3
+let _ = asdf in let f = (λx. 2+x) in f 3
+
+co się dzieje jak mamy ⟨let x1 = 1 in let x2 = 2 in let x3 = 3 in abort (f x1 x2 x3)⟩ i zabraknie rejestrów???
+będą na stosie na zewnątrz delimitera...
+
+Let-floating: moving bindings to give faster programs
+commuting conversion!
+
+Rewriting Control with Prequels and Continuations
+
+rewriting under shift0 binders!!!!!
+
+⟨K[shift0 k. K]⟩
+
+C ::= ⟨C₁[shift0 k. C₂]⟩
+preq(⟨C₁[shift0 k. C₂]⟩) = ⟨C₁[shift0 k. preq(C₂)⟩
+cont(⟨C₁[shift0 k. C₂]⟩) = C₂[k:=λx.⟨cont(C₁)[x]⟩] = ⟨cont(C₁)[shift0 k. cont(C₂)]⟩
+(2023-10-07: co? chyba po prostu cont(⟨C₁[shift0 k. C₂]⟩) = cont(C₂))
+
+może trzeba konteksty od środka
+
+chcemy umieć redukować
+
+⟨f x; shift0_l _. shift0_l' k. e⟩l' → ⟨f x; shift0_l _. shift0_l' _.
+
+induction-recursion... nieee... od środka
+
+Rewriting Control with Prequels and Continuations
+
+2023-10-07
+skomplikowana metaoperacja z trybami:
+może da się zinternalizować
+
+
+let x = shift0 k. e in f  →  shift0 k. let k = λy. let x = k y in f in e
+
+let x = f z in shift0 k. e  →  after x = f z shift0 k. e
+
+after ss shift0 k. e in f
+
+let x = e in after ss shift0 k. e  →  after x = e; ss shift0 k. e
+let x = after ss shift0 k. e in f  →  after ss shift0 k. let k = λy. let x = k y in f in e
+⟨after ss shift0^l,n+1 k.e⟩^l  →  after ⟨; ss shift0^l,n k. let k = λy. ⟨k y⟩ in e
+lift^l after ss shift0^l,n k. e  →  after lift^l; ss shift0^l,n+1 k. let k = λy. lift^l (k y) in e
+⟨after ss shift0^l,0 k. e⟩^l  →  after ⟨; ss abort let k = λx.x in e
+⟨after ss shift0^l,0 k. e⟩^l  →  after ss pure let k = λx.x in e
+after abort e → after shift0 _. e
+after pure e → e
+
+⟨^l;p^l → p^l; ⟨^l
+
+after ⟨ abort e  →  e
+
+prolog/prelude/prequel?
+
+Rewriting Control with Preludes and Continuations
+
+confluence problem?
+shift0 k. (f k; shift0 k'. e)
+nah
+
+after ⟨^l; ss abort^l after ss' shift0^l' k. e  →  after after ⟨^l; ss abort; ss' shift0^l' k. e
+after ⟨^l; ss abort^l after ss' shift0^l' k. e  →  after after ⟨^l; ss abort; ss' shift0^l' k. e
+after ⟨^l; ss abort^l after ss' shift0^l' k. e  →  after after ⟨^l; ss abort; ss' shift0^l' k. e
+
+2023-10-08
+evidence passing = tracking what happened in the prelude
+
+bez lifta.
+ale multiprompty!
+
+aksjomatyzacja materzoka jest słabsza. czyli cps jest słabszy
+
+handlers: resets that also dynamically bind the interpretation of operations.
+
+shift0 with multiple prompts expresses control and control0.
+Delimited control with multiple prompts in theory and practice Paul Downen Zena M. Ariola
+but why they don't work?
+
+after P shift0 k=K in e
+shift0 k. e → after □ shift0 k=□ in e
+
+pytanie: czy bez dedykowanego lifta optymalizacje będą działać? chyba tak...
+anulowanie reseta i lifta: usuwanie pure shifta i usuwanie pure reseta!
+
+λ̂ μ0 wydaje się podobny... nieee
+
+2023-10-11
+walić fine-grained. future work
+
+prawdopodobnie da się redukować bez l-reseta wokół l-wolnego kontekstu...
+
+C[shift0 k. e] → shift0 k'. preq(C)[abort e[k:=λz. under k' (kont(C)[z])]]
+
+shift0 k. e
+
+shift0 k∘□
+
+under K e → K[e]
+
+under K e → K[e]
+
+under k e
+
+shift0 k. e
+
+shift0 k. e
+
+let x = abor
+
+let x = ⟨let y = shift0 k. e in f⟩ in g
+⟨let y = shift0 k. e in f⟩
+
+⟨shift0 l k
+⟨let x = e in f⟩
+⟨under (let x = □ in f) e⟩
+
+⟨shift0^l k[K]. e⟩^l  →  shift0^l k=⟨K⟩
+
+after P shift0^l
+P[shift0^l]
+
+bez potrzeby delimitera na zewnątrz, można łatwo mieć fine-grained
+
+Rewriting Control
+
+obawiam się, że jednak wrócimy do λμ...
+
+
+We have shown that to reason about the future, you can't forget about the past.
+
+2023-10-12
+
+let x = e in shift0 k. f  →  shift0 k. k[let x = e in abort f]
+let x₁ = e₁ in let x₂ = e₂ in shift0 k. f
+→  let x₁ = e₁ in shift0 k. k[let x₂ = e₂ in abort f]
+→  shift0 k. k[let x₁ = e₁ in abort k[let x₂ = e₂ in abort f]]
+
+k[let x = e in abort k[f]] → k[let x = e in f]
+
+k[let x = e in let y = f in abort ]
+
+let x = abort^l e in f → abort^l e
+
+k^l[let x = e in abort^l f] → k^[l]
+
+no przecież, nie potrzeba aborta jak mamy pełnoprawne kontynuacje
+
+let x = e in shift0 k. f  →  shift0 k. let x = k[e] in f  to jest źle???
+let x = shift0 k. e in f  →  shift0 k. e[k:=k[let x = □ in f]]
+
+chcemy first class tails&preludes... nieee...
+powrót do aborta
+
+a może tail+kont z konstrukcją do przedłużania...
+in P do e then f ...
+
+2023-10-13
+Control operators, the SECD-machine, and the λ-calculus.
+
+ma podobną redukcję.
+ale tylko dla ramki kontynuacji, nie dla ramki preludium
+
+v ::= x | λx. e | cont K
+e ::= v | v v | shift0^l k. e | reset l e | e@k | let x = K in e
+P ::= □ | let x = e in P | reset l P
+D ::= □ | let x = D in e | let x = e in D | reset^l D | reset^l D^-l[shift0 l k. e] | k^l@D
+K ::= □ | let x = K in e | reset l K | k@K
+
+k^l @ shift0^l k' e → e[k':=k]
+
+let x = e in k^l@
+
+prel(D@k^l) = prel(D)@k^l
+kont(D@k^l) = kont
+
+preludia są niepotrzebne jak i tak jest abort???
+
+⟨C^l[shift0^l k. e]⟩^l → ⟨C^l[abort e[k:=kont(C)]]⟩^l
+
+jak jest fine-grained to nie są potrzebne, krok po kroku ramki kontynuacji są usuwane z C, otrzymując prel
+
+ale i tak przydatne, bo jak inaczej usuwać rzeczy po aborcie...
+
+⟨let x = e in abort^l e⟩^m
+= ⟨let x = e in shift^l _. f⟩^m
+→ ⟨shift0^l k. let x = e in abort^l f @ k⟩^m
+
+można się powtarzać...
+
+Felleisen 1987 nawet jest cytowany w A General Fine-Grained Reduction Theory for Effect Handlers
+
+ale dobra, są różnice:
+floating out shifta, kiedy jest w ogonie (po prawej leta).
+to jest kluczowe, aby spotkać shifta z delimiterem.
+wydawałoby się, że wiele można osiągnąć reasocjując lety i konsumując samą kontynuację:
+ale delimitery blokują reasocjację.
+
+spostrzeżenie, że delimitery dla shifta0 można duplikować
+spostrzeżenie, że funkcje nie wystarczają jak mamy delimitery, trzeba pierwszoklasowe kontynuacje
+
+D^l[shift0^l k. shift0^l k' e] → shift0^l k'. D^l[shift0^l k. abort e]@k'
+
+dobra, najpierw rachunek statyczny. wyzwania będą podobne...
+
+2023-10-17
+Capturing the Future by Replaying the Past?
+niezbyt powiązane, ale ładny przykład
+
+2023-11-10
+uwaga: w preludium mogą być ramki z shift0...
+
+może z multilabelami chcemy shift0, który zostawia delimitery innego labela na stosie?
+i abort który wywala wszystko...
+
+C felleisena: przechwycenie kontynuacji, abort, delimiter jednocześnie.
+łączy trzy osobne funkcjonalności naszych operatorów w jeden.
+
+draw & abort.
+
+2023-11-11
+albo po prostu letcc i abort...
+
+let x = abort e in f  →  abort e
+let x = e in abort f  →  
+let x = letcc k in e in f  →  letcc k in let x = e[k:=k[let x = □ in f]] in f
+let x = e in letcc k in f  →  letcc k
+
+shift0 k. e = letcc k in (abort e)
+
+when we get to the point of evaluating "shift0 k. e", it is clear what the continuation will be:
+let x = □ in f(x,y).
+
+2023-11-12
+reminder: we cannot just go to ANF because delimiters block let reassociation
+
+2023-11-13
+shift/reset —  letcc k. e, abort- e, plug e K
+shift k. e  =  letcc k in abort- e
+reset e = plug e □
+
+K ::= □ | let x = K in e
+
+let x = e in letcc k in f  →  letcc k in let x = e in f
+let x = letcc k in f in e  →  letcc k in f[k:=k[let x = □ in e]]
+plug (letcc k in e) K  →  e[k:=K]
+plug v □  →  v
+plug e (K[let x = □ in f])  →  plug (let x = e in f) K
+let x = P[abort e] in f  →  P[abort e]
+
+shift0/reset — letcc k. e, abort e, plug e K
+shfit0 k. e =  letcc k in abort e
+
+nie, bo kto broni zrobić plug do innego labela?
+shift^l k. plug^l' e k
+
+shift^l k. e  →  letcc^l k' in abort- e[k:=λx. reset^l plug x k']
+control0 k. e →  letcc k' in abort e[k:=λx. plug x k']
+
+control0λ k. e → control0 k. e[k:=λx. plug x k]
+
+lepiej podstawienie w stylu λμ? e@k → let x = e in f @ k
+w abelli i tak trzeba będzie to mieć explicit
+
+let x = P[control0 k. e] in f
+
+let x = f () in let () = yield () in let y = g () in yield ()
+
+wciąż może być tak, że k jest z innego labela niż reset
+reset^l plug x k
+ale może to nie problem?
+
+reset^l (... reset^l' (... shift0^l k. (shift0^l' k'. e)@k  ...) ...)
+
+contvars κ
+K^l ::= □ | κ^l | K^l[let x = □ in e] | K^l[⟨□⟩^l']
+
+e ::= v | v v | let x = e in e | ⟨e⟩^l | control0 k^l. e | e@k^l
+
+will need labeling context for contvars...
+e ::= v | v v | let x = e in e | ⟨e⟩^l | control0 k^l. e | e@k
+
+
+uwaga: reguły typu let x = P[control0 k. e] in f  →  control0 k. e[e'@k:=let x = e' in f@k]
+nie działają, bo trzeba zduplikować delimiter!!!
+
+2023-11-16
+reasoning logic abelli może zdefiniować podstawienie kontynuacji
+
+sztuczka z parametrami
+   Type letcc  L -> (kvar L -> expr) -> expr.
+   Type plug   L -> expr -> kvar L -> expr.
+raczej nie działa
+(Types of variables are not fully determined)
+dla letcc, abortm, delim, typ L labeli jest nieokreślony (jakby egzystencjalny?)
+czego abella nie wspiera
+
+2023-11-17
+
+newd e
+⟨ e →
+⟨⟨^ let x = v in e
+
+(⟨ e) ⟩  →
+
+⟨ e ⟩
+
+abort-only delimiter?
+abort accumulates labels???
+close only-delimiter?
+
+(let x = e1 in e2) ⟩ → let x = e1 in (e2⟩)
+
+Kontinuations in ANF?
+
+NB.  let x = e1 in f y
+f y may delimit operations in e1
+
+!!!!!!
+
+⟨P^l[control0^l' k. e]⟩^l  →  ⟨P^l[abort^l control0^l' k. e[k:=k[⟨□⟩^l]]]⟩^l
+⟨P^l[control0^l k. e]⟩^l  →  ⟨P^l[abort^l e[k:=□]]⟩^l
+
+⟨P^l[abort^l e]⟩^l'  →  ⟨P^l[abort^l' abort^l e]⟩^l'
+
+2023-11-20
+felleisen ma Ctail
+let x = e in letcc k in f  =  letcc k in let x = e in f
+herbelin ma skierowane letμ
+
+po co return clause w shift0?
+
+⟨e |x. f⟩ = ⟨let x = e in shift0 _. f⟩
+
+let x = shift0 k. e in shift0 k. f
+→ shift0 k. e[(let x = ę in shift0 k. f) @ k / ę @ k]
+→ shift0 k. e[(let x = ę in abort f) / ę @ k]
+
+program refleksji względem translacji do rachunku cbv jest słaby, gdy teoria redukcji w cbv plotkina jest słaba
+
+2023-11-22
+
+fgcbv optymalizuje więcej niż plotkin:
+
+((λy. ω)(zz))ω
+= let x = (λy. ω)(zz) in ω
+= let x = let y = zz in (λy. ω) y in x ω
+= let x = let y = zz in ω in x ω
+= let y = zz in let x = ω in x ω
+= let y = zz in ω ω
+
+ω((λy. ω)(zz))
+= let x = (λy.ω)(zz) in ω x
+= let x = let y = zz in (λy. ω) y in ω x
+= let x = let y = zz in ω in ω x
+= let y = zz in let x = ω in ω x
+= let y = zz in ω ω
+
+—————
+
+dabi potwierdza, że to bardziej pokazanie, że to "ewaluacja" jest zgodna z "ewaluacją" w CPS.
+to nie są mocne reguły optymalizacji, ale reguły ewaluacji, które mogą się wykonać w ogólnych kontekstach,
+nie tylko w kontekstach ewaluacji
+a icfp23, to alternatywne reguły "ewaluacji" które optymalizują najprostsze przypadki, bez refleksji ani CPS
+
+2023-11-24
+
+
+  let y = let x = shift0 k. e in shift0 l. f in z
+  ———————                        ----------- ————         → let shift0 l
+
+  let x = shift0 k. e in shift0 l[let y = □ in z]. f
+  ——————— ----------- ——————————————————————————————      → let shift0 k
+
+  shift0 k[let x = □ in shift0 l[let y = □ in z]. f]. e
+
+
+
+  let y = let x = shift0 k. e in shift0 l. f in z
+          ——————— ----------- ——————————————              → let shift0 k
+
+  let y = shift0 k[let x = □ in shift0 l. f]. e in z
+  ——————— ------------------------------------- ————      → let shift0 k
+
+  shift0 k[let y = let x = □ in shift0 l. f in z]. e
+           ———————              ----------- ————          → let shift0 l
+
+  shift0 k[let x = □ in shift0 l[let y = □ in z]. f]. e
+
+
+nie trzeba wszystkiego robić równolegle. aplikacje i lety trzeba
+[2023-12-02 a może jednak... przecież to nie kontrprzykład wyżej?]
+
+2023-11-27
+dla prostoty dynbinding może zastąpić delimiter
+
+dlet^l v in e end
+
+rachunek z bezpośrednimi operacjami
+op^l v K
+i tak by potrzebował aborty
+Again, it seems continuations are needed instead of plain functions.
+Such a calculus would still need an abort construct
+
+2023-11-29
+instead of lbl contexts, have "dynamically typed" (potentially stuck if lbl mismatch)
+structural substitution relation?
+
+though lbl contexts might not be so bad, since there is no "type" of the entire expression,
+maybe not many lemmas to show
+
+
+2023-12-02
+
+
+P ::= □ | let x = e in P | ⟨D^l[shift0^l k. P]⟩^l
+K ::= □ | let x = K in e | ⟨K⟩^l
+
+let x = P[shift0^l κ. e₁] in e₂  →  P[shift0^l κ. e₁[ e @ κ  :=  let x = e in e₂ @ κ ]]
+⟨P[shift0^l κ. e₁]⟩^l'   →  ⟨P[abort^l' shift0^l κ. e₁[ e @ κ  :=  ⟨e⟩^l' @ κ]]⟩^l'
+⟨P[shift0^l κ. e₁]⟩^l    →  ⟨P[abort^l e₁[ e @ κ  :=  ⟨e⟩^l ]]⟩^l
+P[shift0^l κ. e₁] @ κ^l  →  P[abort^l e₁] @ κ^l
+(shift0^l κ. e) @ κ^l  →  e
+shift0^l κ. (e @ k^l)  →  e
+
+
+2023-12-02
+
+chcielibyśmy
+
+  let y = shift0 k[let x = □ in shift0 l. f]. e₁ in z
+  ———————                       ------------    ————      → let shift0 l
+
+  shift0 k[let x = □ in shift0 l[let y = □ in z]. f]. e₁
+
+
+zatem chcielbyśmy, aby
+  shift0 κ. e₁[ e @ κ  :=  let x = e in □ @ κ]
+
+było preludium...
+nie wygląda aby to miało sens...
+
+2023-12-03
+Z property for confluence
+https://conference.imp.fu-berlin.de/cade-25/uploads/2015_iwc_nakazawa.pdf
+
+An Operational Account of Call-By-Value
+Minimal and Classical λ-calculus in “Natural
+Deduction” Form
+
+Herbelin, Zimmerman
+
+2023-12-05
+
+zjadanie ramek kontynuacji jest jak permutative conversion
+
+w paperze Compositional Z
+jest podobny przykład do mojego?
+
+
+ ⟨ ⟩^l    reset
+-⟨ ⟩^l-   reset minus (only aborts and dynamic binding)
+=⟨ ⟩=     reset minus minus (purity assertion)
+
+
+2023-12-15
+
+E[T[e]] →  T[E[e]] ?
+
+appears in Beyond Polarity: Towards a Multi-Discipline
+Intermediate Language with Sharing
+
+E=let x = □ in e3  T=let y = e1 in □
+let x = let y = e1 in e2 in e3  →  let y = e1 in let x = e2 in e3
+
+E=⟨□⟩  T=let x = e1 in e2
+⟨let x = e1 in e2⟩  →  let x = e1 in ⟨e2⟩  WRONG
+
+E=let x = □ in e3  T=⟨D[shift0 κ. e]⟩
+let x = ⟨D[shift0 κ. e]⟩ in e3  → ⟨D[shift0 κ. let x = e in e3]⟩  MAYBE?
+
+E=⟨□⟩  T=⟨D[shift0 κ. e]⟩
+⟨'⟨D[shift0 κ. e]⟩⟩'  →  ⟨D[shift0 κ. ⟨'e⟩']⟩  MAYBE?
+
+2023-12-16
+
+don't need nondeterminism (guess if delim is part of ⟨D[shift0 κ. e]⟩ or a kont frame) in the
+inductive characterization of rewrites
+just remove everything from the stack up to the matching delim if you encounter a shift0
+matching the runtime behavior
+
+abella doesnt have custom infix
+
+2023-12-19
+
+let x = ⟨(abort shift0 κ. ... κ[u] ...); (abort shift0 κ. ... κ[u] ...)⟩ in e
+→ ⟨(abort shift0 κ. ... κ[let x = u in e] ...); (abort shift0 κ. ... κ[u] ...)⟩
+→ ⟨abort shift0 κ. ... κ[let x = u in e] ...⟩
+→ shift0 κ. ... κ[let x = u in e] ...
+
+let x = ⟨(abort shift0 κ. ... κ[u] ...); (abort shift0 κ. ... κ[u] ...)⟩ in e
+→ ⟨(abort shift0 κ. ... κ[u] ...); (abort shift0 κ. ... κ[let x = u in e] ...)⟩
+→ ⟨(abort shift0 κ. ... κ[u] ...); (abort shift0 κ. ... κ[let x = u in e] ...)⟩
+→ ⟨abort shift0 κ. ... κ[u] ...⟩
+→ shift0 κ. ... κ[u] ...
+
+⟨D[shift0 κ. □]⟩ nie jest kontekstem ogonowym... poprzednie shifty w D mogły coś usunąć ze stosu (spod zewnętrznego reseta)
+
+nawet ⟨P[shift0 κ. □]⟩ nie jest
+
+za to ⟨K[shift0 κ. □]⟩ jest??? no bo się redukuje do ⟨shift0 ...⟩
+
+P[c κ. e]
+instead of focusing P is pure, focus on c is first?
+
+⟨⟨P[shift0 κ. □]⟩⟩ ten zewnętrzny delimiter może nie istnieć, kiedy dojdziemy do tego shift0
+
+dla ciągu letów bez resetów, samo to, że wykonujemy kod oznacza, że stos się nie zmienił
+shift0 działa na granularności fragmentów między resetami
+
+może kolorowy shift + abort w stylu shift0
+
+to też paskudne... shift^l κ. abort^l' k[e]
+
+2023-12-22
+
+anotacje czystości na letach.
+p ::= · | pure | l1,...,ln-pure
+
+let^p x = e in e
+
+trzeba się upewnić, że ⟨⟨let x = e1 in A¹ e2⟩²⟩¹ rzeczywiście działa jak multireset
+
+nie działa...
+ ⟨⟨let x = S² κ. (λx. κ[x]) in A¹ e2⟩²⟩¹ → (λx. A¹ e2)
+
+
+E=⟨□⟩  T=⟨D[shift0 κ. e]⟩
+⟨⟨D[shift0 κ. e]⟩¹⟩²  →  ⟨D[shift0 κ. ⟨e⟩²]⟩¹ WRONG
+
+E=let x = □ in e3  T=⟨D[shift0 κ. e]⟩
+let x = ⟨D[shift0 κ. e]⟩ in e3  → ⟨D[shift0 κ. let x = e in e3]⟩  MAYBE?
+
+tension: left side of let gets smaller (good).
+inside of shift gets bigger (also good)?
+
+let x = ⟨abort e⟩ in e3  → ⟨abort let x = e in e3⟩  MAYBE?
+
+let x = ⟨(abort v); (abort e)⟩ in e3 → ⟨(abort v); (abort let x = e in e3)⟩
+↓                                      ↓
+let x = ⟨abort v⟩ in e3                ⟨abort v⟩
+↓                                      ↓
+let x = v in e3                        v
+
+WRONG
+
+v ::= x | λx. e
+e ::= v | let^·|-ls x = e in e | S^l κ. e | κ[e] | ⟨e⟩^ls
+L ::= let x = e in □ | let x = e in L
+
+(λx. e) v → e{x/v}
+let x = v in e → e{x/v}
+⟨v⟩^p → v
+let x = S^l κ. e₁ in e₂ → S^l κ. e₁{κ/κ[let x = □ in e₂]}
+⟨S^l κ. e⟩^p → e{κ/[⟨□⟩^p]}  (l in p)
+⟨S^l κ. e⟩^p → e{κ/κ[⟨□⟩^p]}  (l not in p)
+
+let x = e in x → e
+let -p₁ x = let -p₂ y = e₁ in e₂ in e₃ → let -p₂ y = e₁ in let -p₁ x = e₂ in e₃
+κ^l[S^l κ'. e] → e{κ'/κ}
+   (shifts with multiple "OR"ed labels (whatever's closest) would make this rule wrong)
+κ^l[let -* x = e₁ in e₂] → let -* x = e₁ in κ^l[e₂]
+⟨let -p₁ x = e₁ in e₂⟩^p₂ → let -p₁ x = e₁ in ⟨e₂⟩^p₂  (p₂ ⊆ p₁)
+⟨L[S^l κ. ⟨e⟩^p]⟩^p → ⟨L[e{κ/⟨□⟩^p}]⟩^p (l in p)
+⟨L[S^l κ. e]⟩^p → ⟨L[A^l e{κ/[⟨□⟩^p]}]⟩^p  (l in p)
+⟨L[S^l κ. e]⟩^p → ⟨L[A^hd(p) S^l κ. e{κ/κ[⟨□⟩^p]}]⟩^p  (l not in p)
+                     A^1 – 1 stk frame? breaks invariant about indivisible stack fragments. second pass
+                     anyway, not necessary
+
+co z redukcją rozdzielczą
+
+⟨ S^l κ. e₁ | x. e₂ ⟩^ł  →  S^l κ. e₁{κ/κ[⟨□|x.e₂⟩^ł]}
+jeden krok można zrobić, potem S^l jest w return clause i nic się nie da
+
+do zbadania: system typów pozwalający na redukcje
+
+Effect handlers are Turing-complete (stack is tape)
+
+https://discuss.ocaml.org/t/spawning-a-fiber-will-disable-effect-handlers-installed-after-main-loop/13710/3
+fixed by pluggable continuations?
+
+2023-12-25
+
+AGFGRTEH nie ma let reassociation
+
+handle
+  let id = let y = e₁ in (λx. x) in id z
+with h,r
+→ (let reassoc)
+handle
+  let y = e₁ in let x = (λx. x) in id z
+with h,r
+→ (let val)
+handle
+  let y = e₁ in (λx. x) z
+with h,r
+→ (app val)
+handle
+  let y = e₁ in z
+with h,r
+
+handle
+  let id = let y = e₁ in (λx. x) in id z
+with h,r
+→ (handle distrib)
+handle
+  let y = e₁ in (λx. x)
+with h, λid. handle id z with h,r
+→ (handle distrib)
+handle
+  e₁
+with h, λy. handle (λx. x) with h, λid. handle id z with h,r
+→ (handle val)
+handle
+  e₁
+with h, λy. handle (λx. x) z with h,r
+
+
+  handle let y = let x = e1 in e2 in e3 with h,r
+→ handle let x = e1 in let y = e2 in e3 with h,r
+→ handle e1 with h, λx. handle let y = e2 in e3 with h,r
+→ handle e1 with h, λx. handle e2 with h, λy. handle e3 with h,r
+
+
+  handle let y = let x = e1 in e2 in e3 with h,r
+→ handle let x = e1 in e2 with h, λy. handle e3 with h,r
+→ handle e1 with h, λx. handle e2 with h, λy. handle e3 with h,r
+
+so let is ok.
+
+what about return clause redundancy
+
+⟨ e | x. x ⟩
+
+
+2023-12-28
+
+⟨L[S κ. ⟨e⟩]⟩ → ⟨L[e{κ:=⟨□⟩}]⟩
+odpowiada ⟨λ⟩ z ASDC
+
+  S₀ k. ⟨(λx. S₀ z. k x) e⟩
+≡ S κ. ⟨let x = e in (λx. S₀ z. (λx. κ[x]) x) x⟩
+→ S κ. ⟨let x = e in S₀ z. (λx. κ[x]) x⟩
+→ S κ. ⟨let x = e in A κ[x]⟩
+≈ e   (jeśli κ nie ma innych resetów, to)
+
+  (λx. E[x]) e
+≡ let x = e in (λx. E[x]) x
+→ let x = e in E[x]
+
+jeśli E ≡ □, to
+  let x = e in x  →  e  = E[e]
+
+jeśli E ≡ let y = E' in e', to
+  let x = e in let y = E'[x] in e'
+← let y = let x = e in E'[x] in e'
+← let y = e in e'
+≡ E'[e]
+
+
+2024-01-04
+⟦do v⟧ ≡ shift₀ k. λh. h ⟦v⟧ (λ x. k x h)
+⟦handle e {x,r. eh; x. er}⟧ ≡ ⟨⟦e⟧ | x. λh. ⟦er⟧⟩ (λx. λr. ⟦eh⟧)
+⟦handle e {x,r. eh}⟧ ≡ ⟨⟦e⟧⟩ (λx. λr. ⟦eh⟧)
+
+  ⟨let x = e in shift₀ k. λh. h v (λx. k x h)⟩ (λx r. eh)
+≡ let l = ⟨let x = e in shift₀ k. λh. h v (λx. k x h)⟩ in l (λx r. eh)
+
+dlaczego to działa?
+czy jakiś shift w środku nie może wywalić tej aplikacji?
+
+---
+
+abort_fiber_1
+abort_fiber_2
+
+handle
+  handle  af2(); e with af2 (), k → af1(k)
+with af1(k), _ → k ()
+≡ ⟨ ⟨ shift₀ k. λh. h () (λ x. k x h); e ⟩ (λ() k. af1(k)) ⟩ (λk _. k ())
+→ ⟨ (λh. h () (λ x. (λz. ⟨z; e⟩) x h)) (λ() k. af1(k)) ⟩ (λk _. k ())
+→ ⟨ (λ() k. af1(k)) () (λ x. (λz. ⟨z; e⟩) x (λ() k. af1(k))) ⟩ (λk _. k ())
+→ ⟨ (λk. af1(k)) (λ x. (λz. ⟨z; e⟩) x (λ() k. af1(k))) ⟩ (λk _. k ())
+→ ⟨ af1(λ x. (λz. ⟨z; e⟩) x (λ() k. af1(k))) ⟩ (λk _. k ())
+→ ⟨ af1(λ x. ⟨x; e⟩ (λ() k. af1(k))) ⟩ (λk _. k ())
+
+ok, to działa dzięki niezmiennikowi: z k robimy (λx. k x h),
+każdy reset jest potem aplikowany do h (lambdy która jest handlerem)
+żadnej redukcji z tej translacji nie wywnioskujemy w ogólności
+
+
+2023-01-05
+  handle let x = let y = let z = do in e1 in e2 in e3 with h,r
+→ handle let y = let z = do in e1 in e2 with h, λx. handle e3 with h, r
+→ handle let z = do in e1 with h, λy. handle e2 with h, λx. handle e3 with h, r
+→ handle do with h, λx. handle e1 with h, λy. handle e2 with h, λx. handle e3 with h, r
+
+ccs: ⟨ S κ. e | y. e'⟩ → e{κ:=⟨□|y.e'⟩}
+
+  ⟨let y = S κ. e in A e'⟩
+→ ⟨S κ. e{κ:=κ[let y = □ in A e']}⟩
+→ e{κ:=⟨let y = □ in A e'⟩}
+
+zgadza się
+
+fine calc: ⟨let x = e in S k. e'⟩ → ⟨let x = e in S _. e'{κ:=⟨□⟩}⟩
+
+ccs:
+  ⟨let x = e in S k. e'⟩
+→ ⟨e | x. ⟨S k. e⟩⟩
+→ ⟨e | x. e{κ:=⟨□⟩}⟩
+
+fine calc: ⟨let x = e in let y = e in S k. e'⟩ → ⟨let x = e in let y = e in S _. e'{κ:=⟨□⟩}⟩
+
+ccs:
+  ⟨let x = e in let y = e in S k. e'⟩
+→ ⟨e | x. ⟨let y = e in S k. e'⟩⟩
+→ ⟨e | x. ⟨e | y. ⟨S k. e'⟩⟩⟩
+→ ⟨e | x. ⟨e | y. e'{κ:=⟨□⟩}⟩⟩
+≡ ⟨let x = e in A⟨let y = e in A e'{κ:=⟨□⟩}⟩⟩
+→ ⟨let x = e in let y = e in A e'{κ:=⟨□⟩}⟩ (Materzok ⟨λ⟩)
+
+2023-01-09
+dowód równoważności operacyjnej niewprost
+
+załóżmy, że e → e', e się pętli, e' nie
+
+dobra chyba to nie działa.
+
+
+faktoryzacja: (→₁ ∪ →₂)* ⊆ →₁* · →₂*
+
+standardyzacja jest mocniejsza (np. nawet wewnątrz λ redukcja od lewej do prawej)
+
+jeśli t → λx. t', to 
+
+crary ma bifurkację
+https://www.cs.cmu.edu/~crary/papers/2009/standard.pdf
+
+to jest chyba to samo co faktoryzacja, ale chcemy faktoryzować nie na
+eval i ogólna redukcja
+ale na
+eval i nieeval
+
+commutation to co innego!
+
+kontekst L jest tym samym, co w rachunkach explicit substitution Accattoliego
+
+Accattoli ma wszystko co trzeba
+An Abstract Factorization Theorem for Explicit Substitutions
+
+Factorize Factorization
+tłumaczy związki między postponement, commutation, factorization
+
+trzeba znaleźć prosty rachunek
+i sprawdzić hindley-rosen i linear swap na dodatkowych redukcjach
+
+(λx. e) v             →  e{x:=v}
+let x = v in e        →  e{x:=v}
+⟨v⟩                   →  v
+⟨S κ. e⟩              →  e{κ:=⟨□⟩}
+⟨S' κ. e⟩             →  S κ. e{κ:=κ[⟨□⟩]}
+let x = S κ. e in e'  →  S κ. e{κ:=κ[let x = □ in e']}
+
+let x = e in x        →  e
+let x = L[e] in e'    →  L[let x = e in e']
+κ[S κ'. e]            →  e{κ':=κ}
+⟨letp x = e in e'⟩    →  letp x = e in ⟨e'⟩
+κ[letp x = e in e']   →  letp x = e in κ[e']
+⟨L[S κ. e]⟩           →  ⟨L[A e{κ:=⟨□⟩}]⟩
+⟨L[A ⟨e⟩]⟩            →  ⟨L[e]⟩
+⟨L[S' κ. e]⟩          →  ⟨L[A S' κ. e{κ:=κ[⟨□⟩]}]⟩
+
+czy lift jest potrzebny? handle i reraise z większym indeksem
+
+handle e with opl v, k → k[opl (1) v]
+
+2023-01-12
+
+purity assertion i konfluencja...
+co z ⟨ e pure ⟩?
+
+  ⟨letp x = let y = e1 in e2 in e3⟩
+→ letp x = let y = e1 in e2 in ⟨e3⟩
+→ let y = e1 in letp x = e2 in ⟨e3⟩
+
+  ⟨letp x = let y = e1 in e2 in e3⟩
+→ ⟨let y = e1 in letp x = e2 in e3⟩
+
+let reassocjacja musi rozprowadzać czyste labele
+
+let-id gubi asercję...
+
+letp x = e in x != e
+
+⟨letp x = e in x⟩ → letp x = e in ⟨x⟩ → letp x = e in x
+
+
+2023-01-13
+
+⟨L₁[A L₂[⟨e⟩]]⟩ ???
+
+⟨L₁[A ⟨letp x = e₁ in e₂⟩]⟩
+psuje konfluencję
+pewnie trzeba
+⟨L₁[A Lp[⟨e₂⟩]]⟩
+albo
+⟨L[A letp x = e₁ in e₂]⟩ → ⟨L[letp x = e₁ in A[e₂]]⟩
+
+albo S κ. letp x = e₁ in e₂ → letp x = e₁ in S κ. e₂  (2023-01-19: źle)
+
+2023-01-18
+
+można mieć algebre boolowską w asercjach czystości
+
+podobne: With or Without You: Programming with Effect Exclusion
+
+2023-01-19
+
+lift e ≡ handle e with op v k → S κ. ask(κ) v (λx. κ[k x]) ≡ ⟨e|λ v k. S κ. ask(κ) v (λx. κ (k x))⟩
+only for handlers, with S we retain control
+
+what about nesting
+κ₂[k x] = κ₂[(λx. κ₁[x]) x] = κ₂[κ₁[x]]
+should work(?)
+
+ok, it's not a lift... it's elaborate identity
+lift e ≡ handle e with op v k → S κ₁. S κ₂. ask(κ₂) v (λx. κ₂[κ₁[k x]])
+
+ok, ale też pomija lifty...
+
+do v = do 0 v (λx. x)
+
+do n v k =
+  S κ. match ask(κ)
+  | Lift → do (n+1) v (λx. κ[k x])
+  | Hndl f → if n = 0 then f v (λx. κ[k x])
+
+
+do v = do 0 v (λx. x)
+do n v k = S κ. ask(κ) n v (λx. κ[k x])
+
+lift e  ≡  ⟨ e | λn x k. do (n+1) x k ⟩
+hndl e { op x k → e }  ≡  ⟨ e | λn x k. if n = 0 then e else do (n-1) x k
+
+
+handle lift e with h → e
+tyczyłby się tylko operacji, a nie shiftów. więc nie można zredukować
+
+LIFTY TO TEŻ ADNOTACJE NA LETACH!
+
+asercja czystości i lift jedynie coś zaznaczają na stosie
+
+więc działa
+handle lift e with h,λx.r  → let x = e in r
+<letlift x = e in abort r | h>
+let x = e in <abort r | h>
+let x = e in r
+
+let x = pure^l e in f  ≈  let l!=0 x = e in f
+let x = lift^l e in f  ≈  let l+=1 x = e in f
+
+może reset to też let........... przecież to dolar
+ale nie do końca, prawa strona nie musi być kontynuacją
+w dodatku resety tak się nie dodają:  ⟨⟨e⟩^l⟩^ł != ⟨e⟩l,ł
+
+rozprowadzam lifty i pure ale od początku chodzi o nie rozprowadzanie resetów?
+
+
+2023-01-21
+
+     ⟨let x = e₁ in let y = S κ. e₂ in S κ. e₃⟩
+→opt ⟨let x = e₁ in let y = S κ. e₂ in A e₃{κ:=⟨□⟩}⟩
+→evl ⟨let x = e₁ in S κ. e₂{κ:=κ[let y = □ in A in A e₃{κ:=⟨□⟩}]}⟩
+TO NIE EV!
+
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→opt ⟨let x = S κ. e₂ in A e₃{κ:=⟨□⟩}⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in A e₃{κ:=⟨□⟩}]}⟩
+→evl e₂{κ:=⟨let x = □ in A e₃{κ:=⟨□⟩}⟩}
+
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in S κ. e₃]}⟩
+→evl e₂{κ:=⟨let x = □ in S κ. e₃⟩}
+→opt e₂{κ:=⟨let x = □ in A e₃{κ:=⟨□⟩}⟩}
+
+e₁ -opt> e₂ -evl> e₃
+
+⇒
+
+e₁  -evl>* -opt>*  e'  *<evl- e₃
+
+ogólniejsze kryterium
+(confluent swap)
+
+2023-01-22
+co jak mamy □ w L?
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→opt ⟨let x = S κ. e₂ in A e₃{κ:=⟨□⟩}⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in A e₃{κ:=⟨□⟩}]}⟩
+→opt ⟨A e₂{κ:=⟨let x = □ in A e₃{κ:=⟨□⟩}⟩}⟩
+
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in S κ. e₃]}⟩
+→opt ⟨A e₂{κ:=⟨let x = □ in S κ. e₃⟩}⟩
+→opt ⟨A e₂{κ:=⟨let x = □ in A e₃{κ:=⟨□⟩}⟩}⟩
+
+2023-02-20
+
+najpierw tylko tail-redukcja. bez purity, to jest bardziej skomplikowane niż się wydawało
+
+core:
+(λx. e) v             →  e{x:=v}
+let x = v in e        →  e{x:=v}
+⟨v⟩                   →  v
+⟨S κ. e⟩              →  e{κ:=⟨□⟩}
+⟨S' κ. e⟩             →  S κ. e{κ:=κ[⟨□⟩]}
+let x = S κ. e in e'  →  S κ. e{κ:=κ[let x = □ in e']}
+
+do rozważenia:
+⟨L[S κ. e]⟩           →  ⟨L[A e{κ:=⟨□⟩}]⟩
+⟨L[S' κ. e]⟩          →  ⟨L[A S' κ. e{κ:=κ[⟨□⟩]}]⟩
+
+Hindley-Rosen (strong commutation)
+
+⟨let x = S κ. e₁ in S κ. e₂⟩       →  ⟨S κ. e₁{κ:=κ[let x = □ in S κ. e₂]}⟩       →  e₁{κ:=⟨let x = □ in S κ. e₂⟩}
+             ↓                                                                                      ↓*
+⟨let x = S κ. e₁ in A e₂{κ:=⟨□⟩}⟩  →  ⟨S κ. e₁{κ:=κ[let x = □ in A e₂{κ:=⟨□⟩}]}⟩  →  e₁{κ:=⟨let x = □ in A e₂{κ:=⟨□⟩}⟩}
+
+trik-core:
+(λx. e) v             →  e{x:=v}
+let x = v in e        →  e{x:=v}
+⟨v⟩                   →  v
+K[S κ. e]             →  S κ. e{κ:=κ[K]}  (K reset-free)
+⟨K[S κ. e]⟩           →  e{κ:=K}          (K reset-free)
+
+
+a co jeśli traditional core:
+(λx. e) v             →  e{x:=v}
+let x = v in e        →  e{x:=v}
+⟨v⟩                   →  v
+⟨K[S κ. e]⟩           →  e{κ:=K}          (K reset-free)
+
+a to są optymalizacje:
+⟨S' κ. e⟩             →  S κ. e{κ:=κ[⟨□⟩]}
+let x = S κ. e in e'  →  S κ. e{κ:=κ[let x = □ in e']}
+⟨L[S κ. e]⟩           →  ⟨L[A e{κ:=⟨□⟩}]⟩
+⟨L[S' κ. e]⟩          →  ⟨L[A S' κ. e{κ:=κ[⟨□⟩]}]⟩
+
+wtedy optymalizacje nie są konfluentym modułem...
+
+———
+
+może trzeba decreasing diagrams?
+
+ale na początek, najprostsze (bez modyfikacji rachunku): inne miary do indukcji, w których zjadanie kontynuacji ma mniejszą wagę
+
+2023-02-21
+
+a może:
+
+core:
+(λx. e) v             →  e{x:=v}
+let x = v in e        →  e{x:=v}
+⟨v⟩                   →  v
+⟨S κ. e⟩              →  e{κ:=⟨□⟩}
+⟨S' κ. e⟩             →  S κ. e{κ:=κ[⟨□⟩]}
+let x = S κ. e in e'  →  S κ. e{κ:=κ[let x = □ in e']}
+
+opt:
+⟨S κ. e⟩                   →  e{κ:=⟨□⟩}
+⟨L[let x = S κ. e in e']⟩  →  ⟨L[e{κ:=⟨let x = □ in e'⟩}]⟩
+⟨L[S κ. e]⟩                →  ⟨L[A e{κ:=⟨□⟩}]⟩
+⟨L[S' κ. e]⟩               →  ⟨L[A S' κ. e{κ:=κ[⟨□⟩]}]⟩
+
+ale teraz opt nie ma diamond property i trudniej udowodnić konfluencję
+
+mamy
+⟨let x = S κ. e₁ in S κ. e₂⟩       →evl  ⟨S κ. e₁{κ:=κ[let x = □ in S κ. e₂]}⟩
+             ↓opt                                       ↓opt*
+⟨let x = S κ. e₁ in A e₂{κ:=⟨□⟩}⟩  →evl  ⟨S κ. e₁{κ:=κ[let x = □ in A e₂{κ:=⟨□⟩}]}⟩
+
+wróćmy do faktoryzacji
+
+chcemy →opt · →evl  ⊆  →evl · →opt*
+
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→opt ⟨let x = S κ. e₂ in A e₃{κ:=⟨□⟩}⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in A e₃{κ:=⟨□⟩}]}⟩
+
+     ⟨let x = S κ. e₂ in S κ. e₃⟩
+→evl ⟨S κ. e₂{κ:=κ[let x = □ in S κ. e₃]}⟩        (trzeba uogólnić aby ten krok był opt?)
+→opt ⟨A e₂{κ:=⟨let x = □ in S κ. e₃⟩}⟩
+→opt ⟨A e₂{κ:=⟨let x = □ in A e₃{κ:=⟨□⟩}⟩}⟩
+
+albo reguła
+⟨L[S κ. C[κ[L[S κ. e]]]]⟩ →  lolno
+
+2023-02-22
+
+faktoryzacja:
+e →* e'  ⇒  e →evl* e'' →opt* e'
+
+moje pojęcie "słaba faktoryzacja"
+e →* e'  ⇒  e →evl* · →opt* e'' *evl← e'
+
+czy to wystarczy aby mieć adekwatność?
+
+
+Załóżmy, że e →* e'.
+
+1) e' →evl* v.
+   wtedy e →* →evl* v
+   zatem e →*evl u →opt* v' *evl← v
+   v' = v, bo nie da się evl wartości
+   u jest wartością, bo cofanie opt nie może zewaluować (termu zamkniętego)
+
+2) e →evl* v.
+   z konfluencji mamy v →* u *← e'
+   u jest wartością, bo → zachowuje wartościowość
+   mamy e' →evl* u' →opt* u
+
+Wystarczy, bo używamy tego dla e' będącego wartością.
+
+tzn zachodzi
+e →* v  ⇒  e →evl* · →opt* v
+
+2023-03-13
+można robić w abelli ze zwykłym podstawieniem i 1klasowymi kontynuacjami
+
+wystarczy w parallel reduction redukować upward redeksy w podstawieniu ramki
+
+(tak się wydaje)
