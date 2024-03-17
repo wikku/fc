@@ -186,5 +186,59 @@ Theorem pars_diam :
                       apply H5 to _.
                       apply IH to H6 H10. search.
   intros. case H1.
-    case H2. case H5.
-    
+    case H2. case H5. apply IH1 to H3 H6. apply IH1 to H4 H7. search.
+             case H3. apply IH1 to H4 H6. apply IH to H8 H7. apply par_subv to H11 H9. apply par_subv to H12 H10. search.
+    case H2. case H5. apply IH to H3 H6. apply IH to H4 H7. search.
+                      case H3. apply IH1 to H8 H6. apply IH to H4 H7. apply par_subv to H11 H9. apply par_subv to H12 H10. search.
+                      case H3. apply par_subk to H9 _ H7. search.
+             apply IH to H3 H6. apply IH3 to H4 H7. search.
+    case H2. case H5. apply IH2 to H4 H7. search.
+                      case H4. case H8. apply IH1 to H9 H7. search.
+                      case H4. case H8. apply par_subk to H10 _ H7. search.
+                               apply IH to H9 H7. search.
+                               apply H10 to _.
+                      case H4. case H10. apply par_subk to H12 _ H9. search.
+                               apply H8 to _.
+                               apply IH to H13 H9. search.
+    case H2. case H5. apply IH to H4 H7. search.
+             case H5. apply par_subk to H4 _ H6. search.
+                      apply par_subk to H4 _ H6. search.
+             apply par_subk to H4 _ H8. search.
+    case H2. case H5. apply IH to H4 H7. search.
+                      case H3.
+                      case H3.
+                      case H3.
+    case H2. case H4. apply IH1 to H3 H5. search.
+    case H2. case H5. apply IH1 to H3 H7. case H6. apply IH to H4 H10. apply par_subv to H11 H8. apply par_subv to H12 H9. search.
+                      apply IH1 to H3 H6. apply IH to H4 H7. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
+    case H2. case H5. case H6. apply IH1 to H3 H8. apply IH to H4 H7. apply par_subv to H11 H9. apply par_subv to H12 H10. search.
+                               apply IH1 to H3 H6. apply IH to H4 H7. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
+             case H6. apply IH1 to H3 H8. apply IH3 to H4 H7. apply pard_subv to H11 H9. apply par_subv to H12 H10. search.
+    case H2. case H5. case H7. case H8. apply IH1 to H4 H9. search.
+                      apply IH1 to H4 H7. search.
+    case H2. case H5. case H6. apply par_subk to H9 _ H4. search.
+                      apply IH to H4 H7. search.
+             case H6. apply par_sublet to H9 _ H4. search.
+    case H2. case H5. case H7. case H8. apply par_subk to H10 _ H4. search.
+                                        apply IH to H4 H9. search.
+                                        apply H10 to _.
+                      apply IH to H4 H7. search.
+                      apply H8 to _.
+    case H2. case H7. case H9. case H10. apply par_subk to H12 _ H6. search.
+                               apply H5 to _.
+                               apply IH to H6 H13. search.
+                      apply H5 to _.
+                      apply IH to H6 H11. search.
+    case H2. case H5. case H6.
+                      apply IH to H4 H7. search.
+    case H2. case H4. case H5.
+                      apply IH to H3 H5. search.
+    case H2. case H4. case H5.
+                      apply IH to H3 H5. search.
+  intros. case H1.
+    apply IH to H3 H2. search.
+    case H2. apply IH to H4 H6. apply IH4 to H5 H7. search.
+             case H4. apply IH1 to H8 H6. apply IH4 to H5 H7. apply par_subv to H11 H9. apply pard_subv to H12 H10. search.
+             case H4. apply par_sublet to H9 _ H7. search.
+    case H2. apply par_subk to H6 _ H4. search.
+    case H2. apply par_subk to H8 _ H6. search.
