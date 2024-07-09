@@ -2,11 +2,11 @@
 Specification "ho".
 
 Theorem bad :
-    forall (T T' : val -> expr) (E2 E2' : (expr -> expr) -> val -> expr),
+    forall (T : val -> expr) (E : (expr -> expr) -> val -> expr) D,
     nabla n1 n2,
-    (forall (E E' : (expr -> expr) -> expr) T T', nabla (k : expr -> expr) x, (E k) = (E' k) -> (T x) = (T' x) -> (E (o\k (let o T))) = (E' (o\k (let o T'))))
-    -> (T n2) = (T' n2)
-    -> (E2 n1 n2) = (E2' n1 n2)
+    (forall (E : (expr -> expr) -> expr) T (D : expr), nabla (k : expr -> expr) x, (E k) = D -> (T x) = D -> (E (o\k (let o T))) = D)
+    -> (T n2) = D
+    -> (E n1 n2) = D
     -> false.
   intros.
   apply H1 to H3 H2.
