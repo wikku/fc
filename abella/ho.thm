@@ -1,0 +1,178 @@
+% vim: et
+Specification "ho".
+
+Define is_lbl : lbl -> prop by
+  is_lbl z;
+  is_lbl (s L) := is_lbl L.
+
+Define is_kont : (expr -> expr) -> prop by
+  nabla k, is_kont k.
+
+
+Define par : expr -> expr -> prop,
+       pard : expr -> expr -> prop,
+       parv : val -> val -> prop by
+
+  nabla x, parv x x;
+  parv (lam E) (lam E') := nabla x, par (E x) (E' x);
+
+  nabla e, par e e;
+  par (app V U) (app V' U') := parv V V' /\ parv U U';
+  par (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, par (E2 x) (E2' x);
+  par (delim E) (delim E') := pard E E';
+  par (shift0 E) (shift0 E') := nabla k, par (E k) (E' k);
+  par (ret V) (ret V') := parv V V';
+  par (K E) (K E') := is_kont K /\ par E E';
+
+  par (app (lam E) V) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (let (ret V) E) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (delim (ret V)) (ret V') := parv V V';
+  par (let (shift0 k\ E1 k) E2) (shift0 k\ E1' (o\ k (let o E2'))) :=
+    nabla x, par (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
+  par (delim (shift0 k\ E k)) E' := par (E (o\ delim o)) E';
+
+  nabla e, pard e e;
+  pard (app V U) (app V' U') := parv V V' /\ parv U U';
+  pard (delim E) (delim E') := pard E E';
+  pard (shift0 E) (shift0 E') := nabla k, par (E k) (E' k);
+  pard (ret V) (ret V') := parv V V';
+  pard (K E) (K E') := is_kont K /\ par E E';
+  pard (app (lam E) V) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  pard (delim (shift0 k\ E k)) E' := par (E (o\ delim o)) E';
+  pard (delim (ret V)) (ret V') := parv V V';
+
+  pard (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, pard (E2 x) (E2' x);
+  pard (let (ret V) E) (E' V') := parv V V' /\ nabla x, pard (E x) (E' x);
+  pard (let (shift0 k\ E1 k) E2) (shift0 k_\ E1' (o\ delim (let o E2'))) :=
+    nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
+  pard (shift0 k\ E k) (shift0 k_\ E') := par (E (o\ delim o)) E'.
+
+
+Theorem lbl_gnd : forall L, nabla (x : val), is_lbl (L x) -> exists (L' : lbl), L = (y\ L').
+  induction on 1. intros. case H1. search. apply IH to H2. search.
+
+Theorem lbl_gnd2 : forall L, nabla (x : (expr -> expr)), is_lbl (L x) -> exists (L' : lbl), L = (y\ L').
+  induction on 1. intros. case H1. search. apply IH to H2. search.
+
+Theorem kont_gnd : forall K, nabla (x : val), is_kont (K x) -> exists K', K = (y\ K').
+  intros. case H1. search.
+
+Theorem kont_gnd2 : forall K, nabla (x : expr), is_kont (K x) -> exists K', K = (y\ K').
+  intros. case H1. search.
+
+Theorem pars_subv :
+  (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
+  (forall E E' U U', nabla x, pard (E x) (E' x) -> parv U U' -> pard (E U) (E' U')) /\
+  (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')).
+  skip.
+%  induction on 1 1 1. split.
+%  intros. case H1.
+%    search.
+%    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+%    apply IH to H3 H2. apply IH to H4 H2. search.
+%    apply IH1 to H3 H2. search.
+%    apply IH to H3 H2. search.
+%    apply IH2 to H3 H2. search.
+%    apply IH to H4 H2. apply kont_gnd to H3. search.
+%    apply IH2 to H3 H2. apply IH to H4 H2. search.
+%    apply IH2 to H3 H2. apply IH to H4 H2. search.
+%    apply IH2 to H3 H2. search.
+%    apply IH to H4 H2. apply IH to H3 H2. search.
+%    apply IH to H3 H2. search.
+%  intros. case H1.
+%    search.
+%    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+%    apply IH1 to H3 H2. search.
+%    apply IH to H3 H2. search.
+%    apply IH2 to H3 H2. search.
+%    apply IH to H4 H2. apply kont_gnd to H3. search.
+%    apply IH2 to H3 H2. apply IH to H4 H2. search.
+%    apply IH to H3 H2. search.
+%    apply IH2 to H3 H2. search.
+%    apply IH to H3 H2. apply IH1 to H4 H2. search.
+%    apply IH2 to H3 H2. apply IH1 to H4 H2. search.
+%    apply IH1 to H3 H2. apply IH to H4 H2. search.
+%    apply IH to H3 H2. clear IH IH1 IH2 H2 H3. search. % SLOW
+%  intros. case H1.
+%    search.
+%    search.
+%    apply IH to H3 H2. search.
+
+Split pars_subv as par_subv, pard_subv, parv_subv.
+
+%Quit.
+%
+%Theorem diams_subv :
+%  (forall E E' U U' M, nabla x, par (E x) (E' x) -> parv U U' -> par (E U) M -> exists M', par M M' /\ par (E' U') M') /\
+%  (forall V V' U U' M, nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) M -> exists M', parv M M' /\ parv (V' U') M').
+%  induction on 1 1. split.
+%  intros. case H1.
+%    case H3. search.
+%    case H3.
+%      apply IH1 to H4 H2 H6. apply IH1 to H5 H2 H7. search.
+%      case H6.
+%        case H4. apply parv_subv to H5 H2. apply par_subv to H%apply par_subv to H8 H2.
+
+Theorem pars_sublet :
+  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> par (T x) (T' x) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
+  induction on 1 1 1. split.
+  intros. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+%    apply IH to H3 H2. apply IH to H4 H2.   Quit. %BUG again?
+    apply IH to H4 H2. Quit. %BUG again?
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    Quit.
+    apply IH to H4 H2. apply kont_gnd to H3. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H4 H2. apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H4 H2. apply kont_gnd to H3. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH1 to H4 H2. search.
+    apply IH2 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. clear IH IH1 IH2 H2 H3. search. % SLOW
+  intros. case H1.
+    search.
+    search.
+    apply IH to H3 H2. search.
+
+Quit.
+
+Theorem pars_diam :
+  (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+  (forall E E1 E2, pard E E1 -> pard E E2 -> exists E3, pard E1 E3 /\ pard E2 E3) /\
+  (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
+  induction on 1 1 1. split.
+  intros. case H1 (keep).
+    case H2 (keep).
+      search.
+      apply kont_gnd2 to H4. case H4. case H3.
+    case H2 (keep).
+      apply IH2 to H3 H5. apply IH2 to H4 H6. search.
+      case H6. case H5.
+      case H3. apply IH2 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. apply par_subv to H10 H8. search.
+    case H2 (keep).
+      apply IH to H3 H5. apply IH to H4 H6. search.
+      case H6. case H5.
+      case H3.
+        apply IH2 to H7 H5. apply IH to H4 H6. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
+        case H8. case H7.
+      apply IH to H4 H5. case H3.
+        apply IH to H9 H6. 
+
