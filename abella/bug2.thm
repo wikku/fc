@@ -1,12 +1,11 @@
 % vim: et
 
 Kind i type.
-Type m (i -> i) -> i.
 
 Theorem bad :
-    forall (T : i -> i) (E : i -> i -> i) D,
+    forall (T : i -> i) (E : (i -> i) -> i -> i) D,
     nabla n1 n2,
-    (forall T (E : i -> i) (D : i), nabla (k : i) x, E k = D -> T x = D -> E (m T) = D)
+    (forall T (E : (i -> i) -> i) (D : i), nabla k x, E k = D -> T x = D -> E T = D)
     -> T n2 = D
     -> E n1 n2 = D
     -> false.
