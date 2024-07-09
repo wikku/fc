@@ -1,0 +1,15 @@
+% vim: et
+Specification "ho".
+
+Define par : expr -> expr -> prop by
+nabla x, par x x.
+
+Theorem bad :
+    forall (T T' : val -> expr) (E2 E2' : (expr -> expr) -> val -> expr),
+    nabla n1 n2,
+    (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T'))))
+    -> par (T n2) (T' n2)
+    -> par (E2 n1 n2) (E2' n1 n2)
+    -> false.
+  intros.
+  apply H1 to H3 H2.
