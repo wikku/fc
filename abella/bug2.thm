@@ -2,9 +2,9 @@
 Specification "ho".
 
 Theorem bad :
-    forall (T : val -> expr) (E : (expr -> expr) -> val -> expr) D,
+    forall (T : val -> expr) (E : expr -> val -> expr) D,
     nabla n1 n2,
-    (forall (E : (expr -> expr) -> expr) T (D : expr), nabla (k : expr -> expr) x, (E k) = D -> (T x) = D -> (E (o\k (let o T))) = D)
+    (forall (E : expr -> expr) T (D : expr), nabla (k : expr) x, (E k) = D -> (T x) = D -> (E (let (ret (lam x\ret x)) T)) = D)
     -> (T n2) = D
     -> (E n1 n2) = D
     -> false.
