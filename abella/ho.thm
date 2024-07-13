@@ -228,4 +228,25 @@ Theorem pars_diam :
       case H3. apply IH2 to H5 H4. search.
       case H3.
         apply IH to H5 H4. search.
-        apply par_subdelim to H5.
+        apply par_subdelim to H5. skip. %%% SKIP: term same size, but not subterm
+      apply IH1 to H3 H4. search.
+    case H2. apply IH to H3 H4. search.
+    case H2. apply IH2 to H3 H4. search.
+    case H2. apply IH to H3 H4. search.
+  intros. case H1 (keep).
+    case H2. search.
+    case H2.
+      apply IH2 to H3 H5. apply IH to H4 H6. apply par_subv to H9 H7. apply par_subv to H10 H8. apply par_pard to H11. apply par_pard to H12. search.
+      case H5. apply IH2 to H3 H6. apply IH to H4 H7. apply par_subv to H10 H8. apply par_subv to H11 H9. apply par_pard to H12. apply par_pard to H13. search.
+    case H2.
+      apply IH to H3 H4. apply par_pard to H5. apply par_pard to H6. search.
+      case H4.
+        apply IH to H3 H5. apply par_pard to H6. search.
+        apply par_subdelim to H5. apply IH to H3 H6. apply par_pard to H7. search.
+    case H2.
+      apply IH2 to H3 H4. search.
+      case H4. apply IH2 to H3 H5. search.
+    case H2.
+      apply IH to H3 H5. apply IH1 to H4 H6. search.
+      case H3. apply IH1 to H4 H6. apply IH2 to H7 H5. apply pard_subv to H9 H11. search.
+      case H3. apply IH1 to H4 H5. apply IH to H7 H6.
