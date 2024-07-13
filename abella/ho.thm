@@ -91,24 +91,12 @@ Theorem pars_subv :
 
 Split pars_subv as par_subv, pard_subv, parv_subv.
 
-%Theorem pars_sublet :
-%  forall T T', nabla (x : val), par (T x) (T' x) ->
-%  (forall E E', nabla (k : expr -> expr), par (E k) (E' k) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
-%  (forall E E', nabla (k : expr -> expr), pard (E k) (E' k) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
-%  (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
-%  intros.
-%  induction on 1 1 1. split.
-%  intros. case H2.
-%    search.
-%    apply IH2 to H3. apply IH2 to H4. search.
-%    apply IH to H3. apply IH to H4. search.
-
 Theorem pars_sublet :
-  (forall E E' T T', nabla (k : expr -> expr), par (E k) (E' k) -> (nabla x, par (T x) (T' x)) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
-  (forall E E' T T', nabla (k : expr -> expr), pard (E k) (E' k) -> (nabla x, par (T x) (T' x)) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
-  (forall V V' T T', nabla (k : expr -> expr), parv (V k) (V' k) -> (nabla x, par (T x) (T' x)) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
+  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> par (T x) (T' x) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
   induction on 1 1 1. split.
-  intros. case H1.
+  intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
@@ -122,7 +110,7 @@ Theorem pars_sublet :
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
-  intros. case H1.
+  intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. search.
@@ -137,11 +125,9 @@ Theorem pars_sublet :
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
-  intros. case H1.
+  intros. permute (n2 n3) H2. case H1.
     search.
     apply IH to H3 H2. search.
-Quit.
-
 
 %Theorem pars_sublet :
 %  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
