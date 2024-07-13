@@ -192,6 +192,48 @@ Theorem pars_subdelim :
 
 Split pars_subdelim as par_subdelim, pard_subdelim, parv_subdelim.
 
+% exactly same proof as pars_sublet
+Theorem pars_subdlet :
+  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> pard (T x) (T' x) -> par (E (o\delim (let o T))) (E' (o\delim (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> pard (T x) (T' x) -> pard (E (o\delim (let o T))) (E' (o\delim (let o T')))) /\
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> pard (T x) (T' x) -> parv (V (o\delim (let o T))) (V' (o\delim (let o T')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH1 to H4 H2. search.
+    apply IH2 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+
+Split pars_subdlet as par_subdlet, pard_subdlet, parv_subdlet.
+
 
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
@@ -249,4 +291,36 @@ Theorem pars_diam :
     case H2.
       apply IH to H3 H5. apply IH1 to H4 H6. search.
       case H3. apply IH1 to H4 H6. apply IH2 to H7 H5. apply pard_subv to H9 H11. search.
-      case H3. apply IH1 to H4 H5. apply IH to H7 H6.
+      case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subdlet to H11 H9. search.
+      case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subdlet to H11 H9. search.
+    case H2.
+      case H5. apply IH2 to H3 H7. apply IH1 to H4 H6. apply pard_subv to H10 H8. search.
+      apply IH2 to H3 H5. apply IH1 to H4 H6. apply pard_subv to H9 H7. apply pard_subv to H10 H8. search.
+    case H2.
+      apply IH1 to H3 H6. case H5. apply IH to H4 H9. apply par_subdlet to H10 H7. search.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
+    case H2.
+      apply IH1 to H3 H6. case H5. apply IH to H4 H9. apply par_subdlet to H10 H7. search.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
+    case H2.
+      apply IH to H3 H4. search.
+      apply par_subdelim to H4. apply IH to H3 H5. search.
+    case H2.
+      case H3. apply IH2 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. apply par_subv to H10 H8. apply par_pard to H12. apply par_pard to H13. search.
+      apply IH2 to H3 H5. apply IH2 to H4 H6. search.
+    case H2.
+      case H3.
+        apply IH to H5 H4. apply par_pard to H7. search.
+        apply par_subdelim to H5. skip. %%% SKIP.
+      case H3. apply IH2 to H5 H4. search.
+      apply IH1 to H3 H4. search.
+    case H2.
+      apply par_subdelim to H3. skip. %%% SKIP.
+      apply IH to H3 H4. search.
+    case H2. apply IH2 to H3 H4. search.
+    case H2. apply IH to H3 H4. search.
+  intros. case H1.
+    case H2. search.
+    case H2. apply IH to H3 H4. search.
