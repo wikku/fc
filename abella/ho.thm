@@ -19,7 +19,7 @@ Define par : expr -> expr -> prop,
   par (delim (ret V)) (ret V') := parv V V';
   par (let (shift0 k\ E1 k) E2) (shift0 k\ E1' (o\ k (let o E2'))) :=
     nabla x, par (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
-  par (delim (shift0 k\ E k)) E' := par (E (o\ delim o)) E';
+  par (delim (shift0 k\ E k)) E' := par (E delim) E';
 
   par (app V U) (app V' U') := parv V V' /\ parv U U';
   par (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, par (E2 x) (E2' x);
@@ -30,7 +30,7 @@ Define par : expr -> expr -> prop,
 
   nabla e, pard e e;
   pard (app (lam E) V) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
-  pard (delim (shift0 k\ E k)) E' := par (E (o\ delim o)) E';
+  pard (delim (shift0 k\ E k)) E' := par (E delim) E';
   pard (delim (ret V)) (ret V') := parv V V';
 
   pard (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, pard (E2 x) (E2' x);
@@ -39,7 +39,7 @@ Define par : expr -> expr -> prop,
     nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
   pard (let (shift0 k\ E1 k) E2) (shift0 k\ E1' (o\ k (let o E2'))) :=
     nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
-  pard (shift0 k\ E k) (shift0 k_\ E') := par (E (o\ delim o)) E';
+  pard (shift0 k\ E k) (shift0 k_\ E') := par (E delim) E';
 
   pard (app V U) (app V' U') := parv V V' /\ parv U U';
   pard (delim E) (delim E') := pard E E';
@@ -151,9 +151,9 @@ Theorem par_pard : forall E E', par E E' -> pard E E'.
   apply IH to H2. search.
 
 Theorem pars_subdelim :
-  (forall E E', nabla (k : expr -> expr), par (E k) (E' k) -> par (E (o\ delim o )) (E' (o\ delim o))) /\
-  (forall E E', nabla (k : expr -> expr), pard (E k) (E' k) -> pard (E (o\ delim o)) (E' (o\ delim o))) /\
-  (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V (o\ delim o)) (V' (o\ delim o))).
+  (forall E E', nabla (k : expr -> expr), par (E k) (E' k) -> par (E delim) (E' delim)) /\
+  (forall E E', nabla (k : expr -> expr), pard (E k) (E' k) -> pard (E delim) (E' delim)) /\
+  (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V delim) (V' delim)).
   induction on 1 1 1. split.
   intros. case H1.
     search.
