@@ -1514,3 +1514,110 @@ można robić w abelli ze zwykłym podstawieniem i 1klasowymi kontynuacjami
 wystarczy w parallel reduction redukować upward redeksy w podstawieniu ramki
 
 (tak się wydaje)
+
+2023-03-17
+
+abella wspiera structural substitution...
+k : expr -> expr to nominał
+zamiast plug K E mamy po prostu K E
+
+A Third-Order Representation of the λμ-Calculus
+
+2023-03-19
+Parallel Reduction in Type Free λμ-Calculus
+
+redukuje kontynuacje równolegle
+
+przetłumaczmy przykład
+
+let f = S α. α[S β. α[x]] in f y
+→ let f = S α. α[x] in f y
+→ S α. α[let f = x in f y]
+
+let f = S α. α[S β. α[x]] in f y
+→ S α. α[let f = S β. α[let f = x in f y] in f y]
+→ S α. α[S β. α[let f = x in f y]]
+→ S α. α[let f = x in f y]]
+
+z resetem to samo?
+
+⟨S α. α[S β. α[x]]⟩
+→ ⟨S α. α[x]⟩
+→ ⟨x⟩
+
+⟨S α. α[S β. α[x]]⟩
+→ ⟨S β. ⟨x⟩⟩
+→ ⟨x⟩
+
+chyba nie
+
+parred w stylu semantyki dużych kroków chyba nie działa (przynajmniej nie jak są podstawienia... może dla reseta ok)
+
+2024-04-19
+NAJPIERW trzeba zająć się ogonowymi. potem renaming (κ[S ...])
+
+w pard chyba trzeba skopiować przynajmniej β.let
+
+Control Reduction Theories:
+the Benefit of Structural Substitution
+
+2024-04-24
+
+pomysły na paper (lol)
+Compiling Pattern Matching, Or Not
+Typing Modals with Modals
+
+2024-07-10
+
+abella:
+problem z udowodnieniem
+Theorem pars_sublet :
+  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> par (T x) (T' x) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
+
+note:
+ Define part : (val -> expr) -> (val -> expr) -> prop,
+       pardt : (val -> expr) -> (val -> expr) -> prop by
+  part T T' := nabla x, par (T x) (T' x);
+  pardt T T' := nabla x, pard (T x) (T' x).
+
+   mamy  part T T' <-> (nabla x, par (T x) (T' x)).
+tzn. Define nic nie da (daje jak jest nabla po lewej, tego się chyba nie da bez definicji)
+
+  (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
+chyba jest równoważne z
+  (forall E E' T T', nabla (k : expr -> expr), par (E k) (E' k) -> (nabla x, par (T x) (T' x)) -> par (E (o\k (let o T))) (E' (o\k (let o T'))))
+można wyciągnąć nabla x, par (T x) (T' x) -> ... przed koniunkcję (dla trzech sortów), ale to pozwala forallowi kwantyfikować po x..
+może trzeba (nabla x, par (T x) (T' x)) -> ...
+to już chyba nie jest równoważne jak po prawej stronie jest forall
+
+
+2024-07-13
+
+przykładowy stan jak mamy nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) ->
+
+H2 : par (T n2) (T' n2)
+H3 : par (E1 n1) (E1' n1) *
+H4 : par (E2 n1 n2) (E2' n1 n2) *
+H5 : par (E1 (o\n1 (let o (z3\T z3)))) (E1' (o\n1 (let o (z3\T' z3))))
+H6 : par (E2 (o\n1 (let o (z3\T n2))) n2) (E2' (o\n1 (let o (z3\T' n2))) n2)
+============================
+ par (let (E1 (o\n1 (let o T))) (E2 (o\n1 (let o T))))
+   (let (E1' (o\n1 (let o T'))) (E2' (o\n1 (let o T'))))
+
+przykładowy stan jak mamy nabla (k : expr -> expr), par (E k) (E' k) -> (nabla x, par (T x) (T' x)) ->
+H2 : nabla x, par (T x) (T' x)
+H3 : par (E1 n1) (E1' n1) *
+H4 : par (E2 n1 n2) (E2' n1 n2) *
+H5 : par (E1 (o\n1 (let o (z2\T z2)))) (E1' (o\n1 (let o (z2\T' z2))))
+H6 : par (E2 (o\n1 (let o (z3\T z3))) n2) (E2' (o\n1 (let o (z3\T' z3))) n2)
+============================
+ par (let (E1 (o\n1 (let o T))) (E2 (o\n1 (let o T))))
+   (let (E1' (o\n1 (let o T'))) (E2' (o\n1 (let o T'))))
+
+
+
+
+
+

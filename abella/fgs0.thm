@@ -1,9 +1,14 @@
 % vim: et
-Specification "ho".
+Kind val,expr type.
+Kind lbl type.
 
-Define is_lbl : lbl -> prop by
-  is_lbl z;
-  is_lbl (s L) := is_lbl L.
+Type lam    (val -> expr) -> val.
+
+Type ret    val -> expr.
+Type app    val -> val -> expr.
+Type let    expr -> (val -> expr) -> expr.
+Type shift0 ((expr -> expr) -> expr) -> expr.
+Type delim  expr -> expr.
 
 Define par : expr -> expr -> prop,
        pard : expr -> expr -> prop,
@@ -47,12 +52,6 @@ Define par : expr -> expr -> prop,
   pard (ret V) (ret V') := parv V V';
   nabla k, pard (k (E k)) (k (E' k)) := nabla k, par (E k) (E' k).
 
-
-Theorem lbl_gnd_v: forall L, nabla (x : val), is_lbl (L x) -> exists (L' : lbl), L = (y\ L').
-  induction on 1. intros. case H1. search. apply IH to H2. search.
-
-Theorem lbl_gnd_k : forall L, nabla (x : (expr -> expr)), is_lbl (L x) -> exists (L' : lbl), L = (y\ L').
-  induction on 1. intros. case H1. search. apply IH to H2. search.
 
 Theorem pars_subv :
   (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
