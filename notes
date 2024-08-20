@@ -1618,6 +1618,21 @@ H6 : par (E2 (o\n1 (let o (z3\T z3))) n2) (E2' (o\n1 (let o (z3\T' z3))) n2)
 
 
 
+2024-08-13
+grokking the sequent calculus
+critical pair
 
+⟨μα. s₁ | ~μx. s₂⟩
+
+to chyba
+
+let x = S α. s₁ in s₂
+
+let x = S α. s₁ in s₂ → S α. s₁{α:=α[let x = □ in s₂]}
+co odpowiada s₁[~μx. s₂/α] (?)
+
+w cbn mamy (?)
+let x = S α. s₁ in s₂ → s₂{x:=S α. s₁}
+co odpowiada s₂[μα. s₁/x]
 
 
