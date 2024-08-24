@@ -1,0 +1,238 @@
+% vim: et
+Kind val,expr type.
+Kind lbl type.
+
+Type lam    (val -> expr) -> val.
+
+Type ret    val -> expr.
+Type app    val -> val -> expr.
+Type let    expr -> (val -> expr) -> expr.
+Type shift0 ((expr -> expr) -> expr) -> expr.
+Type delim  expr -> expr.
+
+Kind skel type.
+Type sk0 skel.
+Type sk1 skel -> skel.
+Type sk2 skel -> skel -> skel.
+
+Define skel : skel -> prop by
+  skel sk0;
+  skel (sk1 S) := skel S;
+  skel (sk2 S1 S2) := skel S1 /\ skel S2.
+
+Define eos : expr -> skel -> prop,
+       vos : val -> skel -> prop by
+  nabla x, vos x sk0;
+  vos (lam E) (sk1 S) := nabla x, eos (E x) S;
+
+  eos (ret V) (sk1 S) := vos V S;
+  eos (app V1 V2) (sk2 S1 S2) := vos V1 S1 /\ vos V2 S2;
+  eos (let E T) (sk2 S1 S2) := eos E S1 /\ nabla x, eos (T x) S2;
+  eos (shift0 E) (sk1 S) := nabla k, eos (E k) S;
+  eos (delim E) (sk1 S) := eos E S;
+  nabla k, eos (k (E k)) (sk1 S) := nabla k, eos (E k) S.
+
+
+Define is_expr : expr -> prop,
+       is_val : val -> prop by
+  nabla x, is_val x;
+  is_val (lam E) := nabla x, is_expr (E x);
+
+  is_expr (ret V) := is_val V;
+  is_expr (app V1 V2) := is_val V1 /\ is_val V2;
+  is_expr (let E T) := is_expr E /\ nabla x, is_expr (T x);
+  is_expr (shift0 E) := nabla k, is_expr (E k);
+  is_expr (delim E) := is_expr E;
+  nabla k, is_expr (k (E k)) := nabla k, is_expr (E k).
+
+Define red : expr -> expr -> prop,
+       redv : val -> val -> prop,
+       redd : expr -> expr -> prop by
+
+  redv (lam E) (lam E') := nabla x, red (E x) (E' x);
+
+  red (app (lam E) V) (E V);
+  red (let (ret V) E) (E V);
+  red (delim (ret V)) (ret V);
+  red (delim (shift0 E)) (E delim);
+  red (let (shift0 E) T) (shift0 k\ E (o\ k (let o T)));
+
+  red (ret V) (ret V') := redv V V';
+  red (app V1 V2) (app V1' V2) := redv V1 V1';
+  red (app V1 V2) (app V1 V2') := redv V2 V2';
+  red (let E T) (let E' T) := red E E';
+  red (let E T) (let E T') := nabla x, red (T x) (T' x);
+  red (shift0 E) (shift0 E') := nabla k, red (E k) (E' k);
+  nabla k, red (k (E k)) (k (E' k)) := nabla k, red (E k) (E' k);
+  red (delim E) (delim E') := red E E';
+
+  redd (shift0 E) (shift0 k_\ E delim);
+  redd (let E T) (let E' T) := red E E';
+  redd (let E T) (let E T') := nabla x, redd (T x) (T' x);
+  redd E E' := red E E'.
+
+Define many : (A -> A -> prop) -> A -> A -> prop by
+  many R A A;
+  many R A A' := exists A'', R A A'' /\ many R A'' A'.
+
+Theorem cong_ret : forall V V', many redv V V' -> many red (ret V) (ret V').
+  induction on 1. intros. case H1. search. apply IH to H3. search.
+
+Theorem cong_app1 : forall V1 V1' V2, many redv V1 V1' -> many red (app V1 V2) (app V1' V2).
+  induction on 1. intros. case H1. search. apply IH to H3 with V2 = V2. search.
+
+Theorem cong_app2 : forall V1 V2 V2', many redv V2 V2' -> many red (app V1 V2) (app V1 V2').
+  induction on 1. intros. case H1. search. apply IH to H3 with V1 = V1. search.
+
+Theorem cong_let1 : forall E E' T, many red E E' -> many red (let E T) (let E' T).
+  induction on 1. intros. case H1. search. apply IH to H3 with T = T. search.
+
+Theorem cong_let2 : forall E T T', nabla x, many red (T x) (T' x) -> many red (let E T) (let E T').
+  induction on 1. intros. case H1. search. apply IH to H3 with E = E. search.
+
+Theorem cong_delim : forall E E', many red E E' -> many red (delim E) (delim E').
+  induction on 1. intros. case H1. search. apply IH to H3. search.
+
+Theorem cong_plug : forall E E', nabla k, many red (E k) (E' k) -> many red (k (E k)) (k (E' k)).
+  induction on 1. intros. case H1. search. apply IH to H3. search.
+
+Define sup : expr -> expr -> prop,
+       supv : val -> val -> prop,
+       supd : expr -> expr -> prop by
+
+  nabla x, supv x x;
+  supv (lam E) (lam E') := nabla x, sup (E x) (E' x);
+
+  sup (ret V) (ret V') := supv V V';
+  sup (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) := nabla k, sup (E k) (E' k) /\ nabla x, sup (T x) (T' x);
+  sup (let (ret V) T) (T' V') := supv V V' /\ nabla x, sup (T x) (T' x);
+  sup (let E T) (let E' T') := (forall E'', E = shift0 E'' -> false) /\ (forall V, E = ret V -> false) /\ sup E E' /\ nabla x, sup (T x) (T' x);
+  sup (app (lam E) V) (E' V') := supv V V' /\ nabla x, sup (E x) (E' x);
+  sup (app V1 V2) (app V1' V2') := (forall E, V1 = (lam E) -> false) /\ supv V1 V1' /\ supv V2 V2';
+  sup (delim (ret V)) (ret V') := supv V V';
+  sup (delim (shift0 E)) E' := sup (E delim) E';
+  sup (delim E) (delim E') := (forall V, E = ret V -> false) /\ (forall E'', E = shift0 E'' -> false) /\ supd E E';
+  sup (shift0 E) (shift0 E') := nabla k, sup (E k) (E' k);
+  nabla k, sup (k (E k)) (k (E' k)) := nabla k, sup (E k) (E' k);
+
+  supd (let (shift0 E) T) (shift0 k_\ E' (o\ delim (let o T'))) := nabla x, sup (E x) (E' x) /\ nabla k, supd (T k) (T' k);
+  supd (let (ret V) T) (T' V') := supv V V' /\ nabla x, sup (T x) (T' x);
+  supd (let E T) (let E' T') := sup E E' /\ nabla x, supd (T x) (T' x);
+  supd (shift0 E) (shift0 k_\ E') := sup (E delim) E';
+  supd E E' := (forall E'' T, E = let E'' T -> false) /\ (forall E'', E = shift0 E'' -> false) /\ sup E E'.
+
+Theorem subdelims :
+  (forall S E, nabla x, skel S -> eos (E x) S -> eos (E delim) S) /\
+  (forall S V, nabla x, skel S -> vos (V x) S -> vos (V delim) S).
+  induction on 1 1. split.
+  intros. case H1.
+    case H2.
+    case H2.
+      apply IH1 to H3 H4. search.
+      apply IH to H3 H4. search.
+      apply IH to H3 H4. search.
+      apply IH to H3 H4. search.
+      apply IH to H3 H4. search.
+    case H2.
+      apply IH1 to H3 H5. apply IH1 to H4 H6. search.
+      apply IH to H3 H5. apply IH to H4 H6. search.
+  intros. case H1.
+    case H2. search.
+    case H2. apply IH to H3 H4. search.
+    case H2.
+
+Split subdelims as subdelim, vsubdelim.
+
+
+Theorem sup_tots :
+  (forall S E, skel S -> eos E S -> exists E', sup E E') /\
+  (forall S V, skel S -> vos V S -> exists V', supv V V') /\
+  (forall S E, skel S -> eos E S -> exists E', supd E E').
+  induction on 1 1 1. split.
+  intros. case H1.
+    case H2.
+    case H2.
+      apply IH1 to H3 H4. search.
+      apply IH to H3 H4. search.
+      case H3 (keep).
+        case H4.
+        case H4 (keep).
+          apply IH1 to H5 H6. search.
+          apply subdelim to H5 H6. apply IH to H5 H7. search.
+          apply IH to H3 H4. search.
+          apply IH to H3 H4. search.
+        case H4 (keep).
+          apply IH to H3 H4. search.
+          apply IH2 to H3 H4. search.
+      apply IH to H3 H4. search.
+    case H2.
+      apply IH1 to H4 H6. case H3 (keep).
+        case H5 (keep). search.
+        case H5 (keep). apply IH to H8 H9. search.
+        case H5 (keep).
+      apply IH to H4 H6. case H3 (keep).
+        case H5 (keep).
+        case H5 (keep).
+          apply IH1 to H8 H9. search.
+          apply IH to H8 H9. search.
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+        case H5 (keep).
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+  intros. case H1.
+    case H2. search.
+    case H2. apply IH to H3 H4. search.
+    case H2.
+  intros. case H1.
+    case H2.
+    case H2.
+      apply IH1 to H3 H4. search.
+      case H3 (keep).
+        case H4.
+        apply subdelim to H3 H4. apply IH to H3 H6. search.
+        apply subdelim to H3 H4. apply IH to H3 H7. search.
+      case H3 (keep).
+        case H4.
+        case H4 (keep).
+          apply IH1 to H5 H6. search.
+          apply subdelim to H5 H6. apply IH to H5 H7. search.
+          apply IH to H3 H4. search.
+          apply IH to H3 H4. search.
+        case H4 (keep).
+          apply IH2 to H3 H4. search.
+          apply IH2 to H3 H4. search.
+        apply IH to H3 H4. search.
+    case H2.
+      apply IH1 to H4 H6. case H3 (keep).
+        case H5 (keep). search.
+        case H5 (keep). apply IH to H8 H9. search.
+        case H5 (keep).
+      apply IH2 to H4 H6. case H3 (keep).
+        case H5 (keep).
+        case H5 (keep).
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+        case H5 (keep).
+          apply IH to H3 H5. search.
+          apply IH to H3 H5. search.
+
+Theorem sup_injs :
+  (forall S E E' E'', skel S -> eos E S -> sup E E' -> sup E E'' -> E' = E'') /\
+  (forall S V V' V'', skel S -> vos V S -> supv V V' -> supv V V'' -> V' = V'') /\
+  (forall S E E' E'', skel S -> eos E S -> supd E E' -> supd E E'' -> E' = E'').
+  skip.
+
+Theorem sup_Zs :
+  (forall S E E' SE SE', skel S -> eos E S -> red E E' -> sup E SE -> sup E' SE' -> many red E' SE /\ many red SE SE') /\
+  (forall S V V' SV SV', skel S -> vos V S -> redv V V' -> supv V SV -> supv V' SV' -> many redv V' SV /\ many redv SV SV') /\
+  (forall S E E' SE SE', skel S -> eos E S -> redd E E' -> supd E SE -> supd E' SE' -> many redd E' SE /\ many redd SE SE').
+  induction on 1 1 1. split.
+  intros. case H1.
+    case H2.
+    case H2.
+      case H3. case H4. case H5. apply IH1 to H6 H7 H8 _ _. apply cong_ret to H11. apply cong_ret to H12. search.
+      case H3. case H4. case H5.
+

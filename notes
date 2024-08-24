@@ -1635,4 +1635,18 @@ w cbn mamy (?)
 let x = S α. s₁ in s₂ → s₂{x:=S α. s₁}
 co odpowiada s₂[μα. s₁/x]
 
+2024-08-24
+może da się uprościć, zamiast
+  par (delim E) (delim E') := pard E E';
+mieć
+  par (delim E) (delim E') := pard E E';
+  par (delim E) (delim E') := par E E';
+
+tzn. pard musi wykonać redukcję ogonową, zamiast być parem który może ją wykonać
+ale nie wiem czy to dużo uprości
+
+
+trzeba też dodać parp który robi renaming α[K[S β. e]] → e{β:=α[K]}
+
+
 
