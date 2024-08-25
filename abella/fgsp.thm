@@ -13,6 +13,7 @@ Type delim  expr -> expr.
 Define par : expr -> expr -> prop,
        pard : expr -> expr -> prop,
        parv : val -> val -> prop by
+%       parp : (expr -> expr) -> expr -> expr -> prop by
 
   nabla x, parv x x;
   parv (lam E) (lam E') := nabla x, par (E x) (E' x);
@@ -33,12 +34,16 @@ Define par : expr -> expr -> prop,
   par (shift0 E) (shift0 E') := nabla k, par (E k) (E' k);
   par (ret V) (ret V') := parv V V';
   nabla k, par (k (E k)) (k (E' k)) := nabla k, par (E k) (E' k);
+%  nabla k, par (k (E k)) (E' k) := nabla k, parp (o\ k o) (E k) (E' k);
 
   pard (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, pard (E2 x) (E2' x);
   pard (let (ret V) E) (E' V') := parv V V' /\ nabla x, pard (E x) (E' x);
   pard (let (shift0 k\ E1 k) E2) (shift0 k_\ E1' (o\ delim (let o E2'))) :=
     nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
   pard (shift0 k\ E k) (shift0 k_\ E') := par (E delim) E'.
+
+%  parp K (shift0 E) (E' K) := nabla k, par (E k) (E' k);
+%  parp K (let E T) E' := exists T', nabla x, par (T x) (T' x) /\ parp (o\ K (let o T')) E E'.
 
 
 Theorem pars_subv :
