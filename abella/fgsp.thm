@@ -176,7 +176,7 @@ Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
   (forall E E1 E2, pard E E1 -> pard E E2 -> exists E3, pard E1 E3 /\ pard E2 E3) /\
   (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3) /\
-  (forall E E1 E2, pard E E1 -> par E E2 -> exists E3, (pard E1 E3) /\ pard E2 E3).
+  (forall E E1 E2, pard E E1 -> par E E2 -> exists E3, pard E1 E3 /\ pard E2 E3).
   induction on 1 1 1 1. split.
   intros. case H1 (keep).
     case H2. search.
@@ -208,11 +208,11 @@ Theorem pars_diam :
       case H3.
       case H3. apply IH to H5 H4. search.
       apply IH1 to H3 H4. search.
-      skip. % par pard diam!
+      apply IH3 to H3 H4. search.
     case H2.
       case H3. apply IH2 to H5 H4. search.
-      case H3. skip. % subdelim
-      skip. %par pard diam
+      case H3. skip. % subdelim, wrong order
+      skip. %par pard diam, but wrong order
       apply IH to H3 H4. search.
     case H2. apply IH to H3 H4. search.
     case H2. apply IH2 to H3 H4. search.
@@ -255,11 +255,3 @@ Theorem pars_diam :
       apply IH3 to H3 H6. case H5. apply IH to H4 H9. apply par_subdlet to H10 H7. search.
     case H2 (keep).
       apply par_subdelim to H4. apply IH to H3 H5. search.
-%      case H3. apply IH2 to H7 H5. apply IH3 to H4 H6. case H10.
-%        apply pard_subv to H11 H9. apply par_subv to H12 H8. search.
-%        apply pard_subv to H11 H9. apply pard_subv to H12 H8. search.
-%      case H3 (keep). apply IH to H7 H6. apply IH3 to H4 H5. case H10.
-%        apply par_sublet to H8 H12. apply par_subdlet to H9 H11. apply par_subdelim to H13.
-%            assert (pard (shift0 (k\E1'1 (o\k (let o E2'1)))) (shift0 k_\ (E6 (o\delim (let o (z3\E7 z3)))))).
-%            assert (pard (let (shift0 E') E2') (shift0 k_\ (E6 (o\delim (let o (z3\E7 z3)))))).
-%            Quit.
