@@ -10,6 +10,28 @@ Type let    expr -> (val -> expr) -> expr.
 Type shift0 ((expr -> expr) -> expr) -> expr.
 Type delim  expr -> expr.
 
+Kind skel type.
+Type sk0 skel.
+Type sk1 skel -> skel.
+Type sk2 skel -> skel -> skel.
+
+Define skel : skel -> prop by
+  skel sk0;
+  skel (sk1 S) := skel S;
+  skel (sk2 S1 S2) := skel S1 /\ skel S2.
+
+Define eos : expr -> skel -> prop,
+       vos : val -> skel -> prop by
+  nabla x, vos x sk0;
+  vos (lam E) (sk1 S) := nabla x, eos (E x) S;
+
+  eos (ret V) (sk1 S) := vos V S;
+  eos (app V1 V2) (sk2 S1 S2) := vos V1 S1 /\ vos V2 S2;
+  eos (let E T) (sk2 S1 S2) := eos E S1 /\ nabla x, eos (T x) S2;
+  eos (shift0 E) (sk1 S) := nabla k, eos (E k) S;
+  eos (delim E) (sk1 S) := eos E S;
+  nabla k, eos (k (E k)) (sk1 S) := nabla k, eos (E k) S.
+
 Define par : expr -> expr -> prop,
        pard : expr -> expr -> prop,
        parv : val -> val -> prop by
@@ -171,77 +193,103 @@ Theorem pars_subdlet :
 
 Split pars_subdlet as par_subdlet, pard_subdlet, parv_subdlet.
 
-Theorem pars_diam :
-  (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
-  (forall E E1 E2, pard E E1 -> pard E E2 -> exists E3, pard E1 E3 /\ pard E2 E3) /\
-  (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3) /\
-  (forall E E1 E2, pard E E1 -> par E E2 -> exists E3, pard E1 E3 /\ pard E2 E3).
-  induction on 1 1 1 1. split.
-  intros. case H1 (keep).
-    case H2. search.
+Theorem subdelims :
+  (forall S E, nabla x, skel S -> eos (E x) S -> eos (E delim) S) /\
+  (forall S V, nabla x, skel S -> vos (V x) S -> vos (V delim) S).
+  induction on 1 1. split.
+  intros. case H1.
     case H2.
-      apply IH2 to H3 H5. apply IH to H4 H6. apply par_subv to H9 H7. apply par_subv to H10 H8. search.
-      case H5. apply IH2 to H3 H6. apply IH to H4 H7. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
     case H2.
-      apply IH2 to H3 H5. apply IH to H4 H6. apply par_subv to H9 H7. apply par_subv to H10 H8. search.
-      case H5. apply IH2 to H3 H7. apply IH to H4 H6. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
-    case H2.
-      apply IH2 to H3 H4. search.
-      case H4.
-      case H4. apply IH2 to H3 H5. search.
-    case H2.
-      apply IH to H3 H5. apply IH to H4 H6. apply par_sublet to H9 H7. apply par_sublet to H10 H8. search.
-      case H5. apply IH to H3 H6. apply IH to H4 H7. apply par_sublet to H10 H8. apply par_sublet to H11 H9. search.
-    case H2.
-      apply IH to H3 H4. search.
-      case H4. apply IH to H3 H5. search.
-      case H4. apply par_subdelim to H5. apply IH to H3 H6. search.
-    case H2.
-      case H3. apply IH2 to H4 H5. apply IH to H7 H6. apply par_subv to H10 H8. apply par_subv to H11 H9. search.
-      apply IH2 to H3 H5. apply IH2 to H4 H6. search.
-    case H2.
-      case H3. apply IH to H4 H6. apply IH2 to H7 H5. apply par_subv to H8 H10. apply par_subv to H9 H11. search.
-      case H3. apply IH to H4 H5. apply IH to H7 H6. apply par_sublet to H11 H9. search.
-      apply IH to H3 H5. apply IH to H4 H6. search.
-    case H2.
-      case H3.
-      case H3. apply IH to H5 H4. search.
       apply IH1 to H3 H4. search.
-      apply IH3 to H3 H4. search.
-    case H2.
-      case H3. apply IH2 to H5 H4. search.
-      case H3. apply par_subdelim to H5. skip. % subdelim, wrong order
-      skip. %par pard diam, but wrong order
       apply IH to H3 H4. search.
-    case H2. apply IH to H3 H4. search.
-    case H2. apply IH2 to H3 H4. search.
-    case H2. apply IH to H3 H4. search.
-  intros. case H1 (keep).
-    case H2.
-      apply IH to H3 H5. apply IH1 to H4 H6. search.
-      case H3. apply IH1 to H4 H6. apply IH2 to H7 H5. apply pard_subv to H9 H11. search.
-      case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subdlet to H11 H9. search.
-    case H2.
-      case H5. apply IH2 to H3 H7. apply IH1 to H4 H6. apply pard_subv to H10 H8. search.
-      apply IH2 to H3 H5. apply IH1 to H4 H6. apply pard_subv to H9 H7. apply pard_subv to H10 H8. search.
-    case H2.
-      apply IH1 to H3 H6. case H5. apply IH to H4 H9. apply par_subdlet to H10 H7. search.
-      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
-    case H2.
       apply IH to H3 H4. search.
+      apply IH to H3 H4. search.
+      apply IH to H3 H4. search.
+    case H2.
+      apply IH1 to H3 H5. apply IH1 to H4 H6. search.
+      apply IH to H3 H5. apply IH to H4 H6. search.
   intros. case H1.
     case H2. search.
     case H2. apply IH to H3 H4. search.
-  intros. case H1 (keep).
-    case H2 (keep).
-      case H3. apply IH3 to H4 H6. apply IH2 to H7 H5. apply pard_subv to H9 H11. search.
-      case H3. apply IH3 to H4 H5. apply IH to H7 H6. apply par_subdlet to H11 H9. search.
-      apply IH3 to H4 H6. apply IH to H3 H5. search.
-    case H2 (keep).
-      apply IH3 to H4 H6. apply IH2 to H3 H5. apply pard_subv to H7 H9. apply pard_subv to H8 H10. search.
-      apply IH3 to H4 H6. case H5. apply IH2 to H3 H9. apply pard_subv to H7 H10. search.
-    case H2 (keep).
-      apply IH3 to H3 H5. apply IH to H4 H6. apply par_subdlet to H9 H7. apply par_subdlet to H10 H8. search.
-      apply IH3 to H3 H6. case H5. apply IH to H4 H9. apply par_subdlet to H10 H7. search.
-    case H2 (keep).
-      apply par_subdelim to H4. apply IH to H3 H5. search.
+    case H2.
+
+Split subdelims as subdelim, vsubdelim.
+
+
+Theorem pars_diam :
+  (forall S E E1 E2, skel S -> eos E S -> par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+  (forall S E E1 E2, skel S -> eos E S -> pard E E1 -> pard E E2 -> exists E3, pard E1 E3 /\ pard E2 E3) /\
+  (forall S V V1 V2, skel S -> vos V S -> parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3) /\
+  (forall S E E1 E2, skel S -> eos E S -> pard E E1 -> par E E2 -> exists E3, pard E1 E3 /\ pard E2 E3).
+  induction on 1 1 1 1. split.
+  intros. case H3.
+    case H4. search.
+    case H4.
+      case H2. case H9. case H1. case H12. apply IH to H14 _ H6 H8. apply IH2 to H13 _ H5 H7. apply par_subv to H15 H17. apply par_subv to H16 H18. search.
+      case H2. case H9. case H1. case H12. case H7. apply IH2 to H13 _ H5 H8. apply IH to H14 _ H6 H15. apply par_subv to H18 H16. search.
+    case H4.
+      case H2. case H9. case H1. case H12. apply IH to H13 _ H6 H8. apply IH2 to H14 _ H5 H7. apply par_subv to H15 H17. apply par_subv to H16 H18. search.
+      case H2. case H9. case H1. case H12. case H7. apply IH to H13 _ H6 H8. apply IH2 to H14 _ H5 H15. apply par_subv to H16 H18. search.
+    case H4.
+      case H2. case H7. case H1. case H9. apply IH2 to H10 _ H5 H6. search.
+      case H6.
+      case H2. case H7. case H1. case H9. case H6. apply IH2 to H10 _ H5 H11. search.
+    case H4.
+      case H2. case H9. case H1. case H12. apply IH to H13 _ H5 H7. apply IH to H14 _ H6 H8. apply par_sublet to H17 H15. apply par_sublet to H18 H16. search.
+      case H2. case H9. case H7. case H1. case H13. apply IH to H14 _ H5 H8. apply IH to H15 _ H6 H12. apply par_sublet to H18 H16. search.
+    case H4.
+      case H2. case H7. case H1. case H9. apply subdelim to H10 H8. apply IH to H10 _ H5 H6. search.
+      case H2. case H7. case H6. case H1. case H10. apply subdelim to H11 H8. apply IH to H11 _ H5 H9. search.
+      case H2. case H6. case H7. case H1. case H10. apply subdelim to H11 H9. apply par_subdelim to H8. apply IH to H11 _ H5 H13. search.
+    case H4.
+      case H2. case H5. case H9. case H1. case H13. apply IH2 to H14 _ H6 H7. apply IH to H15 _ H8 H11. apply par_subv to H18 H17. search.
+      case H2. case H1. apply IH2 to H11 _ H5 H7. apply IH2 to H12 _ H6 H8. search.
+    case H4.
+      case H2. case H5. case H9. case H1. case H13. apply IH2 to H15 _ H7 H11. apply IH to H14 _ H6 H8. apply par_subv to H19 H16. search.
+      case H2. case H5. case H9. case H1. case H13. apply IH to H14 _ H6 H7. apply IH to H15 _ H8 H11. apply par_sublet to H18 H17. search.
+      case H2. case H1. apply IH to H11 _ H5 H7. apply IH to H12 _ H6 H8. search.
+    case H4.
+      case H5.
+      case H2. case H5. case H7. case H1. case H10. apply subdelim to H11 H9. apply IH to H11 _ H6 H8. search.
+      case H2. case H1. apply IH1 to H8 _ H5 H6. search.
+      case H2. case H1. apply IH3 to H8 _ H5 H6. search.
+    case H4.
+      case H2. case H5. case H7. case H1. case H10. apply IH2 to H11 _ H6 H8. search.
+      case H2. case H5. case H7. case H1. case H10. apply par_subdelim to H8. apply subdelim to H11 H9. apply IH to H11 _ H6 H12. search.
+      case H2. case H1. apply IH3 to H8 _ H6 H5. search.
+      case H2. case H1. apply IH to H8 _ H5 H6. search.
+    case H4.
+      case H2. case H1. apply IH to H8 _ H5 H6. search.
+    case H4.
+      case H2. case H1. apply IH2 to H8 _ H5 H6. search.
+    case H4.
+      case H2. case H1. apply IH to H8 _ H5 H6. search.
+  intros. case H3.
+    case H4.
+      case H2. case H1. apply IH to H11 _ H5 H7. apply IH1 to H12 _ H6 H8. search.
+      case H2. case H5. case H9. case H1. case H13. apply IH2 to H15 _ H7 H11. apply IH1 to H14 _ H6 H8. apply pard_subv to H19 H16. search.
+      case H2. case H5. case H9. case H1. case H13. apply IH1 to H14 _ H6 H7. apply IH to H15 _ H8 H11. apply par_subdlet to H18 H17. search.
+    case H4.
+      case H2. case H7. case H9. case H1. case H13. apply IH1 to H14 _ H6 H8. apply IH2 to H15 _ H5 H11. apply pard_subv to H16 H18. search.
+      case H2. case H9. case H1. case H12. apply IH1 to H13 _ H6 H8. apply IH2 to H14 _ H5 H7. apply pard_subv to H15 H17. apply pard_subv to H16 H18. search.
+    case H4.
+      case H2. case H7. case H9. case H1. case H13. apply IH1 to H14 _ H5 H8. apply IH to H15 _ H6 H11. apply par_subdlet to H18 H16. search.
+      case H2. case H9. case H1. case H12. apply IH1 to H13 _ H5 H7. apply IH to H14 _ H6 H8. apply par_subdlet to H17 H15. apply par_subdlet to H18 H16. search.
+    case H4.
+      case H2. case H1. apply subdelim to H8 H7. apply IH to H8 _ H5 H6. search.
+  intros. case H3.
+    case H4. search.
+    case H4. case H2. case H1. apply IH to H8 _ H5 H6. search.
+  intros. case H3.
+    case H4.
+      case H2. case H5. case H9. case H1. case H13. apply IH2 to H15 _ H7 H11. apply IH3 to H14 _ H6 H8. apply pard_subv to H19 H16. search.
+      case H2. case H5. case H9. case H1. case H13. apply IH3 to H14 _ H6 H7. apply IH to H15 _ H8 H11. apply par_subdlet to H18 H17. search.
+      case H2. case H1. apply IH to H11 _ H5 H7. apply IH3 to H12 _ H6 H8. search.
+    case H4.
+      case H2. case H9. case H1. case H12. apply IH3 to H13 _ H6 H8. apply IH2 to H14 _ H5 H7. apply pard_subv to H15 H17. apply pard_subv to H16 H18. search.
+      case H2. case H7. case H9. case H1. case H13. apply IH3 to H14 _ H6 H8. apply IH2 to H15 _ H5 H11. apply pard_subv to H16 H18. search.
+    case H4.
+      case H2. case H9. case H1. case H12. apply IH3 to H13 _ H5 H7. apply IH to H14 _ H6 H8. apply par_subdlet to H17 H15. apply par_subdlet to H18 H16. search.
+      case H2. case H7. case H9. case H1. case H13. apply IH3 to H14 _ H5 H8. apply IH to H15 _ H6 H11. apply par_subdlet to H18 H16. search.
+    case H4.
+      case H2. case H1. apply subdelim to H8 H7. apply par_subdelim to H6. apply IH to H8 _ H5 H10. search.
