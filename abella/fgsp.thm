@@ -34,8 +34,8 @@ Define eos : expr -> skel -> prop,
 
 Define par : expr -> expr -> prop,
        pard : expr -> expr -> prop,
-       parv : val -> val -> prop by
-%       parp : (expr -> expr) -> expr -> expr -> prop by
+       parv : val -> val -> prop,
+       parp : (expr -> expr) -> expr -> expr -> prop by
 
   nabla x, parv x x;
   parv (lam E) (lam E') := nabla x, par (E x) (E' x);
@@ -51,28 +51,31 @@ Define par : expr -> expr -> prop,
 
   par (app V U) (app V' U') := parv V V' /\ parv U U';
   par (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, par (E2 x) (E2' x);
+  par (delim (let E T)) E' := exists T', nabla x, pard (T x) (T' x) /\ parp (o\ delim (let o T')) E E';
   par (delim E) (delim E') := pard E E';
   par (delim E) (delim E') := par E E';
+  par (delim E) E' := parp delim E E';
   par (shift0 E) (shift0 E') := nabla k, par (E k) (E' k);
   par (ret V) (ret V') := parv V V';
   nabla k, par (k (E k)) (k (E' k)) := nabla k, par (E k) (E' k);
-%  nabla k, par (k (E k)) (E' k) := nabla k, parp (o\ k o) (E k) (E' k);
+  nabla k, par (k (E k)) (E' k) := nabla k, parp (o\ k o) (E k) (E' k);
 
   pard (let E1 E2) (let E1' E2') := par E1 E1' /\ nabla x, pard (E2 x) (E2' x);
   pard (let (ret V) E) (E' V') := parv V V' /\ nabla x, pard (E x) (E' x);
   pard (let (shift0 k\ E1 k) E2) (shift0 k_\ E1' (o\ delim (let o E2'))) :=
     nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
-  pard (shift0 k\ E k) (shift0 k_\ E') := par (E delim) E'.
+  pard (shift0 k\ E k) (shift0 k_\ E') := par (E delim) E';
 
-%  parp K (shift0 E) (E' K) := nabla k, par (E k) (E' k);
-%  parp K (let E T) E' := exists T', nabla x, par (T x) (T' x) /\ parp (o\ K (let o T')) E E'.
+  parp K (shift0 E) (E' K) := nabla k, par (E k) (E' k);
+  parp K (let E T) E' := exists T', nabla x, par (T x) (T' x) /\ parp (o\ K (let o T')) E E'.
 
 
 Theorem pars_subv :
   (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
   (forall E E' U U', nabla x, pard (E x) (E' x) -> parv U U' -> pard (E U) (E' U')) /\
-  (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')).
-  induction on 1 1 1. split.
+  (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')) /\
+  (forall K E E' U U', nabla x, parp (K x) (E x) (E' x) -> parv U U' -> parp (K U') (E U) (E' U')).
+  induction on 1 1 1 1. split.
   intros. case H1.
     search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
@@ -82,11 +85,14 @@ Theorem pars_subv :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. apply IH2 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH3 to H4 H2. search.
     apply IH1 to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
   intros. case H1.
     apply IH to H3 H2. apply IH1 to H4 H2. search.
     apply IH2 to H3 H2. apply IH1 to H4 H2. search.
@@ -96,14 +102,19 @@ Theorem pars_subv :
     search.
     search.
     apply IH to H3 H2. search.
+  intros. case H1.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH3 to H4 H2. search.
 
-Split pars_subv as par_subv, pard_subv, parv_subv.
+Split pars_subv as par_subv, pard_subv, parv_subv, parp_subv.
+
 
 Theorem pars_sublet :
   (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> par (T x) (T' x) -> par (E (o\k (let o T))) (E' (o\k (let o T')))) /\
   (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> par (T x) (T' x) -> pard (E (o\k (let o T))) (E' (o\k (let o T')))) /\
-  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
-  induction on 1 1 1. split.
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))) /\
+  (forall K E E' T T', nabla (k : expr -> expr) x, parp (K k) (E k) (E' k) -> par (T x) (T' x) -> parp (K (o\k (let o T'))) (E (o\k (let o T))) (E' (o\k (let o T')))).
+  induction on 1 1 1 1. split.
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
@@ -113,12 +124,16 @@ Theorem pars_sublet :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. apply IH2 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH3 to H4 H2. search.
     apply IH1 to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
+    apply IH3 to H3 H2. search.
   intros. permute (n2 n3) H2. case H1.
     apply IH to H3 H2. apply IH1 to H4 H2. search.
     apply IH2 to H3 H2. apply IH1 to H4 H2. search.
@@ -127,14 +142,18 @@ Theorem pars_sublet :
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH3 to H4 H2. search.
 
 Split pars_sublet as par_sublet, pard_sublet, parv_sublet.
 
 Theorem pars_subdelim :
   (forall E E', nabla (k : expr -> expr), par (E k) (E' k) -> par (E delim) (E' delim)) /\
   (forall E E', nabla (k : expr -> expr), pard (E k) (E' k) -> pard (E delim) (E' delim)) /\
-  (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V delim) (V' delim)).
-  induction on 1 1 1. split.
+  (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V delim) (V' delim)) /\
+  (forall K E E', nabla (k : expr -> expr), parp (K k) (E k) (E' k) -> parp (K delim) (E delim) (E' delim)).
+  induction on 1 1 1 1. split.
   intros. case H1 (keep).
     search.
     apply IH2 to H2. apply IH to H3. search.
@@ -144,12 +163,16 @@ Theorem pars_subdelim :
     apply IH to H2. search.
     apply IH2 to H2. apply IH2 to H3. search.
     apply IH to H2. apply IH to H3. search.
+    apply IH1 to H2. apply IH3 to H3. search.
     apply IH1 to H2. search.
     apply IH to H2. search.
+    apply IH3 to H2. search.
     apply IH to H2. search.
     apply IH2 to H2. search.
     apply IH to H2. search.
     apply IH to H2. search.
+    apply IH3 to H2 with k = n1. search.
+    apply IH3 to H2. search.
   intros. case H1 (keep).
     apply IH to H2. apply IH1 to H3. search.
     apply IH2 to H2. apply IH1 to H3. search.
@@ -158,6 +181,9 @@ Theorem pars_subdelim :
   intros. case H1.
     search.
     apply IH to H2. search.
+  intros. case H1.
+    apply IH to H2. search.
+    apply IH to H2. apply IH3 to H3. search.
 
 Split pars_subdelim as par_subdelim, pard_subdelim, parv_subdelim.
 
@@ -165,8 +191,9 @@ Split pars_subdelim as par_subdelim, pard_subdelim, parv_subdelim.
 Theorem pars_subdlet :
   (forall E E' T T', nabla (k : expr -> expr) x, par (E k) (E' k) -> pard (T x) (T' x) -> par (E (o\delim (let o T))) (E' (o\delim (let o T')))) /\
   (forall E E' T T', nabla (k : expr -> expr) x, pard (E k) (E' k) -> pard (T x) (T' x) -> pard (E (o\delim (let o T))) (E' (o\delim (let o T')))) /\
-  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> pard (T x) (T' x) -> parv (V (o\delim (let o T))) (V' (o\delim (let o T')))).
-  induction on 1 1 1. split.
+  (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> pard (T x) (T' x) -> parv (V (o\delim (let o T))) (V' (o\delim (let o T')))) /\
+  (forall K E E' T T', nabla (k : expr -> expr) x, parp (K k) (E k) (E' k) -> pard (T x) (T' x) -> parp (K (o\delim (let o T'))) (E (o\delim (let o T))) (E' (o\delim (let o T')))).
+  induction on 1 1 1 1. split.
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
@@ -176,12 +203,16 @@ Theorem pars_subdlet :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. apply IH2 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH3 to H4 H2. search.
     apply IH1 to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
+    apply IH3 to H3 H2. search.
   intros. permute (n2 n3) H2. case H1.
     apply IH to H3 H2. apply IH1 to H4 H2. search.
     apply IH2 to H3 H2. apply IH1 to H4 H2. search.
@@ -190,6 +221,9 @@ Theorem pars_subdlet :
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH3 to H4 H2. search.
 
 Split pars_subdlet as par_subdlet, pard_subdlet, parv_subdlet.
 
@@ -215,6 +249,7 @@ Theorem subdelims :
 
 Split subdelims as subdelim, vsubdelim.
 
+Quit.
 
 Theorem pars_diam :
   (forall S E E1 E2, skel S -> eos E S -> par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
