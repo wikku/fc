@@ -251,6 +251,47 @@ Theorem subdelims :
 
 Split subdelims as subdelim, vsubdelim.
 
+Theorem pars_pluglet :
+  (forall K K' T T', nabla o x, par (K o) (K' o) -> par (T x) (T' x) -> par (K (let o T)) (K' (let o T'))) /\
+  (forall K K' T T', nabla o x, pard (K o) (K' o) -> par (T x) (T' x) -> pard (K (let o T)) (K' (let o T'))) /\
+  (forall K K' T T', nabla o x, parv (K o) (K' o) -> par (T x) (T' x) -> parv (K (let o T)) (K' (let o T'))) /\
+  (forall C K K' T T', nabla o x, parp (C o) (K o) (K' o) -> par (T x) (T' x) -> parp (C (let o T')) (K (let o T)) (K' (let o T'))).
+  induction on 1 1 1 1. split.
+  intros. permute (n2 n3) H2. case H1 (keep).
+    search.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH3 to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH3 to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. apply IH1 to H4 H2. search.
+    apply IH2 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH3 to H4 H2. search.
+
+Split pars_pluglet as par_pluglet, pard_pluglet, parv_pluglet, parp_pluglet.
+
+Theorem park_pluglet :
+  forall K K' T T', nabla x, park K K' -> par (T x) (T' x) -> park (o\ K (let o T)) (o\ K' (let o T')).
+  intros. case H1. apply par_pluglet to H3 H2. search.
 
 Theorem pars_diam :
   (forall S E E1 E2, skel S -> eos E S -> par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
@@ -366,4 +407,4 @@ Theorem pars_diam :
       case H2. case H1. apply subdelim to H8 H7. apply par_subdelim to H6. apply IH to H8 _ H5 H10. search.
   intros. case H3. % IH4
     case H4. case H2. case H1. apply IH to H10 _ H7 H8. skip. % par_subk
-    case H4. case H2. case H1. apply IH to H14 _ H7 H9. Quit.
+    case H4. case H2. case H1. apply IH to H14 _ H7 H9. apply park_pluglet to H5 H15. apply park_pluglet to H6 H16. apply IH4 to H13 _ H8 H10 _ _. search.
