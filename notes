@@ -1652,3 +1652,8 @@ trzeba też dodać parp który robi renaming α[K[S β. e]] → e{β:=α[K]}
 2024-08-27
 parallel reduction chyba może być mocniejsze niż Zprop
 kiedy są nachodzące na siebie redeksy, parallel ma obie opcje. Zprop musi wybrać i zawsze w jakimś przypadku będzie źle
+
+paper ktorego nei znałem:
+
+Confluency and strong normalizability of call-by-value λµ-calculus
+Author: Koji Nakazawa
