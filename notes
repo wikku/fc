@@ -1657,3 +1657,27 @@ paper ktorego nei znałem:
 
 Confluency and strong normalizability of call-by-value λµ-calculus
 Author: Koji Nakazawa
+
+
+2024-08-28
+
+(a)  pard (shift0 E) E' := par (E delim) E'
+raczej jest nieuniknione aby działał lemat par/pard
+
+wygląda na to, że
+(b)  pard (let (shift0 k\ E1 k) E2) (shift0 k\ E1' (o\ k (let o E2'))) :=
+       nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
+daje nam lemat pard/pard ⇒ par/par, a
+(c)  pard (let (shift0 k\ E1 k) E2) (shift0 k_\ E1' (o\ delim (let o E2'))) :=
+    nabla x, pard (E2 x) (E2' x) /\ nabla k, par (E1 k) (E1' k);
+daje nam lemat pard/pard ⇒ pard/pard
+
+albo można mieć pomocniczą redukcję która traktuje zmienną jako delim ale nie podstawia...
+
+wygląda na to, że w lemacie par/pard musimy mieć (a) i (c)
+
+wystarczy (a), w par może być
+  par (shift0 E) (E' delim) := nabla k, par (E k) (E' k)
+
+
+
