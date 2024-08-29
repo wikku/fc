@@ -255,6 +255,47 @@ Theorem subdelims :
 
 Split subdelims as subdelim, vsubdelim.
 
+Theorem pars_subk :
+  (forall E E', nabla x (y : expr -> expr), par (E x y) (E' x y) -> par (E x x) (E' x x)) /\
+  (forall E E', nabla x (y : expr -> expr), pard (E x y) (E' x y) -> pard (E x x) (E' x x)) /\
+  (forall V V', nabla x (y : expr -> expr), parv (V x y) (V' x y) -> parv (V x x) (V' x x)) /\
+  (forall E E', nabla x (y : expr -> expr), parc (E x y) (E' x y) -> parc (E x x) (E' x x)).
+  induction on 1 1 1 1. split.
+  intros. case H1 (keep).
+    search.
+    apply IH2 to H2. apply IH to H3. search.
+    apply IH2 to H2. apply IH to H3. search.
+    apply IH2 to H2. search.
+    apply IH to H2. apply IH to H3. search.
+    apply IH to H2. search.
+    apply IH2 to H2. apply IH2 to H3. search.
+    apply IH to H2. apply IH to H3. search.
+    apply IH3 to H2. apply IH1 to H3. search.
+    apply IH1 to H2. search.
+    apply IH to H2. search.
+    apply IH3 to H2. search.
+    apply IH to H2. search.
+    apply IH2 to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH3 to H2. search.
+    apply IH3 to H2. search.
+    apply IH3 to H2. search.
+  intros. case H1 (keep).
+    apply IH to H2. apply IH1 to H3. search.
+    apply IH2 to H2. apply IH1 to H3. search.
+    apply IH1 to H2. apply IH to H3. search.
+    apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH to H2. search.
+  intros. case H1.
+    apply IH to H2. search.
+    apply IH3 to H2. apply IH to H3. search.
+
+Split pars_subk as par_subk, pard_subk, parv_subk, parc_subk.
+
 
 Theorem pars_diam :
   (forall S E E1 E2, skel S -> eos E S -> par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
@@ -344,10 +385,10 @@ Theorem pars_diam :
       case H2. case H1. apply IH2 to H8 _ H5 H6. search.
     case H4.
       case H2. case H1. apply IH to H8 _ H5 H6. search.
-      case H2. case H1. apply IH5 to H8 _ H6 H5. skip. % needs new subk lemma?
+      case H2. case H1. apply IH5 to H8 _ H6 H5. apply par_subk to H9. search.
     case H4.
-      case H2. case H1. apply IH5 to H8 _ H5 H6. skip. % needs new subk lemma?
-      case H2. case H1. apply IH4 to H8 _ H5 H6. skip. % needs new subk lemma?
+      case H2. case H1. apply IH5 to H8 _ H5 H6. apply par_subk to H9. search.
+      case H2. case H1. apply IH4 to H8 _ H5 H6. apply par_subk to H9. apply par_subk to H10. search.
   intros. case H3.
     case H4.
       case H2. case H1. apply IH to H11 _ H5 H7. apply IH1 to H12 _ H6 H8. search.
