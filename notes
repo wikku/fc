@@ -1680,4 +1680,32 @@ wystarczy (a), w par może być
   par (shift0 E) (E' delim) := nabla k, par (E k) (E' k)
 
 
+2024-08-29
 
+1.
+
+  IH5 : forall S E E1 E2, nabla k, skel S * -> eos E S -> parc E E1 ->
+          par E E2 -> (exists E3, par (E1 k) (E3 k) /\ parc E2 E3)
+
+  H5 : parc E3 E'
+  H12 : skel S2 *
+  H14 : par E3 E1'
+
+  apply IH5 to H12 _ H5 H14 with k = n2.
+  H18 : par (E' n2) (E5 n2 n2)
+  H19 : parc E1' (E5 n2)
+
+2.
+
+  IH5 : forall S E E1 E2, skel S * -> eos E S -> parc E E1 -> par E E2 ->
+          (exists E3, nabla x, par (E1 x) (E3 x) /\ parc E2 E3)
+  H5 : parc E3 E'
+  H12 : skel S2 *
+  H14 : par E3 E1'
+
+  apply IH5 to H12 _ H5 H14.
+
+  H18 : par (E' n1) (E5 n1)
+  H19 : parc E1' E5
+
+stay with 1, makes more sense (and less code to change)
