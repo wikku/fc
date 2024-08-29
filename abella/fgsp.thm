@@ -527,8 +527,11 @@ Theorem pars_diam :
       case H5. case H7. case H9. apply IH to H10 _ H6 H11. apply IH to H15 _ H12 H13. apply par_sublet to H19 H16. apply par_sublet to H18 H17. search.
       apply IH5 to H9 _ H5 H11. apply IH to H10 _ H6 H12. apply par_sublet to H13 H15. search.
   intros. case H3. % IH6
-    case H4. case H2. case H1. apply subdelim to H8 H7. apply par_subdelim to H5. apply IH to H8 _ H6 H10. skip.
+    case H4. case H2. case H1. apply subdelim to H8 H7. apply par_subdelim to H5. apply IH to H8 _ H6 H10. exists (k\ E5). search.
     case H4.
-      case H2. case H1. apply IH5 to H11 _ H5 H7. apply IH3 to H12 _ H8 H6. apply par_subdlet to H13 H16. skip.
+      case H2. case H1. apply IH5 to H11 _ H5 H7. apply IH3 to H12 _ H8 H6. apply par_subdlet to H13 H16. Quit. skip.
+        % we have: par (E' (o\delim (let o T'))) (E4 (o\delim (let o E5)))
+        % we would like: parc (let E1' E2') (k\ E4 (o\ k (let o E5)))
+        % but we have pard (E2' n1) (E5 n1) instead of par
       case H5.
-      case H2. case H5. case H9. case H1. case H13. apply IH to H15 _ H8 H11. apply IH3 to H14 _ H7 H6. apply par_subdlet to H17 H19. apply par_subdlet to H16 H18. skip.
+      case H2. case H5. case H9. case H1. case H13. apply IH to H15 _ H8 H11. apply IH3 to H14 _ H7 H6. apply par_subdlet to H17 H19. apply par_subdlet to H16 H18. exists (k\ E5 (o\delim (let o E6))). search.
