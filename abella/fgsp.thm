@@ -32,10 +32,6 @@ Define eos : expr -> skel -> prop,
   eos (delim E) (sk1 S) := eos E S;
   nabla k, eos (k (E k)) (sk1 S) := nabla k, eos (E k) S.
 
-Define is_kont : (expr -> expr) -> prop by
-  is_kont delim;
-  is_kont (o\ K (let o T)) := is_kont K.
-
 Define par : expr -> expr -> prop,
        pard : expr -> expr -> prop,
        parv : val -> val -> prop,
@@ -72,9 +68,6 @@ Define par : expr -> expr -> prop,
 
   parc (shift0 E) E' := nabla k, par (E k) (E' k);
   parc (let E T) (k\ E' (o\ k (let o T'))) := parc E E' /\ nabla x, par (T x) (T' x).
-
-Define park : (expr -> expr) -> (expr -> expr) -> prop by
-  park K K' := nabla o, par (K o) (K' o).
 
 Theorem pars_subv :
   (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
