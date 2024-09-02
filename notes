@@ -1709,3 +1709,31 @@ wystarczy (a), w par może być
   H19 : parc E1' E5
 
 stay with 1, makes more sense (and less code to change)
+
+2024-09-01
+
+auxiliary parf (fixup)?
+
+parf (shift0 E) (shift0 k_\ E' delim) := nabla k, par (E k) (E' k);
+parf E E' := par E E';
+
+maybe par parameterized by tailness... but that doesn't reduce proof size
+
+RECAP:
+  part d (shift0 E) (shift0 k_\ E') := par (E delim) E';
+  part d (let (shift0 E) T) (shift0 k_\ E' (o\ delim (let o T'))) := nabla k e, par (E k) (E' k) /\ part d (T x) (T' x)
+because
+if
+  pard (let (s E1) T1) (let (s E2) T2)
+  par (let (s E1) T1) (s k\ E3 o\ k (let o T3))
+then by IHs we have
+  nabla k, par (E2 k) (E4 k) /\ par (E3 k) (E4 k)
+  nabla x, par(d) (T2 x) (T4 x) /\ pard (T3 x) (T4 x)
+then by subdlet lemma
+  par (E3 o\ delim (let o T3)) (E4 o\ delim (let o T4))  (*)
+so need to subdelim first then par to use it so (*)
+  pard (s k\ E3 o\ k (let o T3)) (s k\ E4 o\ delim (let o T4))
+then to complete diamond we need
+  pard (let (s E2) T2) (s k\ E4 (o\ delim (let o T4)))
+
+IDEA: nested induction to refer to par/par inside pard/pard (where par ⊆ pard)
