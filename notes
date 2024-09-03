@@ -1737,3 +1737,7 @@ then to complete diamond we need
   pard (let (s E2) T2) (s k\ E4 (o\ delim (let o T4)))
 
 IDEA: nested induction to refer to par/par inside pard/pard (where par ⊆ pard)
+
+increase all Hs in vim
+:'<,'>s/ H\(\d\+\)/\=' H'.string(submatch(1)+1)/g
+
