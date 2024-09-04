@@ -1741,3 +1741,8 @@ IDEA: nested induction to refer to par/par inside pard/pard (where par ⊆ pard)
 increase all Hs in vim
 :'<,'>s/ H\(\d\+\)/\=' H'.string(submatch(1)+1)/g
 
+2024-09-04
+
+S κ. ⟨S λ. e⟩ → S κ. e{λ:=⟨□⟩}
+S κ. ⟨S λ. e⟩ →η S λ. e{κ:=⟨□⟩}
+dlatego w hindley-rosen w zestawie redukcji η potrzebujemy zwykłej redukcji ogonowej S

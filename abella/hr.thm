@@ -1,0 +1,224 @@
+% vim: et
+Kind val,expr type.
+Kind lbl type.
+
+Type lam    (val -> expr) -> val.
+
+Type ret    val -> expr.
+Type app    val -> val -> expr.
+Type let    expr -> (val -> expr) -> expr.
+Type shift0 ((expr -> expr) -> expr) -> expr.
+Type delim  expr -> expr.
+
+Kind skel type.
+Type sk0 skel.
+Type sk1 skel -> skel.
+Type sk2 skel -> skel -> skel.
+
+Kind mode type.
+Type g, d mode.
+
+Define md : mode -> prop by
+  md g; md d.
+
+Define red : mode -> expr -> expr -> prop,
+       redv : val -> val -> prop by
+  red R (let (ret V) T) (T V);
+  red R (app (lam E) V) (E V);
+  red R (delim (ret V)) (ret V);
+  red R (let (shift0 E) T) (shift0 k\ E (o\k (let o T)));
+  red R (delim (shift0 E)) (E delim);
+  nabla k, red R (k (shift0 (E k))) (E k k);
+  red d (shift0 E) (shift0 k_\ E delim);
+
+  redv (lam E) (lam E') := nabla x, red g (E x) (E' x);
+  red R (ret V) (ret V') := redv V V';
+  red R (let E T) (let E' T) := red g E E';
+  red R (let E T) (let E T') := nabla x, red R (T x) (T' x);
+  red R (delim E) (delim E') := red d E E';
+  red R (app V U) (app V' U) := redv V V';
+  red R (app V U) (app V U') := redv U U';
+  red R (shift0 E) (shift0 E') := nabla k, red g (E k) (E' k);
+  nabla k, red R (k (E k)) (k (E' k)) := nabla k, red g (E k) (E' k).
+
+Define redy : mode -> expr -> expr -> prop,
+       redyv : val -> val -> prop by
+  redy d (shift0 k\ delim (E k)) (E delim);
+  redy d (shift0 k\ ret (V k)) (ret (V delim));
+  redy d (shift0 k\ E k) (shift0 k_\ E delim);
+
+  redyv (lam E) (lam E') := nabla x, redy g (E x) (E' x);
+  redy R (ret V) (ret V') := redyv V V';
+  redy R (let E T) (let E' T) := redy g E E';
+  redy R (let E T) (let E T') := nabla x, redy R (T x) (T' x);
+  redy R (delim E) (delim E') := redy d E E';
+  redy R (app V U) (app V' U) := redyv V V';
+  redy R (app V U) (app V U') := redyv U U';
+  redy R (shift0 E) (shift0 E') := nabla k, redy g (E k) (E' k);
+  nabla k, redy R (k (E k)) (k (E' k)) := nabla k, redy g (E k) (E' k).
+
+Define many : (A -> A -> prop) -> A -> A -> prop by
+  many R A A;
+  many R A A' := exists A'', R A A'' /\ many R A'' A'.
+
+
+Theorem manyry_cong_lam : forall E E', nabla x, many (redy g) (E x) (E' x) -> many redyv (lam E) (lam E').
+  induction on 1. intros. case H1. search. apply IH to H3. search.
+
+Theorem manyry_cong_ret : forall R V V', many redyv V V' -> many (redy R) (ret V) (ret V').
+  induction on 1. intros. case H1. search. apply IH to H3 with R = R. search.
+
+Theorem manyry_cong_app1 : forall R V1 V1' V2, many redyv V1 V1' -> many (redy R) (app V1 V2) (app V1' V2).
+  induction on 1. intros. case H1. search. apply IH to H3 with V2 = V2, R = R. search.
+
+Theorem manyry_cong_app2 : forall R V1 V2 V2', many redyv V2 V2' -> many (redy R) (app V1 V2) (app V1 V2').
+  induction on 1. intros. case H1. search. apply IH to H3 with V1 = V1, R = R. search.
+
+Theorem manyry_cong_let1 : forall R E E' T, many (redy g) E E' -> many (redy R) (let E T) (let E' T).
+  induction on 1. intros. case H1. search. apply IH to H3 with T = T, R = R. search.
+
+Theorem manyry_cong_let2 : forall R E T T', nabla x, many (redy R) (T x) (T' x) -> many (redy R) (let E T) (let E T').
+  induction on 1. intros. case H1. search. apply IH to H3 with E = E. search.
+
+Theorem manyry_cong_delim : forall R E E', many (redy d) E E' -> many (redy R) (delim E) (delim E').
+  induction on 1. intros. case H1. search. apply IH to H3 with R = R. search.
+
+Theorem manyry_cong_shift0 : forall R E E', nabla k, many (redy g) (E k) (E' k) -> many (redy R) (shift0 E) (shift0 E').
+  induction on 1. intros. case H1. search. apply IH to H3 with R = R. search.
+
+Theorem manyry_cong_plug : forall R E E', nabla k, many (redy g) (E k) (E' k) -> many (redy R) (k (E k)) (k (E' k)).
+  induction on 1. intros. case H1. search. apply IH to H3 with R = R. search.
+
+
+Define some : (A -> A -> prop) -> A -> A -> prop by
+  some R A A;
+  some R A A' := R A A'.
+
+Theorem somer_cong_lam : forall E E', nabla x, some (red g) (E x) (E' x) -> some redv (lam E) (lam E').
+  intros. case H1. search. search.
+
+Theorem somer_cong_ret : forall R V V', some redv V V' -> some (red R) (ret V) (ret V').
+  intros. case H1. search. search.
+
+Theorem somer_cong_app1 : forall R V1 V1' V2, some redv V1 V1' -> some (red R) (app V1 V2) (app V1' V2).
+  intros. case H1. search. search.
+
+Theorem somer_cong_app2 : forall R V1 V2 V2', some redv V2 V2' -> some (red R) (app V1 V2) (app V1 V2').
+  intros. case H1. search. search.
+
+Theorem somer_cong_let1 : forall R E E' T, some (red g) E E' -> some (red R) (let E T) (let E' T).
+  intros. case H1. search. search.
+
+Theorem somer_cong_let2 : forall R E T T', nabla x, some (red R) (T x) (T' x) -> some (red R) (let E T) (let E T').
+  intros. case H1. search. search.
+
+Theorem somer_cong_delim : forall R E E', some (red d) E E' -> some (red R) (delim E) (delim E').
+  intros. case H1. search. search.
+
+Theorem somer_cong_shift0 : forall R E E', nabla k, some (red g) (E k) (E' k) -> some (red R) (shift0 E) (shift0 E').
+  intros. case H1. search. search.
+
+Theorem somer_cong_plug : forall R E E', nabla k, some (red g) (E k) (E' k) -> some (red R) (k (E k)) (k (E' k)).
+  intros. case H1. search. search.
+
+
+Theorem redg_redd : forall E E', red g E E' -> red d E E'.
+  induction on 1. intros. case H1.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    apply IH to H2. search.
+    search.
+    search.
+    search.
+    search.
+    search.
+
+Theorem red_subdelims :
+  (forall R E E', nabla k, red R (E k) (E' k) -> red R (E delim) (E' delim)) /\
+  (forall V V', nabla k, redv (V k) (V' k) -> redv (V delim) (V' delim)).
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    search.
+    apply IH1 to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. apply redg_redd to H3. search.
+  intros. case H1.
+    apply IH to H2. search.
+
+Split red_subdelims as red_subdelim, redv_subdelim.
+
+
+% strong commutation of red and redy
+Theorem scomm :
+  (forall R E1 E2 E3, md R -> red R E1 E2 -> redy R E1 E3 -> exists E4, many (redy R) E2 E4 /\ some (red R) E3 E4) /\
+  (forall V1 V2 V3, redv V1 V2 -> redyv V1 V3 -> exists V4, many redyv V2 V4 /\ some redv V3 V4).
+  induction on 3 2. split.
+  intros. case H3 (keep).
+    case H2 (keep).
+      search.
+      case H4.
+        search.
+        search.
+        apply red_subdelim to H5. search.
+    case H2.
+      search.
+      case H4. apply redv_subdelim to H5. search.
+    case H2.
+      search.
+      apply red_subdelim to H4. search.
+    case H2.
+      apply IH1 to H5 H4. apply manyry_cong_ret to H6 with R = R. apply somer_cong_ret to H7 with R = R. search.
+    case H2.
+      case H4. skip. % sub_redyv
+      case H4. skip. % redy_subk
+      apply IH to _ H5 H4. apply manyry_cong_let1 to H6 with T = T, R = R. apply somer_cong_let1 to H7 with T = T, R = R. search.
+      search.
+    case H2.
+      skip. % redy_subv
+      skip. % sub_redyk
+      search.
+      apply IH to _ H5 H4. apply manyry_cong_let2 to H6 with E = E, R = R. apply somer_cong_let2 to H7 with E = E, R = R. search.
+    case H2.
+      case H4. search.
+      case H4.
+        search.
+        search.
+        search.
+        skip. % redy_subdelim
+      apply IH to _ H5 H4. apply manyry_cong_delim to H6 with R = R. apply somer_cong_delim to H7 with R = R. search.
+    case H2.
+      case H4.
+        skip. % redy_subv
+        apply IH1 to H5 H4. apply manyry_cong_app1 to H6 with V2 = U, R = R. apply somer_cong_app1 to H7 with V2 = U, R = R. search.
+        search.
+    case H2.
+      skip. % sub_redyv
+      search.
+      apply IH1 to H5 H4. apply manyry_cong_app2 to H6 with V1 = V, R = R. apply somer_cong_app2 to H7 with V1 = V, R = R. search.
+    case H2.
+      skip. %redy_subdelim
+      apply IH to _ H5 H4. apply manyry_cong_shift0 to H6 with R = R. apply somer_cong_shift0 to H7 with R = R. search.
+    case H2.
+      case H4.
+        skip. %redy_subk
+        apply IH to _ H5 H4. apply manyry_cong_plug to H6 with R = R. apply somer_cong_plug to H7 with R = R. search.
+  intros. case H2. case H1. apply IH to _ H4 H3. apply manyry_cong_lam to H5. apply somer_cong_lam to H6. search.
