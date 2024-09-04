@@ -1746,3 +1746,8 @@ increase all Hs in vim
 S κ. ⟨S λ. e⟩ → S κ. e{λ:=⟨□⟩}
 S κ. ⟨S λ. e⟩ →η S λ. e{κ:=⟨□⟩}
 dlatego w hindley-rosen w zestawie redukcji η potrzebujemy zwykłej redukcji ogonowej S
+
+update: hindley rosen nie działa!!! zwykła redukcja nie komutuje!
+bo ⟨let x = S α. e in S β. ⟨f⟩⟩ →η ⟨let x = S α. e in f{β:=⟨□⟩}⟩
+   ↓
+   ⟨S α. e{α:=α[let x = □ in S β. ⟨f⟩]}⟩

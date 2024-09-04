@@ -189,7 +189,7 @@ Theorem scomm :
       apply IH1 to H5 H4. apply manyry_cong_ret to H6 with R = R. apply somer_cong_ret to H7 with R = R. search.
     case H2.
       case H4. skip. % sub_redyv
-      case H4. skip. % redy_subk
+      case H4. Quit. skip. % WRONG!
       apply IH to _ H5 H4. apply manyry_cong_let1 to H6 with T = T, R = R. apply somer_cong_let1 to H7 with T = T, R = R. search.
       search.
     case H2.
