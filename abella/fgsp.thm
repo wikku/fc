@@ -36,6 +36,11 @@ Kind mode type.
 Type g, d mode.
 Define md : mode -> prop by md g; md d.
 
+Define eta : expr -> expr -> prop by
+  eta (shift0 k_\ E) (shift0 k_\ E);
+  eta (shift0 k_\ delim E) E;
+  eta (shift0 k_\ ret V) (ret V).
+
 
 Define par : mode -> expr -> expr -> prop,
        parv : val -> val -> prop by
@@ -43,8 +48,10 @@ Define par : mode -> expr -> expr -> prop,
   nabla x, parv x x;
   parv (lam E) (lam E') := nabla x, par g (E x) (E' x);
 
-  par d (let E T) (shift0 k_\ E' (o\ delim (let o T'))) := par g E (shift0 E') /\ nabla x, par d (T x) (T' x);
-  par d (shift0 E) (shift0 k_\ E') := par g (E delim) E';
+  par d (let E T) E'' := exists E' T', par g E (shift0 E') /\ nabla x, par d (T x) (T' x)
+    /\ eta (shift0 k_\ E' (o\ delim (let o T'))) E'';
+  par d (shift0 E) E'' := exists E', par g (E delim) E'
+    /\ eta (shift0 k_\ E') E'';
 
   par R (app (lam E) V) (E' V') := parv V V' /\ nabla x, par g (E x) (E' x);
   par R (let E T) (shift0 k\ E' (o\ k (let o T'))) := par g E (shift0 E') /\ nabla x, par R (T x) (T' x);
@@ -76,13 +83,16 @@ Theorem parg_pard : forall E E', par g E E' -> par d E E'.
     search.
     search.
 
+Theorem eta_subv : forall E E' (U : val), nabla x, eta (E x) (E' x) -> eta (E U) (E' U).
+  intros. case H1. search. search. search.
+
 Theorem pars_subv :
   (forall R E E' U U', nabla x, par R (E x) (E' x) -> parv U U' -> par R (E U) (E' U')) /\
   (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')).
   induction on 1 1. split.
   intros. case H1.
-    apply IH to H3 H2. apply IH to H4 H2. search.
-    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. apply eta_subv to H5 with U = U'. search.
+    apply IH to H3 H2. apply eta_subv to H4 with U = U'. search.
     apply IH1 to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
@@ -102,14 +112,16 @@ Theorem pars_subv :
 
 Split pars_subv as par_subv, parv_subv.
 
+Theorem eta_subk : forall E E' (K : expr -> expr), nabla k, eta (E k) (E' k) -> eta (E K) (E' K).
+  intros. case H1. search. search. search.
 
 Theorem pars_subk :
   (forall R E E', nabla x (y : expr -> expr), par R (E x y) (E' x y) -> par R (E x x) (E' x x)) /\
   (forall V V', nabla x (y : expr -> expr), parv (V x y) (V' x y) -> parv (V x x) (V' x x)).
   induction on 1 1. split.
   intros. case H1.
-    apply IH to H2. apply IH to H3. search.
-    apply IH to H2. search.
+    apply IH to H2. apply IH to H3. apply eta_subk to H4 with k = n2, K = n1. search.
+    apply IH to H2. apply eta_subk to H3 with k = n2, K = n1. search.
     apply IH1 to H2. apply IH to H3. search.
     apply IH to H2. apply IH to H3. search.
     apply IH to H2. apply IH to H3. search.
@@ -138,8 +150,8 @@ Theorem pars_subdelim :
   (forall V V', nabla (k : expr -> expr), parv (V k) (V' k) -> parv (V delim) (V' delim)).
   induction on 1 1. split.
   intros. case H1.
-    apply IH to H2. apply IH to H3. search.
-    apply IH to H2. search.
+    apply IH to H2. apply IH to H3. apply eta_subk to H4 with K = delim. search.
+    apply IH to H2. apply eta_subk to H3 with K = delim. search.
     apply IH1 to H2. apply IH to H3. search.
     apply IH to H2. apply IH to H3. search.
     apply IH to H2. apply IH to H3. search.
@@ -166,8 +178,8 @@ Theorem pars_sublet :
   (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par g (T x) (T' x) -> parv (V (o\k (let o T))) (V' (o\k (let o T')))).
   induction on 1 1. split.
   intros. permute (n2 n3) H2. case H1.
-    apply IH to H3 H2. apply IH to H4 H2. search.
-    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. apply eta_subk to H5 with k = n1, K = (o\n1 (let o T')). search.
+    apply IH to H3 H2. apply eta_subk to H4 with k = n1, K = (o\n1 (let o T')). search.
     apply IH1 to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
@@ -189,14 +201,13 @@ Theorem pars_sublet :
 Split pars_sublet as par_sublet, parv_sublet.
 
 
-% exactly same proof as pars_sublet
 Theorem pars_subdlet :
   (forall R E E' T T', nabla (k : expr -> expr) x, par R (E k) (E' k) -> par d (T x) (T' x) -> par R (E (o\delim (let o T))) (E' (o\delim (let o T')))) /\
   (forall V V' T T', nabla (k : expr -> expr) x, parv (V k) (V' k) -> par d (T x) (T' x) -> parv (V (o\delim (let o T))) (V' (o\delim (let o T')))).
   induction on 1 1. split.
   intros. permute (n2 n3) H2. case H1.
-    apply IH to H3 H2. apply IH to H4 H2. search.
-    apply IH to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. apply eta_subk to H5 with k = n1, K = (o\delim (let o T')). search.
+    apply IH to H3 H2. apply eta_subk to H4 with k = n1, K = (o\delim (let o T')). search.
     apply IH1 to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
@@ -251,6 +262,18 @@ Theorem pars_diam :
   (forall S V V1 V2, skel S -> vos V S -> parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
   induction on 1 1. split.
   intros. case H4.
+    case H2. case H1. case H5.
+      apply IH to H11 _ _ H6 H13. apply IH to H12 _ _ H7 H14. case H16. case H17. apply par_subdlet to H20 H18. apply par_subdlet to H21 H19. case H8.
+        case H15.
+          search.
+          case H24.
+            case H21.
+              apply parv_subdlet to H25 H19. search.
+              apply par_subdlet to H25 H19.
+
+            
+        
+    Quit.
     case H2. case H1. case H5.
       apply IH to H10 _ _ H6 H12. apply IH to H11 _ _ H7 H13. case H14. case H15. apply par_subdlet to H18 H16. apply par_subdlet to H19 H17. search.
       apply IH to H10 _ _ H6 H12. apply IH to H11 _ _ H7 H13. case H14. case H15. apply par_subdlet to H18 H16. apply par_subdlet to H19 H17. search.
