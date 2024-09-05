@@ -305,7 +305,7 @@ Theorem pars_diam :
   induction on 1 1 1 1 1. split.
 
   % Subgoal 1
-  intros. case H4.
+  intros. case H4 (keep).
     backchain diam_gd. case H2. case H1. case H8. case H10. case H5.
       apply IH1 to H11 _ H6 H14. apply IH to H13 _ _ H7 H15. apply par_subv to H18 H16. apply par_subv to H19 H17. search.
       case H14. apply IH1 to H11 _ H6 H15. apply IH to H13 _ _ H7 H16. apply par_subv to H19 H17. search.
@@ -415,7 +415,7 @@ Theorem pars_diam :
           search.
           search.
         apply subdelim to H8 H7. apply IH to H8 _ _ H6 H9. case H12. search.
-    case H2. case H1. case H5.
+    case H2. case H1. case H5 (keep).
       apply subdelim to H8 H7. apply par_subdelim to H9. apply IH to H8 _ _ H6 H11. case H12.
         search.
         search.
@@ -430,14 +430,13 @@ Theorem pars_diam :
           apply par_subdelim to H14. search.
           search.
           search.
-      apply subdelim to H8 H7. apply IH to H8 _ _ H6 H9.
-        case H11.
-          case H12.
+      apply subdelim to H8 H7. apply IH to H8 _ _ H6 H9. case H11.
+        case H12.
+          search.
+          case H14. case H15.
+            apply par_subdelim to H16. search.
             search.
-            case H14. case H15.
-              apply par_subdelim to H16. search.
-              search.
-              case H16. skip. % need eta in pard let...
+            case H16. skip. % need eta in pard let...
         case H12.
           search.
           case H14.
@@ -447,7 +446,7 @@ Theorem pars_diam :
               case H16. skip. %need eta in pard let
             case H15.
               apply par_subdelim to H16. search.
-              case H16. skip. % need eta in pard let (also when parc finds k at toplevel, parc g E5 (k\k (E'4 k)))
+              case H16. Quit. skip. % need eta in pard let (also when parc finds k at toplevel, parc g E5 (k\k (E'4 k)))
         case H12.
           case H14. skip. % same
           case H14.
@@ -457,7 +456,6 @@ Theorem pars_diam :
     apply subdelim to H8 H7. apply IH to H8 _ _ H6 H9. case H12. case H11.
       search.
       case H14. skip.
-    Quit.
     case H2. case H1. case H7. case H8. apply vsubdelim to H10 H9. clear H9. case H5.
       case H12. apply parv_subdelim to H13. apply IH1 to H10 _ H6 H14. search.
       case H12. apply IH1 to H10 _ H6 H13. search.
