@@ -1741,3 +1741,27 @@ IDEA: nested induction to refer to par/par inside pard/pard (where par ⊆ pard)
 increase all Hs in vim
 :'<,'>s/ H\(\d\+\)/\=' H'.string(submatch(1)+1)/g
 
+2024-09-09
+
+let x = let y = let z = e in f in g in h
+→ let y = let z = e in f in let x = g in h
+→ let z = e in let y = f in let x = g in h
+
+and also
+→ let x = let z = e in let y = f in g in h
+→ let z = e in let x = let y = f in g in h
+→ let z = e in let y = f in let x = g in h
+
+therefore need this in parallel reduction:
+let x = L[e] in t → L[let x = e in t]
+
+
+letlet confluence:
+structural substitute dummy/skeleton let (with nominal tail) and then perform reduction
+(which can do letlet), and then substitute the proper tail (which comes from another reduction)
+
+there was an idea
+   let x = S κ. e in let y = f in g  →  let x = S κ. e{κ:=κ[let y = □ in f]} in g  (x not in f)
+which does fix some letlet critical pairs, but doesn't seem to work with
+   let x = S κ. e in let y = f in g  →  S κ. e{κ:=κ[let x = □ in let y = f in g]}
+i.e. we something like the above anyway
