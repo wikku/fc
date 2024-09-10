@@ -109,7 +109,6 @@ Define par : mode -> expr -> expr -> prop,
   par d (let E T) (shift0 k_\ E' (o\ delim (let o T'))) :=
     nabla x, par d (T x) (T' x) /\ parc E E';
   par d (shift0 k\ E k) (shift0 k_\ E') := par g (E delim) E';
-  %par d E (shift0 k_\ E' delim) := parc d E E';
   par d (shift0 k\ delim (E k)) E' := par d (E delim) E';
   par d (shift0 k\ k (E k)) E' := par d (E delim) E';
   par d (shift0 k\ ret (V k)) (ret V') := parv (V delim) V';
