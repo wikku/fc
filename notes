@@ -1765,3 +1765,22 @@ there was an idea
 which does fix some letlet critical pairs, but doesn't seem to work with
    let x = S κ. e in let y = f in g  →  S κ. e{κ:=κ[let x = □ in let y = f in g]}
 i.e. we something like the above anyway
+
+2024-09-11
+
+substituting the dummy let (E (o\ k (let o t))) may cause issues with sublet/par_sublet lemmas,
+since we may end up with two dummy lets
+
+what about (E (o\ kl t o))
+par (let (shift0 k\ E k) T) (shift0 k\ E' (t\ o\ k o) T') := (nabla kl t, par (E (o\ kl t o)) (E' kl t)) /\ (nabla x, par (T x) (T' x));
+                                           ^^ unused variable, ugly
+
+or instead of
+
+kl : (val -> expr) -> expr -> expr
+have
+     ((val -> expr) -> expr) -> expr
+
+par (let (shift0 k\ E k) T) (shift0 k\ E' (o\ k (o T'))) := (nabla kl, par (E (o\ kl (t\ let o t))) (E' kl)) /\ (nabla x, par (T x) (T' x));
+
+par (kl (let (shift0 (E kl)) t)) (E' kl (o\ kl (o t))) ?
