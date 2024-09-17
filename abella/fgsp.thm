@@ -106,8 +106,10 @@ Define par : mode -> expr -> expr -> prop,
   par R (app (lam E) V) (E' V') := parv V V' /\ nabla x, par g (E x) (E' x);
   par R (let (ret V) E) (E' V') := parv V V' /\ nabla x, par R (E x) (E' x);
   par R (delim (ret V)) (ret V') := parv V V';
-  par R (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) :=
-    nabla x, par R (T x) (T' x) /\ nabla k, par g (E k) (E' k);
+%  par R (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) :=
+%    nabla x, par R (T x) (T' x) /\ nabla k, par g (E k) (E' k);
+  par R (let (shift0 E) T) (shift0 k\ E' (o\ k (o T'))) :=
+    nabla x, par R (T x) (T' x) /\ nabla kl, par g (E (o\ kl (t\ let o t))) (E' kl);
   par R (delim (shift0 E)) E' := par g (E delim) E';
 
   par R (app V U) (app V' U') := parv V V' /\ parv U U';
@@ -226,6 +228,83 @@ Theorem pars_sublet :
 
 Split pars_sublet as par_sublet, parv_sublet, parc_sublet.
 
+Theorem pars_subkot :
+  (forall R E E' T T', nabla k (kl : ((val -> expr) -> expr) -> expr) x, par R (E kl) (E' kl) -> par g (T x) (T' x) -> par R (E (o\k (o T))) (E' (o\k (o T')))) /\
+  (forall V V' T T', nabla k (kl : ((val -> expr) -> expr) -> expr) x, parv (V kl) (V' kl) -> par g (T x) (T' x) -> parv (V (o\k (o T))) (V' (o\k (o T')))) /\
+  (forall E E' T T', nabla k (kl : ((val -> expr) -> expr) -> expr) x, parc (E kl) (E' kl) -> par g (T x) (T' x) -> parc (E (o\k (o T))) (E' (o\k (o T')))).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    permute (n1 n4) H3. apply IH to H3 H2. search.
+    permute (n1 n4) H3. apply IH2 to H3 H2. search.
+    permute (n1 n4) H3. apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    permute (n1 n4) H3. apply IH2 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+
+Split pars_subkot as par_subkot, parv_subkot, parc_subkot.
+
+Theorem pars_subdot :
+  (forall R E E' T T', nabla (kl : ((val -> expr) -> expr) -> expr) x, par R (E kl) (E' kl) -> par d (T x) (T' x) -> par R (E (o\delim (o T))) (E' (o\delim (o T')))) /\
+  (forall V V' T T', nabla (kl : ((val -> expr) -> expr) -> expr) x, parv (V kl) (V' kl) -> par d (T x) (T' x) -> parv (V (o\delim (o T))) (V' (o\delim (o T')))) /\
+  (forall E E' T T', nabla (kl : ((val -> expr) -> expr) -> expr) x, parc (E kl) (E' kl) -> par d (T x) (T' x) -> parc (E (o\delim (o T))) (E' (o\delim (o T')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+
+Split pars_subdot as par_subdot, parv_subdot, parc_subdot.
+
+
 Theorem pars_subk :
   (forall R E E', nabla x (y : expr -> expr), par R (E x y) (E' x y) -> par R (E x x) (E' x x)) /\
   (forall V V', nabla x (y : expr -> expr), parv (V x y) (V' x y) -> parv (V x x) (V' x x)) /\
@@ -314,7 +393,7 @@ Theorem pars_subdelim :
     case H2. case H1. case H6. case H8. apply IH1 to H9 _ H4. apply IH to H11 _ H5. search.
     case H2. case H1. case H6. case H8. apply IH1 to H11 _ H4. apply IH to H9 _ H5. search.
     case H2. case H1. case H5. case H6. apply IH1 to H8 _ H4. search.
-    case H2. case H1. case H6. case H8. apply IH to H9 _ H4. apply IH to H11 _ H5. search.
+    case H2. case H1. case H6. case H8. apply IH to H9 _ H4. apply subkl to H10 with k = n2. apply IH to H11 _ H5. search.
     case H2. case H1. case H5. case H6. apply subdelim to H7 with k = n2. apply IH to H8 _ H4. search.
     case H2. case H1. apply IH1 to H8 _ H4. apply IH1 to H9 _ H5. search.
     case H2. case H1. apply IH to H8 _ H4. apply IH to H9 _ H5. search.
@@ -413,10 +492,13 @@ Theorem pars_diam :
       apply IH1 to H10 _ H6 H11. search.
       case H11. apply IH1 to H10 _ H6 H12. search.
     case H2. case H1. case H8. case H10. case H5.
-      apply IH to H11 _ _ H6 H14. apply IH to H13 _ _ H7 H15. case H3.
-        apply par_sublet to H18 H16. apply par_sublet to H19 H17. search.
-        apply par_subdlet to H18 H16. apply par_subdlet to H19 H17. search.
-      case H14. apply IH to H11 _ _ H6 H15. apply IH to H13 _ _ H7 H16. case H3.
+      apply IH to H11 _ _ H6 H14. apply subkl to H12. apply IH to H13 _ _ H7 H15. case H3.
+        apply par_subkot to H19 H16. apply par_subkot to H20 H17. search.
+        apply par_subdot to H19 H16. apply par_subdot to H20 H17. search.
+      case H14. apply IH to H11 _ _ H6 H15. apply par_subkl to H16 with x = n1. apply subkl to H12. apply IH to H13 _ _ H7 H19. case H3.
+        apply par_subkot to H21 H17. search.
+        apply par_subdot to H21 H17.
+        Quit.
         apply par_sublet to H19 H17. search.
         apply par_subdlet to H19 H17. search.
       apply IH to H11 _ _ H6 H14. case H15. apply IH to H13 _ _ H7 H18. apply par_subdlet to H19 H16. apply par_subdlet to H20 H17. search.
