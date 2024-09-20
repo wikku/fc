@@ -535,8 +535,9 @@ Theorem pars_diam :
   (forall S E E1 E2, skel S -> eos E S -> parc E E1 -> parc E E2 -> exists E3, nabla k, par g (E1 k) (E3 k) /\ par g (E2 k) (E3 k)) /\
   (forall S E E1 E2, skel S -> eos E S -> parc E E1 -> par g E E2 -> exists E3, nabla x, par g (E1 x) (E3 x) /\ parc E2 E3) /\
   (forall S E E1 E2, nabla k, skel S -> eos (delim (E k)) S -> par g (delim (E k)) (E1 k) -> par d (E delim) E2 -> exists E3, par d (shift0 E1) E3 /\ par d E2 E3) /\
-  (forall S E E1 E2, nabla k, skel S -> eos (k (E k)) S -> par g (k (E k)) (E1 k) -> par d (E delim) E2 -> exists E3, par d (shift0 E1) E3 /\ par d E2 E3).
-  induction on 1 1 1 1 1 1. split.
+  (forall S E E1 E2, nabla k, skel S -> eos (k (E k)) S -> par g (k (E k)) (E1 k) -> par d (E delim) E2 -> exists E3, par d (shift0 E1) E3 /\ par d E2 E3) /\
+  (forall S E E1 E2, skel S -> eos E S -> parl E E1 -> parl E E2 -> exists E3, nabla t, par g (E1 t) (E3 t) /\ par g (E2 t) (E3 t)).
+  induction on 1 1 1 1 1 1 1. split.
 
   % Subgoal 1
   intros. case H4.
@@ -545,6 +546,7 @@ Theorem pars_diam :
       case H14. apply IH1 to H11 _ H6 H15. apply IH to H13 _ _ H7 H16. apply par_subv to H19 H17. search.
     case H2. case H1. case H8. case H10. case H5.
       apply IH1 to H13 _ H6 H14. apply IH to H11 _ _ H7 H15. apply par_subv to H18 H16. apply par_subv to H19 H17. search.
+      case H15.
       case H14. apply IH to H11 _ _ H7 H15. apply IH1 to H13 _ H6 H16. apply par_subv to H17 H19. search.
       case H15.
     case H2. case H1. case H7. case H8. case H5.
@@ -554,6 +556,7 @@ Theorem pars_diam :
       apply IH to H11 _ _ H6 H14. apply subkl to H12. apply IH to H13 _ _ H7 H15. case H3.
         apply par_subkot to H19 H16. apply par_subkot to H20 H17. search.
         apply par_subdot to H19 H16. apply par_subdot to H20 H17. search.
+      case H15.
       case H14. apply IH to H11 _ _ H6 H15. apply par_subkl to H16 with x = n1. apply subkl to H12. apply IH to H13 _ _ H7 H19. case H3.
         apply par_subkot to H21 H17. search.
         apply par_subdot to H21 H17. search.
@@ -567,7 +570,13 @@ Theorem pars_diam :
         apply subdelim to H10. assert par g (delim (E4 delim)) (delim E'). apply IH to H11 _ _ H6 H14. search.
         apply subdelim to H10. assert par g (delim (E4 delim)) (delim E'). apply IH to H11 _ _ H6 H14. search.
         case H10. case H6. case H11. apply vsubdelim to H13. apply IH1 to H15 _ H12 H14. search.
+    case H2. case H1. case H5.
+      case H7.
+      case H7.
+      apply IH to H11 _ _ H6 H12. apply IH6 to H10 _ H7 H13.
+    Quit.
     backchain diam_gd. case H2. case H1. case H5.
+      Quit.
       case H6. case H8. case H10. apply IH1 to H11 _ H7 H12. apply IH to H16 _ _ H13 H14. apply par_subv to H19 H18. search.
       apply IH1 to H10 _ H6 H12. apply IH1 to H11 _ H7 H13. search.
     case H2. case H1. case H5.
