@@ -99,7 +99,7 @@ Type g, d mode.
 Define par : mode -> expr -> expr -> prop,
        parv : val -> val -> prop,
        parc : expr -> ((expr -> expr) -> expr) -> prop,
-       parl : expr -> ((val -> expr) -> expr) -> prop by
+       parl : mode -> (val -> expr) -> expr -> expr -> prop by
 
   nabla x, parv x x;
   parv (lam E) (lam E') := nabla x, par g (E x) (E' x);
@@ -112,7 +112,7 @@ Define par : mode -> expr -> expr -> prop,
   par R (let (shift0 E) T) (shift0 k\ E' (o\ k (o T'))) :=
     nabla x, par R (T x) (T' x) /\ nabla kl, par g (E (o\ kl (t\ let o t))) (E' kl);
   par R (delim (shift0 E)) E' := par g (E delim) E';
-  par R (let E T) (E' T') := nabla x, par R (T x) (T' x) /\ parl E E';
+  par R (let E T) E' := exists T', nabla x, par R (T x) (T' x) /\ parl R T' E E';
 
   par R (app V U) (app V' U') := parv V V' /\ parv U U';
   par R (let E T) (let E' T') := par g E E' /\ nabla x, par R (T x) (T' x);
@@ -138,12 +138,15 @@ Define par : mode -> expr -> expr -> prop,
   parc (shift0 E) E' := nabla k, par g (E k) (E' k);
   parc (let E T) (k\ E' (o\ k (let o T'))) := parc E E' /\ nabla x, par g (T x) (T' x);
 
-  parl (let E T) (t\ let E' x\ let (T' x) t) := par g E E' /\ nabla x, par g (T x) (T' x);
-  parl (let E T) (t\ let E' x\ T' x t) := par g E E' /\ nabla x, parl (T x) (T' x).
+  parl R S (let E T) (let E' x\ let (T' x) S) := par g E E' /\ nabla x, par R (T x) (T' x);
+  parl R S (let E T) (let E' T') := par R E E' /\ nabla x, parl R S (T x) (T' x).
 
 
-Theorem parg_pard : forall E E', par g E E' -> par d E E'.
-  induction on 1. intros. case H1.
+Theorem parg_pard :
+  (forall E E', par g E E' -> par d E E') /\
+  (forall S E E', parl g S E E' -> parl d S E E').
+  induction on 1 1. Quit. intros. case H1.
+
   apply IH to H3. search.
   apply IH to H3. search.
   search.
@@ -160,6 +163,8 @@ Theorem parg_pard : forall E E', par g E E' -> par d E E'.
   search.
   search.
   search.
+  Quit.
+
 
 
 Theorem pars_subv :
@@ -573,7 +578,7 @@ Theorem pars_diam :
     case H2. case H1. case H5.
       case H7.
       case H7.
-      apply IH to H11 _ _ H6 H12. apply IH6 to H10 _ H7 H13.
+      apply IH to H11 _ _ H6 H12. Quit. apply IH6 to H10 _ H7 H13.
     Quit.
     backchain diam_gd. case H2. case H1. case H5.
       Quit.
