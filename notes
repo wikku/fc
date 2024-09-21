@@ -1784,3 +1784,23 @@ have
 par (let (shift0 k\ E k) T) (shift0 k\ E' (o\ k (o T'))) := (nabla kl, par (E (o\ kl (t\ let o t))) (E' kl)) /\ (nabla x, par (T x) (T' x));
 
 par (kl (let (shift0 (E kl)) t)) (E' kl (o\ kl (o t))) ?
+
+2024-09-21
+
+
+par (let (let E T1) T2) (let E' T') := par E E' /\ nabla x, par (let (T1 x) T2) (T' x).
+
+nabla kl, par R (kl t\ let (let (E kl) (T kl)) t) (kl t\ let (E' kl) (T' kl t)) := nabla kl x t, par g (E kl) (E' kl) /\ par g (let (T kl x) t) (T' kl t x)
+
+problem is showing
+
+skel (sk2 S2 S3) is smaller than skel (sk2 (sk2 S1 S2) S3)
+
+maybe
+
+skel (sk2 (sk2 S1 S2) S3) := skel (sk2 S1 S2) /\ skel (sk2 (S2 S3)) /\ skel S3
+skel (sk2 S1 S2) := skel S1 /\ skel S2 /\ (exists S11 S12, S1 = sk2 (S11 S12) -> skel (sk2 S12 S2)).
+
+we need eos defined for (let E t)
+should kl (E kl) be the same size as (E kl)
+or should (let E t) be the same size as E? this doesn't let us have (par (let E t) (let E' t))
