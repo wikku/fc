@@ -670,8 +670,8 @@ Theorem pars_diam :
       apply IH to H11 _ _ H6 H12. case H13.
         case H7.
         case H8. case H10. case H7.
-        Quit.
-          apply parg_pard to H17. apply IH to H21 _ _ H23 H24. apply IH3 to H20 _ H16 H22. apply par_subdllet to H27 H26 H15. assert par d (let (T'3 n1) T') (let (E6 n1) E4).
+          apply IH to H21 _ _ H17 H23. apply IH3 to H20 _ H16 H22. apply par_subdllet to H26 H24 H15. search.
+          apply IH3 to H20 _ H16 H22. permute (n1 n2) H14. permute (n1 n2) H15. apply IH7 to H21 _ H23 H17 H14 H15. Quit.
     Quit.
     backchain diam_gd. case H2. case H1. case H5.
       Quit.
