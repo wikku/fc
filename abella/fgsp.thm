@@ -156,9 +156,9 @@ Define par : mode -> expr -> expr -> prop,
   nabla kl, par R (kl t\ let (E kl) t) (kl t\ let (E' kl) t) := nabla kl, par g (E kl) (E' kl);
   nabla kl, par R (kl t\ let (let (E kl) (T kl)) t) (kl t\ let (E' kl) (T' kl t)) := nabla kl x t, par g (E kl) (E' kl) /\ par g (let (T kl x) t) (T' kl t x);
   nabla kl, par R (kl t\ let (E kl) t) (E' kl (o\ kl t\ let o t)) := nabla kl, parc (E kl) (E' kl);
-  nabla t, par R (t (V t)) (t (V' t)) := nabla t, parv (V t) (V' t);
-%  nabla t, par R (let (let E T) t) (let E' T') := par g E E' /\ nabla x, par R (let (T x) t) (T' x);
-%  nabla t, par R (let E t) (let E' t) := par g E E';
+%  nabla t, par R (t (V t)) (t (V' t)) := nabla t, parv (V t) (V' t);
+  nabla t, par R (let (let E T) t) (let E' (T' t)) := par g E E' /\ nabla t x, par R (let (T x) t) (T' t x);
+  nabla t, par R (let E t) (let E' t) := par g E E';
 
   par d (let E T) (shift0 k_\ E' (o\ delim (let o T'))) :=
     nabla x, par d (T x) (T' x) /\ parc E E';
@@ -195,6 +195,7 @@ Theorem parg_pard : forall E E', par g E E' -> par d E E'.
     search.
     search.
     search.
+    apply IH to H3. search.
     search.
 
 Theorem pars_subv :
@@ -221,6 +222,9 @@ Theorem pars_subv :
     apply IH to H3 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
     apply IH2 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2.
+    Quit.
     apply IH1 to H3 H2. search.
     apply IH to H3 H2. apply IH2 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
@@ -283,6 +287,14 @@ Theorem pars_sublet :
 
 Split pars_sublet as par_sublet, parv_sublet, parc_sublet.
 
+Theorem par_subt :
+  (forall R E E' T T', nabla t (x : val), par R (let E t) (E' t) -> par R (T x) (T' x) -> par R (let E T) (E' T')).
+  induction on 1. intros. case H1.
+    case H4. case H5.
+   
+  Quit.
+  skip.
+
 Theorem pars_subkot :
   (forall R E E' T T', nabla k (kl : ((val -> expr) -> expr) -> expr) x, par R (E kl) (E' kl) -> par g (T x) (T' x) -> par R (E (o\k (o T))) (E' (o\k (o T')))) /\
   (forall V V' T T', nabla k (kl : ((val -> expr) -> expr) -> expr) x, parv (V kl) (V' kl) -> par g (T x) (T' x) -> parv (V (o\k (o T))) (V' (o\k (o T')))) /\
@@ -306,16 +318,13 @@ Theorem pars_subkot :
     permute (n1 n4) H3. apply IH2 to H3 H2. search.
     permute (n1 n4) H3. apply IH to H3 H2. search.
     apply IH to H3 H2. search.
-    apply IH to H3 H2. permute (n3 n5) H4. permute (n4 n6) H4. apply IH to H4 H2. permute (n7 n1) H6.
-    Quit.
-
-    permute (n1 n5) H3. apply IH to H3 H2.
-    Quit.
+    permute (n1 n4) H3. permute (n1 n4) H4. permute (n3 n2) H4. apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. apply par_subt to H6 H2. search.
     permute (n1 n4) H3. apply IH2 to H3 H2. search.
     apply IH2 to H3 H2. search.
+    permute (n1 n4) H3. apply IH1 to H3 H2. search.
     apply IH to H3 H2. apply IH2 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
-    apply IH to H3 H2.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
@@ -326,7 +335,7 @@ Theorem pars_subkot :
   intros. permute (n2 n3) H2. case H1.
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
-    apply IH2 to H3 H2. apply IH to H4 H2. apply IH to H5 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
 
 Split pars_subkot as par_subkot, parv_subkot, parc_subkot.
 
@@ -345,7 +354,7 @@ Theorem pars_subdot :
     apply IH1 to H3 H2. apply IH1 to H4 H2. search.
     apply IH to H3 H2. apply IH to H4 H2. search.
     apply IH2 to H3 H2. apply IH to H4 H2. search.
-    apply IH2 to H3 H2. apply IH to H4 H2. apply IH to H5 H2. search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH1 to H3 H2. search.
@@ -353,6 +362,9 @@ Theorem pars_subdot :
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. search.
     apply IH to H3 H2. search.
+    permute (n1 n4) H3. apply IH to H3 H2. permute (n1 n3) H4. apply IH to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2.
+    Quit.
     apply IH2 to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH to H3 H2. apply IH2 to H4 H2. search.
