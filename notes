@@ -1804,3 +1804,8 @@ skel (sk2 S1 S2) := skel S1 /\ skel S2 /\ (exists S11 S12, S1 = sk2 (S11 S12) ->
 we need eos defined for (let E t)
 should kl (E kl) be the same size as (E kl)
 or should (let E t) be the same size as E? this doesn't let us have (par (let E t) (let E' t))
+
+2024-09-24
+maybe L contexts should be nonempty,
+maybe necessary for standardization
+will have to check confluence proof
