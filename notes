@@ -1809,3 +1809,15 @@ or should (let E t) be the same size as E? this doesn't let us have (par (let E 
 maybe L contexts should be nonempty,
 maybe necessary for standardization
 will have to check confluence proof
+
+---
+nah, nonempty L doesnt fix anything
+
+⟨let x = S κ. e in t⟩ →pard t t'→ ⟨let x = S κ. e in t'⟩ →ev ⟨S κ. e{κ:=κ[let x = □ in t']}⟩
+
+⟨let x = S κ. e in t⟩ →ev ⟨S κ. e{κ:=κ[let x = □ in t]}⟩ →ev e{κ:=⟨let x = □ in t⟩}
+
+we can have coarse grained ev...
+all we need from "opt" is that it can't turn a nonvalue into a value
+
+scrap that par t idea...
