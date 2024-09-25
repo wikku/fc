@@ -1,14 +1,5 @@
 % vim: et
-Kind val,expr type.
-Kind lbl type.
-
-Type lam    (val -> expr) -> val.
-
-Type ret    val -> expr.
-Type app    val -> val -> expr.
-Type let    expr -> (val -> expr) -> expr.
-Type shift0 ((expr -> expr) -> expr) -> expr.
-Type delim  expr -> expr.
+Specification "fc".
 
 Kind skel type.
 Type sk0 skel.
