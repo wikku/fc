@@ -10,7 +10,7 @@ type let        expr -> (val -> expr) -> expr.
 type shift0     ((expr -> expr) -> expr) -> expr.
 type delim      expr -> expr.
 
-type step       expr -> expr -> o.
-type stepc      expr -> ((expr -> expr) -> expr) -> o.
-
-type steps      expr -> expr -> o.
+%type step       expr -> expr -> o.
+%type stepc      expr -> ((expr -> expr) -> expr) -> o.
+%
+%type steps      expr -> expr -> o.

@@ -1883,4 +1883,8 @@ step (k (E k)) (k (E' k)) := nabla k, step (E k) (E' k);
 step (k (E k)) (E' k k) := nabla k, stepc (E k) (E' k);
 
 
+post IH1
+stanc must have stan and not int,
+consider case when e = shift0 E
+
 
