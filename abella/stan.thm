@@ -1,26 +1,6 @@
 % vim: et
 Specification "fc".
 
-%Kind pos type.
-%Type g, i pos.
-%Define par : pos -> expr -> expr -> prop,
-%       parv : val -> val -> prop by
-%  nabla x, parv x x;
-%  parv (lam E) (lam E') := nabla x, par g (E x) (E' x);
-%
-%  par P (ret V) (ret V') := parv V V';
-%  par P (app V U) (app V' U') := parv V V' /\ parv U U';
-%  par P (let E T) (let E' T') := par P E E' /\ nabla x, par g (T x) (T' x);
-%  par P (shift0 E) (shift0 E') := nabla k, par g (E k) (E' k);
-%  par P (delim E) (delim E') := par P E E';
-%  par P (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) := nabla x k, par g (E k) (E' k) /\ par g (T x) (T' x);
-%
-%  par g (app (lam E) V) (E' V') := nabla x, par g (E x) (E' x) /\ parv V V';
-%  par g (let (ret V) T) (T' V') := nabla x, par g (T x) (T' x) /\ parv V V';
-%  par g (delim (ret V)) (ret V') := parv V V';
-%  par g (delim (shift0 E)) (E' delim):= nabla k, par g (E k) (E' k).
-%
-
 Define step : expr -> expr -> prop,
        stepc : expr -> ((expr -> expr) -> expr) -> prop by
   step (let (ret V) T) (T V);
