@@ -1821,3 +1821,62 @@ we can have coarse grained ev...
 all we need from "opt" is that it can't turn a nonvalue into a value
 
 scrap that par t idea...
+
+2024-09-25
+
+probably can use stan as ev* · int inside definition of int!
+===
+e → e'
+
+→ev not subset of →!
+but →ev ⊆ →*
+
+claim: e evals iff e' evals
+
+1) e' evals
+
+e' →ev* v
+
+then e → e' →ev* v
+so e →* v
+by stan e →ev* →pari* v
+so e evals
+
+2) e evals
+
+e →ev* v
+so e →* v
+
+by conf
+e' →* v' *← v
+by stan
+e' →ev* v'' →pari* v'
+
+ok. but
+does
+
+
+pari ev ⊆ ev* pari imply stan?
+
+does it imply
+pari · ev* ⊆ ev* pari?
+YES
+
+induction:
+pari · ev^n ⊆ ev* pari
+if n = 0 triv
+pari · ev^(1+n) ⊆ (ev* · pari) · ev^n = ev* · (pari · ev^n) ⊆(ind) ev* · (ev* · pari)
+
+→ ⊆ ev ∪ pari
+
+induction: (ev ∪ pari)^n ⊆ ev* · pari*
+if n = 0 triv
+by induction we have
+(ev ∪ pari)^n ⊆ (ev ∪ pari) · (ev* · pari*) ⊆ ev* · pari*
+===
+
+
+
+
+
+

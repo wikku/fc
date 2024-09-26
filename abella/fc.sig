@@ -12,3 +12,5 @@ type delim      expr -> expr.
 
 type step       expr -> expr -> o.
 type stepc      expr -> ((expr -> expr) -> expr) -> o.
+
+type steps      expr -> expr -> o.
