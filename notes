@@ -1876,7 +1876,11 @@ by induction we have
 ===
 
 
-
+2024-09-26
+with the characterization of stan E E' as {steps E E''} /\ int E'' E'
+we probably need to extend evaluation with
+step (k (E k)) (k (E' k)) := nabla k, step (E k) (E' k);
+step (k (E k)) (E' k k) := nabla k, stepc (E k) (E' k);
 
 
 
