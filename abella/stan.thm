@@ -490,6 +490,7 @@ Define red : expr -> expr -> prop,
   red (let (ret V) T) (T V);
   red (delim (shift0 E)) (E delim);
   red (let (shift0 E) T) (shift0 k\ E (o\ k (let o T)));
+  red (let (let E T1) T2) (let E x\ let (T1 x) T2);
   nabla k, red (k (shift0 (E k))) (E k k);
   redd (shift0 E) (shift0 k\ (E delim));
   redd (shift0 k\ ret V) (ret V);
@@ -516,6 +517,7 @@ Theorem red_stans :
     case H1. case H3. apply int_refl to H4. apply intv_refl to H5. apply int_subv to H6 H7. search.
     case H1. case H3. apply int_refl to H4. apply int_subdelim to H5. search.
     case H1. case H3. apply int_refl to H4. apply int_refl to H5. apply int_sublet to H7 _. search.
+    case H1. case H3. apply int_refl to H4. apply int_refl to H5. apply int_refl to H6. search.
     case H1. case H3. apply int_refl to H4. apply int_subk to H5. search.
     case H1. apply IH1 to H4 H3. apply intv_refl to H5. search.
     case H1. apply IH1 to H5 H3. apply intv_refl to H4. search.
