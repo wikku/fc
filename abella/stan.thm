@@ -20,6 +20,12 @@ Define many : (A -> A -> prop) -> A -> A -> prop by
   many R A A;
   many R A A' := exists A'', R A A'' /\ many R A'' A'.
 
+Theorem steps_app : forall E E' E'', many step E E' -> many step E' E'' -> many step E E''.
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H4 H2. search.
+
 Theorem step_subvs :
   (forall E E' U, nabla (x : val), step (E x) (E' x) -> step (E U) (E' U)) /\
   (forall E E' U, nabla (x : val), stepc (E x) (E' x) -> stepc (E U) (E' U)).
@@ -137,6 +143,7 @@ Define int : mode -> expr -> expr -> prop,
   nabla k, int M (k (E k)) (k (E' k)) := nabla k, int g (E k) (E' k);
   int d (shift0 E) (shift0 k\ E' delim) := nabla k, stan g (E k) (E' k);
   int d (shift0 k\ ret (V k)) (ret (V' delim)) := nabla k, intv (V k) (V' k);
+  int d (shift0 k\ delim (E k)) E' := stan g (E delim) E';
 
   stan M E E' := exists E'', many step E E'' /\ int M E'' E'.
 
@@ -175,6 +182,7 @@ Theorem subvs :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
   intros. case H1.
     search.
     search.
@@ -200,6 +208,7 @@ Theorem subdelims :
     apply IH to H2. apply intg_intd to H3. search.
     apply IH2 to H2. search.
     apply IH1 to H2. search.
+    apply IH2 to H2. search.
   intros. case H1.
     search.
     apply IH2 to H2. search.
@@ -224,6 +233,7 @@ Theorem sublets :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. search.
@@ -248,6 +258,7 @@ Theorem subdlets :
     apply IH to H3 H2. search.
     apply IH2 to H3 H2. search.
     apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
   intros. permute (n2 n3) H2. case H1.
     search.
     apply IH2 to H3 H2. search.
@@ -274,6 +285,7 @@ Theorem subks :
     apply IH to H2. search.
     apply IH2 to H2. search.
     apply IH1 to H2. search.
+    apply IH2 to H2. search.
   intros. case H1.
     search.
     apply IH2 to H2. search.
@@ -329,6 +341,7 @@ Theorem post :
       case H4.
         search.
         apply intv_subdelim to H5. search.
+        case H5. case H7. apply steps_cong_delim to H6. assert many step (delim (ret V1)) (ret V1). apply steps_app to H9 H10. search.
       apply IH1 to H4 H5 _. case H7. case H8. search.
       apply IH to H4 H5 _. case H6. apply steps_cong_delim to H7. search.
     case H2.
@@ -336,7 +349,7 @@ Theorem post :
       apply IH1 to H4 H5 _. case H7. case H8. apply steps_subk to H9. apply int_subk to H10. search.
       apply IH to H4 H5 _. case H6. apply steps_cong_k to H7. search.
     case H2.
-    case H2.
+    case H2. case H4. apply IH to H6 H2 _. case H7. apply steps_app to H5 H8. search.
   intros. case H1.
     case H2.
     case H2.
@@ -353,3 +366,7 @@ Theorem post :
     case H2.
     case H2. case H4. apply steps_subdelim to H5. apply int_subdelim to H6. search.
     case H2.
+    case H4. apply IH1 to H6 H2 _. apply steps_cong_delim to H5. case H8. apply stan_subdelim to H10.
+      exists (k\ delim (E1 k)).
+      split. search.
+      unfold. assert many step (delim E''1) (E''' delim). apply steps_app to H9 H12. case H11. apply steps_app to H13 H14. search.
