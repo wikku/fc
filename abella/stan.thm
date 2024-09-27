@@ -329,7 +329,7 @@ Define stanc : mode -> ((expr -> expr) -> expr) -> ((expr -> expr) -> expr) -> p
   stanc g E E' := nabla k, stan g (E k) (E' k);
   stanc d E E' := stan g (E delim) (E' delim).
 
-Theorem post :
+Theorem posts :
   (forall M E E'' E', int M E E'' -> step E'' E' -> md M -> stan M E E') /\
   (forall M E E'' E', int M E E'' -> stepc E'' E' -> md M -> exists E''', stepc E E''' /\ stanc M E''' E').
   induction on 1 1. split.
@@ -373,6 +373,15 @@ Theorem post :
       exists (k\ delim (E1 k)).
       split. search.
       unfold. assert many step (delim E''1) (E''' delim). apply steps_app to H9 H12. case H11. apply steps_app to H13 H14. search.
+
+Split posts as post, postc.
+
+Theorem post_many : forall E E'' E', int g E E'' -> many step E'' E' -> stan g E E'.
+  induction on 2.
+  intros. case H2.
+    search.
+    apply post to H1 H3 _. case H5. apply IH to H7 H4. case H8. apply steps_app to H6 H9. search.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -431,7 +440,7 @@ Define red : expr -> expr -> prop,
   nabla k, red (k (E k)) (k (E' k)) := nabla k, red (E k) (E' k);
   redd (let E T) (let E T') := nabla x, redd (T x) (T' x).
 
-Theorem red_stan :
+Theorem red_stans :
   (forall E E', is_expr E -> red E E' -> stan g E E') /\
   (forall V V', is_val V -> redv V V' -> intv V V') /\
   (forall E E', is_expr E -> redd E E' -> int d E E').
@@ -458,3 +467,14 @@ Theorem red_stan :
     case H1. case H3. apply intv_refl to H4. search.
     case H1. case H3. apply int_refl to H4. search.
     case H1. apply IH2 to H5 H3. apply int_refl to H4. search.
+
+Split red_stans as red_stang, redv_intv, redd_intd.
+
+Theorem red_size : (forall E E', is_expr E -> red E E' -> is_expr E'). skip.
+
+
+Theorem stan : forall E E', many red E E' -> is_expr E -> exists E'', many step E E'' /\ many (int g) E'' E'.
+  induction on 1.
+  intros. case H1.
+    search.
+    apply red_stang to H2 H3. case H5. apply red_size to H2 H3. apply IH to H4 H8. apply post_many to H7 H9. case H11. apply steps_app to H6 H12. search.
