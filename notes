@@ -1888,3 +1888,23 @@ stanc must have stan and not int,
 consider case when e = shift0 E
 
 
+2024-09-29
+strong normalization of μ-reduction (let.shift0, delim.shift0)
+
+Strong normalization of classical natural deduction with disjunctions
+
+|x| = 1
+|λx. e| = |e|
+|⟨e⟩| = |e|
+|S κ. e| = |e|
+|let x = e in t| = ?
+|v u| = ?
+
+ohlebush 2.4.6
+letlet requests? NO
+
+←s · →ll ⊆ →s · →ll · ←s
+
+←ll · →s ⊆ →s · ←ll · ←s
+
+terese 14.2.25 !!!
