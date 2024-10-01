@@ -1895,10 +1895,29 @@ Strong normalization of classical natural deduction with disjunctions
 
 |x| = 1
 |λx. e| = |e|
-|⟨e⟩| = |e|
 |S κ. e| = |e|
-|let x = e in t| = ?
-|v u| = ?
+|v u| = |v| + |u|
+|let x = e in t| = |e| + (1 + #e)·|t|
+|⟨e⟩| = |e| + (1 + #e)
+|κ[e]| = |e| + (1 + #e)
+
+#x = 0
+#λx. e = 0
+#S κ. e = #κ e
+#v u = 0
+#let x = e in t = #e
+#⟨e⟩ = 0
+#κ[e] = 0
+
+#κ x = 0
+#κ λx. e = #κ e
+#κ S κ'. e = #κ e
+#κ v u = #κ v + #κ u
+#κ let x = e in t = #κ e + (1+#e)*(#κ t)
+#κ ⟨e⟩ = #κ e
+#κ κ[e] = #κ e + 1 + #e
+#κ κ'[e] = #κ e
+
 
 ohlebush 2.4.6
 letlet requests? NO
@@ -1908,3 +1927,9 @@ letlet requests? NO
 ←ll · →s ⊆ →s · ←ll · ←s
 
 terese 14.2.25 !!!
+
+2024-10-01
+
+specialization by karaliach incorrect? maybe wasteful
+
+norm.thm: express arithmetic as expressions to interpret
