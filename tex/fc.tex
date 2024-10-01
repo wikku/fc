@@ -1,0 +1,230 @@
+\documentclass[a4paper, 11pt,titlepage, openright, twoside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{silence}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{newunicodechar}
+\usepackage[margin=3cm,bindingoffset=1cm]{geometry}
+\usepackage{stmaryrd}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
+% https://tex.stackexchange.com/a/106719
+\DeclareSymbolFont{sfletters}{OML}{cmbrm}{m}{it}
+\usepackage[nopatch=footnote]{microtype}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{mathpartir}
+\usepackage{biblatex}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{tikz}
+\usepackage{listings}
+\lstset{basicstyle= \footnotesize \ttfamily}
+\lstset{language=ml}
+
+\usepackage[nodisplayskipstretch]{setspace}
+\setlength{\parskip}{0pt}
+
+\addbibresource{refs.bib}
+
+
+\title{\textbf{A Fine Calculus for Static Delimited Control}}
+\author{Wiktor Kuchta}
+
+\date{60 września 2024} %TODO
+
+\usepackage{titling}
+
+\renewcommand \maketitlehookb {
+  \begin{center}\large
+  Fajny rachunek dla statycznie ograniczonych operatorów sterowania
+  \end{center}
+  \vfil
+}
+
+\renewcommand \maketitlehookc {
+  \vfil
+  \begin{center}
+  \large Praca magisterska \\[0.85em]
+  \begin{tabular}[t]{rl}
+  \textbf{Promotor:} & dr hab. Dariusz Biernacki
+  \end{tabular}\end{center}
+  \vfil\vfil\vfil\vfil
+  \begin{center}Uniwersytet Wroc\l{}awski\\
+  Wydzia\l{} Matematyki i Informatyki\\
+  Instytut Informatyki
+  \end{center}
+}
+
+
+\newcommand{\keyword}[1]{\textsf{\textup{#1}}}
+\newcommand{\KwDo}{\keyword{do}}
+\newcommand{\Do}{\KwDo\;}
+\newcommand{\KwHandle}{\keyword{handle}}
+\newcommand{\Handle}{\KwHandle\;}
+\newcommand{\KwLet}{\keyword{let}}
+\newcommand{\Let}[3]{\keyword{let}\;#1=#2\;\keyword{in}\;#3}
+\newcommand{\Lift}[1]{\boldsymbol{[}#1\boldsymbol{]}}
+\newcommand{\subst}[2]{\{#1/#2\}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\K}{\mathcal{K}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\kT}{\mathsf{T}}
+\newcommand{\kE}{\mathsf{E}}
+\newcommand{\kR}{\mathsf{R}}
+\newcommand{\Free}{\textrm{-}\mathrm{free}}
+\newcommand{\Obs}{\mathrm{Obs}}
+\newcommand{\N}{\mathbb{N}}
+\DeclareMathOperator{\dom}{dom}
+\newcommand{\+}{\enspace}
+
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+
+\newunicodechar{│}{\mid} % Digr vv
+\newunicodechar{╱}{\mathbin{/}} % Digr FD
+\newunicodechar{∷}{::} % Digr ::
+\newunicodechar{□}{\square} % Digr OS
+\newunicodechar{∅}{\emptyset} % Digr /0
+\newunicodechar{α}{\alpha}
+\newunicodechar{β}{\beta}
+\newunicodechar{δ}{\delta} % Digr d*
+\newunicodechar{ε}{\varepsilon}
+\newunicodechar{γ}{\gamma} % Digr g*
+\newunicodechar{ι}{\iota} % Digr i*
+\newunicodechar{κ}{\kappa}
+\newunicodechar{λ}{\lambda}
+\newunicodechar{μ}{\mu}
+\newunicodechar{ν}{\nu}
+\newunicodechar{ρ}{\rho}
+\newunicodechar{σ}{\sigma}
+\newunicodechar{τ}{\tau}
+\newunicodechar{η}{\eta} % Digr y*
+\newunicodechar{Δ}{\Delta}
+\newunicodechar{Γ}{\Gamma}
+\newunicodechar{Ω}{\Omega} % digr W*
+\newunicodechar{ℕ}{\N} % Digr NN 8469 nonstandard
+\newunicodechar{⊆}{\subseteq} % Digr (_
+\newunicodechar{∪}{\cup} % Digr )U
+\newunicodechar{∈}{\in} % Digr (-
+\newunicodechar{∃}{\exists} % Digr TE
+\newunicodechar{∀}{\forall} % Digr FA
+\newunicodechar{∧}{\wedge} % Digr AN
+\newunicodechar{∨}{\vee} % Digr OR
+\newunicodechar{⊥}{\bot} % Digr -T
+\newunicodechar{⊢}{\vdash} % Digr \- 8866 nonstandard
+\newunicodechar{⊨}{\models} % Digr \= 8872 nonstandard
+\newunicodechar{⊤}{\top} % Digr TO 8868 nonstandard
+\newunicodechar{⇒}{\implies} % Digr =>
+\newunicodechar{⇔}{\iff} % Digr ==
+\newunicodechar{↦}{\mapsto} % Digr T> 8614 nonstandard
+\newunicodechar{⟦}{\llbracket} % Digr [[ 10214 nonstandard (needs pkg stmaryrd)
+\newunicodechar{⟧}{\rrbracket} % Digr ]] 10215 nonstandard
+
+
+% cursed
+\WarningFilter{newunicodechar}{Redefining Unicode}
+\newunicodechar{·}{\ifmmode\cdot\else\textperiodcentered\fi} % Digr .M
+\newunicodechar{×}{\ifmmode\times\else\texttimes\fi} % Digr *X
+\newunicodechar{→}{\ifmmode\rightarrow\else\textrightarrow\fi} % Digr ->
+\newunicodechar{…}{\ifmmode\dots\else\textellipsis\fi} % Digr .,
+\newunicodechar{⟨}{\langle}
+\newunicodechar{⟩}{\rangle}
+
+\begin{document}
+
+\maketitle
+
+
+\thispagestyle{empty}
+\cleardoublepage
+\begin{abstract}
+	We consider a variant of the call-by-value $λμ$-calculus extended with control delimiters,
+	in which $μ$ becomes the static delimited control operator shift0.
+	We propose new reduction rules allowed by static delimited control.
+	We let delimiters carry data (resulting in a form of dynamic binding), which lets us express algebraic effects and handlers as well as exceptions.
+	We propose purity assertions for lightweight purity-based reasoning.
+	We prove the reduction is confluent and adequate wrt.\ operational semantics.
+	The calculus is stronger than previous results in the literature and could form basis for
+	reasoning and optimizations for all the aforementioned forms of control.
+	\begin{center} \rule[3pt]{300pt}{1pt} \end{center}
+	polski
+\end{abstract}
+
+
+\thispagestyle{empty}
+\cleardoublepage
+\setcounter{page}{5}
+\tableofcontents
+
+
+\chapter{A gentle introduction}
+
+\chapter{Confluence}
+
+We first prove that structural reduction
+$$\xrightarrow{Str} \;=\; \xrightarrow{let.\S} ∪ \xrightarrow{d.\S} ∪ \xrightarrow{k.\S}$$
+is strongly normalizing. We adapt the approach of de Groote\cite{Groote}.
+
+Define the norm $|·|$ as follows:
+\begin{align*}
+	|x| &= 1 \\
+	|λx. e| &= |e| \\
+	|\S κ. e| &= |e| \\
+	|v\;u| &= |v| + |u| \\
+	|\Let{x}{e}{t}| &= |e| + (1 + \#e)·|t| \\
+	|⟨e⟩| &= |e| + 1 + \#e \\
+	|κ[e]| &= |e| + 1 + \#e
+\end{align*}
+
+\chapter{Adequacy}
+
+\chapter{Abella mechanization}
+
+\chapter{Related work}
+
+
+\section*{Distributing delimiters}
+There is a strand of work which tackles static delimited control from the opposite direction.
+Whereas we use structural reduction so that S moves closer to the delimiter, that strand's defining feature is
+the delimiter distributing over let expressions so that \textit{a} delimiter can meet the control operator:
+
+There, the return clause is an integral part of the syntax. On a sequence of lets this becomes
+
+We consider turning every let into a delimiter unsatisfactory, since delimiters usually have a much higher runtime cost than let bindings.
+
+Because they lack structural reduction, those systems cannot perform the optimizations in examples TODO.
+We show that translations from those calculi preserve equations (understood as the equivalence closure of reduction)
+to argue that our calculus is more powerful.
+
+\section*{shift0 calculus}
+By reflection\cite{ppdp21} it follows that the original shift0 equational theory by Materzok is also less powerful,
+but for completeness we show it directly.
+
+\section*{Delimited $λμ$}
+
+\section*{Confluence}
+
+\section*{Tail reductions and letcc}
+
+\chapter{Discussion and future work}
+
+While this work brings forth many new ideas, it is far from being the IR of a compiler.
+
+We believe all results transfer to multi-prompt delimited control, where we have independent sets of labeled operators $S^\ell κ. e$, $⟨e⟩^\ell$.
+This is necessary for working with multiple effects, though the lift construct can to some extent simulate that.
+Naturally, the purity assertions also could be refined to block or allow specific listed effects.
+
+Realistic languages also have more tail contexts such as $if b then □ else □$ as well as evaluation contexts.
+
+join points?
+
+
+
+
+
+\hfuzz=1pt
+\printbibliography[heading=bibintoc]
+
+\end{document}
