@@ -4,7 +4,7 @@
 \usepackage{silence}
 \usepackage{amsmath,amsfonts,amssymb,amsthm}
 \usepackage{mathtools}
-\usepackage{enumitem}
+\usepackage[inline]{enumitem}
 \usepackage{newunicodechar}
 \usepackage[margin=3cm,bindingoffset=1cm]{geometry}
 \usepackage{stmaryrd}
@@ -65,7 +65,7 @@
 \newcommand{\KwLet}{\keyword{let}}
 \newcommand{\Let}[3]{\keyword{let}\;#1=#2\;\keyword{in}\;#3}
 \newcommand{\Lift}[1]{\boldsymbol{[}#1\boldsymbol{]}}
-\newcommand{\subst}[2]{\{#1/#2\}}
+\newcommand{\subst}[2]{\{#1{:=}#2\}}
 \newcommand{\E}{\mathcal{E}}
 \newcommand{\K}{\mathcal{K}}
 \renewcommand{\S}{\mathcal{S}}
@@ -81,6 +81,8 @@
 \newtheorem{corollary}{Corollary}
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
+\newtheorem{prop}{Proposition}
+
 
 \newunicodechar{│}{\mid} % Digr vv
 \newunicodechar{╱}{\mathbin{/}} % Digr FD
@@ -119,8 +121,11 @@
 \newunicodechar{⇒}{\implies} % Digr =>
 \newunicodechar{⇔}{\iff} % Digr ==
 \newunicodechar{↦}{\mapsto} % Digr T> 8614 nonstandard
+\newunicodechar{≠}{\neq}
 \newunicodechar{⟦}{\llbracket} % Digr [[ 10214 nonstandard (needs pkg stmaryrd)
 \newunicodechar{⟧}{\rrbracket} % Digr ]] 10215 nonstandard
+\newunicodechar{≥}{\ge}
+\newunicodechar{≤}{\le}
 
 
 % cursed
@@ -128,6 +133,7 @@
 \newunicodechar{·}{\ifmmode\cdot\else\textperiodcentered\fi} % Digr .M
 \newunicodechar{×}{\ifmmode\times\else\texttimes\fi} % Digr *X
 \newunicodechar{→}{\ifmmode\rightarrow\else\textrightarrow\fi} % Digr ->
+\newunicodechar{←}{\ifmmode\leftarrow\else\textleftarrow\fi} % Digr <-
 \newunicodechar{…}{\ifmmode\dots\else\textellipsis\fi} % Digr .,
 \newunicodechar{⟨}{\langle}
 \newunicodechar{⟩}{\rangle}
@@ -173,12 +179,188 @@ Define the norm $|·|$ as follows:
 	|λx. e| &= |e| \\
 	|\S κ. e| &= |e| \\
 	|v\;u| &= |v| + |u| \\
-	|\Let{x}{e}{t}| &= |e| + (1 + \#e)·|t| \\
-	|⟨e⟩| &= |e| + 1 + \#e \\
-	|κ[e]| &= |e| + 1 + \#e
+	|\Let{x}{e}{t}| &= |e| + \# e ·|t| \\
+	|⟨e⟩| &= |e| + \# e \\
+	|κ[e]| &= |e| + \# e
+\end{align*}
+and the ``substitution point count'' $\#$ and ``continuation variable count'' $\#_κ$ as follows:%
+\footnote{
+	These are upper bounds, the names are meant to convey intuition and are not fully accurate.
+}%
+\begin{align*}
+%	\# x &= 1 \\
+%	\# λx. e &= 1 \\
+	\# v &= 1 \\
+	\# \S κ.\,e &= 1 + \# e + \#_κ e \\
+	\# v\;u &= 1 \\
+	\# \Let{x}{e}{t} &= \# e \\
+	\# ⟨e⟩ &= \# e \\
+	\# κ[e] &= \# e
 \end{align*}
 
+\begin{align*}
+	\#_κ x &= 0 \\
+	\#_κ λx. e &= \#_κ e \\
+	\#_κ \S κ'.\,e &= \#_κ e \\
+	\#_κ v\;u &= \#_κ v + \#_κ u \\
+	\#_κ \Let{x}{e}{t} &= \#_κ e + \# e · \#_κ t \\
+	\#_κ ⟨e⟩ &= \#_κ e \\
+	\#_κ κ[e] &= \#_κ e + \# e \\
+	\#_κ κ'[e] &= \#_κ e
+\end{align*}
+
+\begin{prop}
+	If $κ$ doesn't occur in $e$, then $\#_κ e = 0$.
+\end{prop}
+
+\begin{lemma}
+	\item
+	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
+		\item $\# e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \# e$
+		\item $\#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \#_κ e + \#_{κ'} e · \#_κ t$
+	\end{enumerate}
+\end{lemma}
+\begin{proof}
+	Induction on $e$. Let $K$ stand for $κ'[\Let{x}{□}{t}]$.
+	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
+		\item
+			\begin{enumerate}
+				\item $\# v\subst{κ'}{K} = 1 = \# v$
+				\item $\# \S κ.\,e\subst{κ'}{K}
+					= 1 + \# e\subst{κ'}{K} + \#_κ e\subst{κ'}{K}
+					\stackrel{\text{IH}}{=} 1 + \# e + (\#_κ e + \#_{κ'} e · \#_κ t)
+					= 1 + \# e + (\#_κ e + \#_{κ'} e · 0)
+					= \# \S κ.\,e$
+				\item $\# v\subst{κ'}{K}\;u\subst{κ'}{K} = 1 = \# v\;u$
+				\item $\# \Let{x}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# \Let{x}{e}{t'}$
+				\item $\# ⟨e\subst{κ'}{K}⟩ = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# ⟨e⟩$
+				\item $\# (κ'[e])\subst{κ'}{K} = \# κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ'[e]$
+				\item ($κ≠κ'$) $\# (κ[e])\subst{κ'}{K} = \# κ[e\subst{κ'}{K}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ[e]$
+			\end{enumerate}
+		\item
+			\begin{enumerate}
+				\item $\#_κ x\subst{κ'}{K} = \#_κ x = 0 = \#_κ x + \#_{κ'} x · \#_κ t$
+				\item $\#_κ λx.\,e\subst{κ'}{K} = \#_κ e\subst{κ'}{K} \stackrel{\text{IH}}{=}
+					\#_κ e + \#_{κ'} e · \#_κ t = \#_κ λx.\,e + \#_{κ'} λx.\,e · \#_κ t$
+				\item $\#_κ v\subst{κ'}{K}\;u\subst{κ'}{K} \stackrel{\text{IH}}{=} \#_κ v + \#_{κ'} v · \#_κ t + \#_κ u + \#_{κ'} u · \#_κ t
+					= (\#_κ v + \#_κ u) + (\#_{κ'} v + \#_{κ'} u) · \#_κ t = \#_κ (v\; u) + \#_{κ'} (v\;u) · \#_κ t$
+				\item $\#_κ \Let{y}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_κ t'\subst{κ'}{K}
+					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e · (\#_κ t' + \#_{κ'} t' · \#_κ t)
+					= \#_κ e + \# e · \#_κ t' + (\#_{κ'} e + \# e · \#_{κ'} t') · \#_{κ} t
+					= \#_κ \Let{y}{e}{t'} + \#_{κ'} \Let{y}{e}{t'} · \#_κ t$
+				\item $\#_κ ⟨e\subst{κ'}{K}⟩ = \#_κ e\subst{κ'}{K} \stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t
+					= \#_κ ⟨e⟩ + \#_{κ'} ⟨e⟩ + \#_κ t$
+				\item ($κ≠κ'$) $\#_κ (κ'[e])\subst{κ'}{K} = \#_κ κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \#_κ \Let{x}{e\subst{κ'}{K}}{t}
+					= \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_κ t
+					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e · \#_κ t
+					= \#_κ e + \#_{κ'} e · \#_κ t + \# e · \#_κ t = \#_κ κ'[e] + \#_{κ'} κ'[e] · \#_κ t$
+				\item ($κ≠κ''≠κ'$) $\#_κ (κ''[e])\subst{κ'}{K} = \#_κ κ''[e\subst{κ'}{K}] = \#_κ e\subst{κ'}{K}
+					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t
+					= \#_κ κ''[e] + \#_{κ'} κ''[e] · \#_κ t$
+				\item ($κ≠κ'$) $\#_κ (κ[e])\subst{κ'}{K} = \#_κ κ[e\subst{κ'}{K}]
+					= \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K}
+					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e
+					= \#_κ κ[e] + \#_{κ'} κ[e] · \#_κ t$
+				\item ($κ = κ'$) $\#_{κ'} (κ'[e])\subst{κ'}{K} = \#_{κ'} κ'[\Let{x}{e\subst{κ'}{K}}{t}]
+					= \#_{κ'} \Let{x}{e\subst{κ'}{K}}{t} + \# \Let{x}{e\subst{κ'}{K}}{t}
+					= \#_{κ'} e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_{κ'} t + \# e\subst{κ'}{K}
+					\stackrel{\text{IH}}{=} \#_{κ'} e + \#_{κ'} e · \#_{κ'} t + \# e · \#_{κ'} t + \# e
+					= \#_{κ'} κ'[e] + \#_{κ'} κ'[e] · \#_{κ'} t $
+			\end{enumerate}
+	\end{enumerate}
+\end{proof}
+
+\begin{lemma}
+	If $e \xrightarrow{Str} e'$, then
+	\begin{enumerate*}[label=(\roman*),ref=\thelemma (\roman*)]
+		\item $\#e ≥ \#e'$ and \label{str_cnt}
+		\item $\#_κ e ≥ \#_κ e'$.
+	\end{enumerate*}
+\end{lemma}
+\begin{proof}
+	We check reductions at the root of the term, other cases follow by induction.
+	\begin{enumerate}
+		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
+		      $\#\Let{x}{\S κ.\,e}{t}
+			  = 1 + \# e + \#_κ e
+			  = 1 + \# e + \#_{κ} e + \#_{κ} e · \#_{κ} t
+			  = 1 + \# e\subst{κ}{κ[\Let{x}{□}{t}]} + \#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
+			  = \# \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
+			  $\#_κ \Let{x}{\S κ'.\,e}{t} = \#_κ e + (1 + \# e + \#_{κ'} e) · \#_κ t
+			  > \#_κ e + \#_{κ'} e · \#_κ t
+			  = \#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]}
+			  = \#_κ \S κ'.\,e\subst{κ'}{κ'[\Let{x}{□}{t}]}$
+		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$ \\
+		      $\#⟨\S κ.\,e⟩ = 1 + \# e + \#_κ e$ \\
+			  $\#e\subst{κ}{⟨□⟩} = $
+		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$
+		      $\#κ'[\S κ.\,e] = 1 + \# e + \#_κ e$ \\
+			  $\#e\subst{κ}{κ'} = $
+	\end{enumerate}
+\end{proof}
+
+\begin{lemma}
+	$|e\subst{κ}{κ[\Let{x}{□}{t}]}| = |e| + \#_κ e · |t|$
+\end{lemma}
+\begin{proof}
+	\item
+	\begin{enumerate}
+		\item $|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
+			= |e\subst{κ}{κ[\Let{x}{□}{t}}| + \# e\subst{κ}{κ[\Let{x}{□}{t}} · |t|
+			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| + \# e · |t| = |e| + \#_κ κ[e] · |t| ≠ |κ[e]| + \#_κ κ[e] · |t|$
+			wrong!
+
+		\item ($κ' ≠ κ$) $|(κ'[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ'[e\subst{κ}{κ[\Let{x}{□}{t}]}]| =
+ |e\subst{κ}{κ[\Let{x}{□}{t}]}]| + \# e\subst{κ}{κ[\Let{x}{□}{t}]}$
+
+	\end{enumerate}
+\end{proof}
+
+\begin{theorem}
+	If $e \xrightarrow{Str} e'$, then $|e| > |e'|$.
+\end{theorem}
+\begin{proof}
+	We check reductions at the root of the term, other cases follow by induction and Lemma \ref{str_cnt}.
+	\begin{enumerate}
+		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
+		      $|\Let{x}{\S κ.\,e}{t}| = |e| + \# (\S κ.\, e) · |t| = |e| + (1 + \# e + \#_κ e) · |t|$ \\
+			  $|e\subst{κ}{κ[\Let{x}{□}{t}]}|=|\S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}|$
+		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$
+		      $|⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$
+		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$
+	\end{enumerate}
+\end{proof}
+\begin{corollary}
+	$\xrightarrow{Str}$ is strongly normalizing.
+\end{corollary}
+
+
 \chapter{Adequacy}
+
+\begin{theorem}[Standardization]
+\end{theorem}
+\begin{corollary} If $e →^* v$, then $e ↦^* v' →_i^* v$.
+\end{corollary}
+\begin{proof}
+	By standardization and since $→_i$ can't turn a nonvalue into a value.
+\end{proof}
+
+
+\begin{theorem}
+	If $e → e'$, then $e$ evals to a value iff $e'$ evals to a value.
+\end{theorem}
+\begin{proof}
+%	We take the proof from Crary.
+
+	If $e' ↦^* v$, then $e →^* v$. By corollary to stan we have $e ↦^* v' →_i^* v$.
+
+	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
+	because $→$ preserves valueness. By corollary to stan we have $e' ↦^* v'' →_i^* v'$.
+
+\end{proof}
+
+\begin{prop}[Stuck terms]
+\end{prop}
 
 \chapter{Abella mechanization}
 
