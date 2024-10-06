@@ -177,28 +177,20 @@ Define the norm $|·|$ as follows:
 \begin{align*}
 	|x| &= 1 \\
 	|λx. e| &= |e| \\
-	|\S κ. e| &= |e| \\
+	|\S κ. e| &= 1 + |e| \\
 	|v\;u| &= |v| + |u| \\
 	|\Let{x}{e}{t}| &= |e| + \# e ·|t| \\
-	|⟨e⟩| &= |e| + \# e \\
-	|κ[e]| &= |e| + \# e
+	|⟨e⟩| &= |e| \\
+	|κ[e]| &= |e|
 \end{align*}
 and the ``substitution point count'' $\#$ and ``continuation variable count'' $\#_κ$ as follows:%
-\footnote{
-	These are upper bounds, the names are meant to convey intuition and are not fully accurate.
-}%
+%\footnote{
+%	These are upper bounds, the names are meant to convey intuition and are not fully accurate.
+%}%
 \begin{align*}
-%	\# x &= 1 \\
-%	\# λx. e &= 1 \\
-	\# v &= 1 \\
-	\# \S κ.\,e &= 1 + \# e + \#_κ e \\
-	\# v\;u &= 1 \\
-	\# \Let{x}{e}{t} &= \# e \\
-	\# ⟨e⟩ &= \# e \\
-	\# κ[e] &= \# e
-\end{align*}
-
-\begin{align*}
+	\# X[\S κ. e] &= 1 + \#_κ e \\
+	\# e &= 1 \text{ otherwise} \\
+	\\
 	\#_κ x &= 0 \\
 	\#_κ λx. e &= \#_κ e \\
 	\#_κ \S κ'.\,e &= \#_κ e \\
@@ -208,13 +200,15 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 	\#_κ κ[e] &= \#_κ e + \# e \\
 	\#_κ κ'[e] &= \#_κ e
 \end{align*}
+where $X$ are ``free contexts'' that skip across $\S$-delimiter brackets:
+$$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 
 \begin{prop}
 	If $κ$ doesn't occur in $e$, then $\#_κ e = 0$.
 \end{prop}
 
 \begin{lemma}
-	\item
+	If $κ'$ doesn't occur in $t$, then
 	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
 		\item $\# e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \# e$
 		\item $\#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \#_κ e + \#_{κ'} e · \#_κ t$
@@ -223,20 +217,20 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 \begin{proof}
 	Induction on $e$. Let $K$ stand for $κ'[\Let{x}{□}{t}]$.
 	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
-		\item
-			\begin{enumerate}
-				\item $\# v\subst{κ'}{K} = 1 = \# v$
-				\item $\# \S κ.\,e\subst{κ'}{K}
-					= 1 + \# e\subst{κ'}{K} + \#_κ e\subst{κ'}{K}
-					\stackrel{\text{IH}}{=} 1 + \# e + (\#_κ e + \#_{κ'} e · \#_κ t)
-					= 1 + \# e + (\#_κ e + \#_{κ'} e · 0)
-					= \# \S κ.\,e$
-				\item $\# v\subst{κ'}{K}\;u\subst{κ'}{K} = 1 = \# v\;u$
-				\item $\# \Let{x}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# \Let{x}{e}{t'}$
-				\item $\# ⟨e\subst{κ'}{K}⟩ = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# ⟨e⟩$
-				\item $\# (κ'[e])\subst{κ'}{K} = \# κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ'[e]$
-				\item ($κ≠κ'$) $\# (κ[e])\subst{κ'}{K} = \# κ[e\subst{κ'}{K}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ[e]$
-			\end{enumerate}
+%		\item
+%			\begin{enumerate}
+%				\item $\# v\subst{κ'}{K} = 1 = \# v$
+%				\item $\# \S κ.\,e\subst{κ'}{K}
+%					= 1 + \# e\subst{κ'}{K} + \#_κ e\subst{κ'}{K}
+%					\stackrel{\text{IH}}{=} 1 + \# e + (\#_κ e + \#_{κ'} e · \#_κ t)
+%					= 1 + \# e + (\#_κ e + \#_{κ'} e · 0)
+%					= \# \S κ.\,e$
+%				\item $\# v\subst{κ'}{K}\;u\subst{κ'}{K} = 1 = \# v\;u$
+%				\item $\# \Let{x}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# \Let{x}{e}{t'}$
+%				\item $\# ⟨e\subst{κ'}{K}⟩ = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# ⟨e⟩$
+%				\item $\# (κ'[e])\subst{κ'}{K} = \# κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ'[e]$
+%				\item ($κ≠κ'$) $\# (κ[e])\subst{κ'}{K} = \# κ[e\subst{κ'}{K}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ[e]$
+%			\end{enumerate}
 		\item
 			\begin{enumerate}
 				\item $\#_κ x\subst{κ'}{K} = \#_κ x = 0 = \#_κ x + \#_{κ'} x · \#_κ t$
@@ -282,20 +276,20 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 	\begin{enumerate}
 		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
 		      $\#\Let{x}{\S κ.\,e}{t}
-			  = 1 + \# e + \#_κ e
-			  = 1 + \# e + \#_{κ} e + \#_{κ} e · \#_{κ} t
-			  = 1 + \# e\subst{κ}{κ[\Let{x}{□}{t}]} + \#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
+			  = \#_κ e
+			  \stackrel{\#_κ t = 0}{=} \#_{κ} e + \#_{κ} e · \#_{κ} t
+			  = \#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
 			  = \# \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
-			  $\#_κ \Let{x}{\S κ'.\,e}{t} = \#_κ e + (1 + \# e + \#_{κ'} e) · \#_κ t
-			  > \#_κ e + \#_{κ'} e · \#_κ t
+			  $\#_κ \Let{x}{\S κ'.\,e}{t} = \#_κ e + \#_{κ'} e · \#_κ t
 			  = \#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]}
 			  = \#_κ \S κ'.\,e\subst{κ'}{κ'[\Let{x}{□}{t}]}$
 		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$ \\
-		      $\#⟨\S κ.\,e⟩ = 1 + \# e + \#_κ e$ \\
-			  $\#e\subst{κ}{⟨□⟩} = $
-		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$
-		      $\#κ'[\S κ.\,e] = 1 + \# e + \#_κ e$ \\
-			  $\#e\subst{κ}{κ'} = $
+		      $\#⟨\S κ.\,e⟩ = \# e = \#e\subst{κ}{⟨□⟩}$ \\
+			  $\#_κ ⟨\S κ'.\,e⟩ = \#_κ e = \#_κ e\subst{κ'}{⟨□⟩}$
+		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$ \\
+			  $\#κ'[\S κ.\,e] = \# e = \# e\subst{κ}{κ'}$ \\
+			  $\#_{κ'} κ'[\S κ.\,e] = \#_{κ'} e + \# \S κ.\,e = \#_{κ'} e + \#_κ e = \#_{κ'} e\subst{κ}{κ'}$\\
+			  ($κ'' ≠ κ'$) $\#_{κ''} κ'[\S κ.\,e] = \#_{κ''} e = \#_{κ''} e\subst{κ}{κ'}$\\
 	\end{enumerate}
 \end{proof}
 
@@ -306,12 +300,12 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 	\item
 	\begin{enumerate}
 		\item $|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
-			= |e\subst{κ}{κ[\Let{x}{□}{t}}| + \# e\subst{κ}{κ[\Let{x}{□}{t}} · |t|
-			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| + \# e · |t| = |e| + \#_κ κ[e] · |t| ≠ |κ[e]| + \#_κ κ[e] · |t|$
-			wrong!
+			= |e\subst{κ}{κ[\Let{x}{□}{t}]}| +  \# e\subst{κ}{κ[\Let{x}{□}{t}]} · |t|
+			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| + \# e · |t| = |κ[e]| + \#_κ κ[e] · |t|$
 
 		\item ($κ' ≠ κ$) $|(κ'[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ'[e\subst{κ}{κ[\Let{x}{□}{t}]}]| =
- |e\subst{κ}{κ[\Let{x}{□}{t}]}]| + \# e\subst{κ}{κ[\Let{x}{□}{t}]}$
+			|e\subst{κ}{κ[\Let{x}{□}{t}]}]|
+			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| = |κ'[e]|$
 
 	\end{enumerate}
 \end{proof}
@@ -323,11 +317,16 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 	We check reductions at the root of the term, other cases follow by induction and Lemma \ref{str_cnt}.
 	\begin{enumerate}
 		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
-		      $|\Let{x}{\S κ.\,e}{t}| = |e| + \# (\S κ.\, e) · |t| = |e| + (1 + \# e + \#_κ e) · |t|$ \\
-			  $|e\subst{κ}{κ[\Let{x}{□}{t}]}|=|\S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}|$
-		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$
-		      $|⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$
-		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$
+		      $|\Let{x}{\S κ.\,e}{t}| = 1 + |e| + \# \S κ.\, e · |t|
+			  = 1 + |e| + (1 + \#_κ e) · |t|
+			  > 1 + |e| + \#_κ e · |t|
+			  = 1 + |e\subst{κ}{κ[\Let{x}{□}{t}]}|
+			  = |\S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}|$
+		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$ \\
+		      $|⟨\S κ.\,e⟩| = 1 + |e| > |e| = |e\subst{κ}{⟨□⟩}|$
+		\item
+			$κ'[\S κ.\,e] → e\subst{κ}{κ'}$ \\
+			$|κ'[\S κ.\,e]| = 1 + |e| > |e| = |e\subst{κ}{κ'}|$
 	\end{enumerate}
 \end{proof}
 \begin{corollary}
