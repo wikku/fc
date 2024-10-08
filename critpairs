@@ -1,0 +1,41 @@
+lam.v      (λx. e) v                      →  e{x:=v}
+let.v      let x = v in e                 →  e{x:=v}
+d.v        ⟨v⟩                            →  v
+d.S        ⟨S κ. e⟩                       →  e{κ:=⟨□⟩}
+k.S        κ[S κ'. e]                     →  e{κ':=κ}
+let.S      let x = S κ. e in e'           →  S κ. e{κ:=κ[let x = □ in e']}
+dL.S       ⟨L[S κ. e]⟩                    →  ⟨L[A e{κ:=⟨□⟩}]⟩
+dL.Ad      ⟨L[A ⟨e⟩]⟩                     →  ⟨L[e]⟩
+dL.Av      ⟨L[A v]⟩                       →  ⟨L[v]⟩
+let.let    let x = let y = e in t1 in t2  →  let y = e in let x = t1 in t2
+
+critical pairs:
+
+let.v ← → let.let ⊆ ← let.v
+
+d.v ← → dL.Ad ⊆ → dl.Av
+⇒ need dl.Av < d.v ∪ dl.Ad
+
+d.S ← → dL.S ⊆ ← d.S
+
+d.S ← → dL.Ad ⊆ d.S → ← d.S ∪ id
+⇒ need d.S < dl.Ad
+
+d.S ← → dL.Av ⊆ ← d.v
+⇒ need d.v < d.S ∪ dl.Av
+
+let.S ← → dl.S ⊆ dl.S →* ← dl.S ← let.S
+⇒ need to have dl.S < let.S
+  (assuming let.S has ≤ label on right than on left)
+
+let.S ← → dl.Ad ⊆ dl.S → dl.Ad →* ← dl.S ← let.S
+⇒ need dL.Ad < let.S and dL.S < let.S
+  (assuming let.S has ≤ label on right than on left)
+
+let.S ← → dl.Av ⊆ dl.S → dl.Av →* ← dl.S ← let.S
+⇒ need dL.Av < let.S and dL.S < let.S
+  (assuming let.S has ≤ label on right than on left)
+
+let.S ← → let.let ⊆ let.S → assoc →* ← let.S
+
+parallel lam.v+let.v

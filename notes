@@ -1933,3 +1933,9 @@ terese 14.2.25 !!!
 specialization by karaliach incorrect? maybe wasteful
 
 norm.thm: express arithmetic as expressions to interpret
+
+2024-10-08
+
+let.let parallel reduction probably needs generalizations in both directions: multiple lets nested on the left, turn into sequential lets on the right
+need to prove strong normalization of everything (except lam.v and maybe let.v and d.v)...
+commutation will hold maybe though
