@@ -1,0 +1,149 @@
+% vim: et
+Specification "fc".
+
+Kind skel type.
+Type sk0 skel.
+Type sk1 skel -> skel.
+Type sk2 skel -> skel -> skel.
+
+Define skel : skel -> prop by
+  skel sk0;
+  skel (sk1 S) := skel S /\ forall S1 S2, S = sk2 S1 S2 -> skel (sk1 S2);
+  skel (sk2 S1 S2) := skel S1 /\ skel S2 /\ forall S11 S12, S1 = sk2 S11 S12 -> skel (sk2 S12 S2).
+
+Define eos : expr -> skel -> prop,
+       vos : val -> skel -> prop by
+  nabla x, vos x sk0;
+  vos (lam E) (sk1 S) := nabla x, eos (E x) S;
+
+  eos (ret V) (sk1 S) := vos V S;
+  eos (app V1 V2) (sk2 S1 S2) := vos V1 S1 /\ vos V2 S2;
+  eos (let E T) (sk2 S1 S2) := eos E S1 /\ nabla x, eos (T x) S2;
+  eos (shift0 E) (sk1 S) := nabla k, eos (E k) S;
+  eos (delim E) (sk1 S) := eos E S;
+  nabla k, eos (k (E k)) (sk1 S) := nabla k, eos (E k) S.
+
+Define par : expr -> expr -> prop,
+       parv : val -> val -> prop,
+       parl : (val -> expr) -> expr -> expr -> prop by
+
+  nabla x, parv x x;
+  parv (lam E) (lam E') := nabla x, par (E x) (E' x);
+
+  par (let E T) E' := parl T E E';
+  par (let (ret V) E) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (app (lam E) V) (E' V') := parv V V' /\ nabla x, par (E x) (E' x);
+  par (delim (ret V)) (ret V') := parv V V';
+
+  par (let E T) (let E' T') := par E E' /\ nabla x, par (T x) (T' x);
+  par (app V U) (app V' U') := parv V V' /\ parv U U';
+  par (delim E) (delim E') := par E E';
+  par (shift0 E) (shift0 E') := nabla k, par (E k) (E' k);
+  par (ret V) (ret V') := parv V V';
+  nabla k, par (k (E k)) (k (E' k)) := nabla k, par (E k) (E' k);
+
+  parl L (let E T) (let E' x\ let (T' x) L') := nabla x, par E E' /\ par (T x) (T' x) /\ par (L x) (L' x);
+  parl L (let E T) (let E' T') := exists L', nabla x, par E E' /\ parl L (T x) (T' x) /\ par (L x) (L' x).
+
+
+
+Theorem pars_subv :
+  (forall E E' U U', nabla x, par (E x) (E' x) -> parv U U' -> par (E U) (E' U')) /\
+  (forall V V' U U', nabla x, parv (V x) (V' x) -> parv U U' -> parv (V U) (V' U')) /\
+  (forall L E E' U U', nabla x, parl (L x) (E x) (E' x) -> parv U U' -> parl (L U) (E U) (E' U')).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH2 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    search.
+    search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    apply IH to H3 H2. apply IH to H4 H2. apply IH to H5 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. apply IH to H5 H2. search.
+
+Split pars_subv as par_subv, parv_subv, parl_subv.
+
+%Theorem pars_diam :
+%  (forall S E E1 E2, skel S -> eos E S -> par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+%  (forall S V V1 V2, skel S -> vos V S -> parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
+%  induction on 1 1. split.
+%  intros. case H3.
+%    case H2. case H1. case H7. case H9. case H4.
+%      apply IH to H14 _ H5 H17. apply H11 to _. apply IH to H21 _ H6 H18. search.
+%      apply H11 to _.
+
+%Theorem wrap_let : forall E T LET' L L', nabla x, par (let E T) LET' -> par (L x) (L' x) -> par (let E x\ let (T x) L) (let LET' L').
+%  induction on 1.
+%  intros. case H1.
+%    skip.
+%    search.
+% false
+
+  
+
+Theorem pars_diam :
+  (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+  (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3) /\
+  (forall L E E1 E2, parl L E E1 -> parl L E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
+  (forall L L' E E1 E2, nabla x, parl L E E1 -> par E E2 -> par (L x) (L' x) -> exists E3, par E1 E3 /\ par (let E2 L') E3) /\
+  (forall L L' E E1 E2, nabla x, parl L E E1 -> par E E2 -> par (L x) (L' x) -> exists E3, par E1 E3 /\ par (let E2 L') E3).
+  induction on 1 1 1 1 2. split.
+  intros. case H1.
+    case H2.
+      apply IH2 to H3 H4. search.
+      case H3.
+      apply IH3 to H3 H4 H5. search.
+    case H2.
+      case H5.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subv to H9 H7. apply par_subv to H10 H8. search.
+      case H5. apply IH1 to H3 H7. apply IH to H4 H6. apply par_subv to H10 H8. search.
+    case H2.
+      apply IH1 to H3 H5. apply IH to H4 H6. apply par_subv to H9 H7. apply par_subv to H10 H8. search.
+      case H5. apply IH1 to H3 H6. apply IH to H4 H7. apply par_subv to H10 H8. search.
+    case H2.
+      apply IH1 to H3 H4. search.
+      case H4. apply IH1 to H3 H5. search.
+    case H2.
+      apply IH4 to H5 H3 H4. search.
+      case H3. apply IH to H4 H6. apply IH1 to H7 H5. apply par_subv to H9 H11. search.
+      apply IH to H4 H6. apply IH to H3 H5. search.
+    case H2.
+      case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. search.
+      apply IH1 to H3 H5. apply IH1 to H4 H6. search.
+    case H2.
+      case H3. apply IH1 to H5 H4. search.
+      apply IH to H3 H4. search.
+    case H2. apply IH to H3 H4. search.
+    case H2. apply IH1 to H3 H4. search.
+    case H2. apply IH to H3 H4. search.
+  intros. case H1.
+    case H2. search.
+    case H2. apply IH to H3 H4. search.
+  intros. case H1.
+    case H2.
+      apply IH to H3 H6. apply IH to H4 H7. apply IH to H5 H8. search.
+      apply IH to H3 H6. apply IH to H5 H8. permute (n1 n2) H5. apply IH4 to H7 H4 H5. search.
+    case H2.
+      apply IH to H3 H6. apply IH to H5 H8. permute (n1 n2) H8. apply IH3 to H4 H7 H8. search.
+      apply IH to H3 H6. apply IH to H5 H8. apply IH2 to H4 H7. search.
+  intros. case H1.
+    case H2.
+      apply IH to H6 H3. permute (n1 n2) H5. apply IH4 to H7 H4 H5.
+      % I have
+      % par (let E' T') E5
+      % par E2 E5
+      % par (L' n1) (E4 n1)
+      % par (L'1 n1) (E4 n1)
+      % want exists E6, par (let E' x\ let (T' x) L'1) E6 /\ par (let E2 L') E6
+      % maybe E6 = (let E5 E4)
+      % if instead I had parl T' E' E5
