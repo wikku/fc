@@ -77,6 +77,8 @@
 \newcommand{\N}{\mathbb{N}}
 \DeclareMathOperator{\dom}{dom}
 \newcommand{\+}{\enspace}
+\newcommand{\lStr}{\textsf{Str}}
+\newcommand{\lPar}{\textsf{Par}}
 
 \newtheorem{corollary}{Corollary}
 \newtheorem{lemma}{Lemma}
@@ -165,32 +167,57 @@
 \tableofcontents
 
 
-\chapter{A gentle introduction}
+\chapter{Introduction}
 
 \chapter{Confluence}
 
-We first prove that structural reduction
-$$\xrightarrow{Str} \;=\; \xrightarrow{let.\S} ∪ \xrightarrow{d.\S} ∪ \xrightarrow{k.\S}$$
-is strongly normalizing. We adapt the approach of de Groote\cite{Groote}.
-
-Define the norm $|·|$ as follows:
-\begin{align*}
-	|x| &= 1 \\
-	|λx. e| &= |e| \\
-	|\S κ. e| &= 1 + |e| \\
-	|v\;u| &= |v| + |u| \\
-	|\Let{x}{e}{t}| &= |e| + \# e ·|t| \\
-	|⟨e⟩| &= |e| \\
-	|κ[e]| &= |e|
-\end{align*}
-and the ``substitution point count'' $\#$ and ``continuation variable count'' $\#_κ$ as follows:%
+Let's demonstrate the main challenges for proving confluence.
+Previous proofs of confluence for $λμ$-calculi amounted to the diamond property of parallel reduction.
+The problem with confluence is that structural reduction ($let.\S$) can tear redexes apart, as in:
+$$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$$
+$$⟨L[\Let{x}{\S κ.\,e}{\S κ.\,t}]⟩$$
+and additional structural reductions are needed to make the $let.let$%
 %\footnote{
-%	These are upper bounds, the names are meant to convey intuition and are not fully accurate.
-%}%
+%	Herbelin and Zimmerman \cite{Herbelin} report no problems with the critical pair involving $let.\S$ and $let.let$.
+%	$let.let$ by itself poses problems, with 
+%	We believe that's because they used a rule $κ[\Let{x}{e}{t}] → \Let{x}{e}{κ[t]}$, which seems to be valid in the undelimited case.
+%	This rule doesn't figure in the paper, but a similar one $z(\Let{x}{e}{t}) → \Let{x}{e}{zt}$ does.
+%}
+and $dlets.\S$ redexes whole again,
+now inside $e$.
+Conversely, the structural substitution can push the $k.\S$ redex apart:
+$$κ[\S κ'.\,e]\subst{κ}{κ[\Let{x}{□}{t}]} = κ[\Let{x}{\S κ'.\,e}{t}]$$
+Therefore a parallel reduction involving the entirety of the calculus needs to be generalized to involve multiple structural reduction steps in some places.
+Naively, such a definition would need to recursively refer to a parallel reduction of a term \textit{after} structural substitution.
+Such a term may be bigger than the original, which poses problems for inductive proofs.
+
+The parallel reduction approach does work, however, for the subcalculus without $let.let$ and without delimiters carrying data.
+
+We will prove confluence of $\xrightarrow{\lStr} ∪ \Rrightarrow$,
+where $\xrightarrow{\lStr}$ are structural reductions and $\Rrightarrow$ is a parallel reduction
+containing the other reductions,
+by the method of decreasing diagrams \cite{dd}.
+Confluence of $→$ will follow from ${→} ⊆ {\xrightarrow{Str} ∪ \Rrightarrow} ⊆ {→^*}$.
+
+We label $e \xrightarrow{\lStr} e'$ by $(\lStr, e)$ and $e \Rrightarrow e'$ by $\lPar$ and order the labels thus:
+for all $e$ set $\lPar > (\lStr, e)$ and for all $e, e'$ set $(\lStr, e) > (\lStr, e')$ iff $e \xrightarrow{\lStr}\mathrel{\vphantom{\to}^+} e'$.
+We need to prove that the order on labels is well-founded and that we can complete the three kinds of local peaks
+into decreasing valleys.\footnote{
+	The proof scheme is essentially Exercise 14.2.25 in Terese \cite{Terese}.
+}
+
+\section*{Strong normalization of $\xrightarrow{Str}$}
+Well-foundedness of the labels will follow from strong normalization of
+$$\xrightarrow{Str} \;=\; \xrightarrow{let.\S} ∪ \xrightarrow{d.\S} ∪ \xrightarrow{k.\S}.$$
+We adapt the approach of de Groote\cite{Groote}.
+
+and the ``frame occurences''\footnote{
+	We count the continuation frame before ($1$) and after the potential capture by a $\S κ.\, e$ ($\#_κ e$).
+} $\#$ and ``continuation variable count'' $\#_κ$ as follows:
 \begin{align*}
 	\# X[\S κ. e] &= 1 + \#_κ e \\
 	\# e &= 1 \text{ otherwise} \\
-	\\
+%	\\
 	\#_κ x &= 0 \\
 	\#_κ λx. e &= \#_κ e \\
 	\#_κ \S κ'.\,e &= \#_κ e \\
@@ -202,6 +229,8 @@ and the ``substitution point count'' $\#$ and ``continuation variable count'' $\
 \end{align*}
 where $X$ are ``free contexts'' that skip across $\S$-delimiter brackets:
 $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
+The idea is a $\KwLet$ can be captured by a particular $\S$
+iff the term can be written as $\Let{x}{X[\S κ. e]}{t}$, similarly for other continuation frames.
 
 \begin{prop}
 	If $κ$ doesn't occur in $e$, then $\#_κ e = 0$.
@@ -211,7 +240,7 @@ $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 	If $κ'$ doesn't occur in $t$, then
 	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
 		\item $\# e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \# e$
-		\item $\#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \#_κ e + \#_{κ'} e · \#_κ t$
+		\item ($κ≠κ'$) $\#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \#_κ e + \#_{κ'} e · \#_κ t$
 	\end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -255,14 +284,31 @@ $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 					= \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K}
 					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e
 					= \#_κ κ[e] + \#_{κ'} κ[e] · \#_κ t$
-				\item ($κ = κ'$) $\#_{κ'} (κ'[e])\subst{κ'}{K} = \#_{κ'} κ'[\Let{x}{e\subst{κ'}{K}}{t}]
-					= \#_{κ'} \Let{x}{e\subst{κ'}{K}}{t} + \# \Let{x}{e\subst{κ'}{K}}{t}
-					= \#_{κ'} e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_{κ'} t + \# e\subst{κ'}{K}
-					\stackrel{\text{IH}}{=} \#_{κ'} e + \#_{κ'} e · \#_{κ'} t + \# e · \#_{κ'} t + \# e
-					= \#_{κ'} κ'[e] + \#_{κ'} κ'[e] · \#_{κ'} t $
+%				\item ($κ = κ'$) $\#_{κ'} (κ'[e])\subst{κ'}{K} = \#_{κ'} κ'[\Let{x}{e\subst{κ'}{K}}{t}]
+%					= \#_{κ'} \Let{x}{e\subst{κ'}{K}}{t} + \# \Let{x}{e\subst{κ'}{K}}{t}
+%					= \#_{κ'} e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_{κ'} t + \# e\subst{κ'}{K}
+%					\stackrel{\text{IH}}{=} \#_{κ'} e + \#_{κ'} e · \#_{κ'} t + \# e · \#_{κ'} t + \# e
+%					= \#_{κ'} κ'[e] + \#_{κ'} κ'[e] · \#_{κ'} t $
 			\end{enumerate}
 	\end{enumerate}
 \end{proof}
+
+\begin{lemma}
+	\item
+	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
+		\item $\# e\subst{κ'}{⟨□⟩} = \# e$
+		\item ($κ ≠ κ'$) $\#_κ e\subst{κ'}{⟨□⟩} = \#_κ e$
+%		\item $\#_κ e\subst{κ}{⟨□⟩} = 0$
+	\end{enumerate}
+\end{lemma}
+
+\begin{lemma}
+	\item
+	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
+		\item $\# e\subst{κ'}{κ''} = \# e$
+		\item ($κ ≠ κ'$) $\#_κ e\subst{κ'}{κ''} = \#_κ e + \begin{cases}\#_{κ'} e & \text{ if }κ=κ''\\ 0 & \text{ if } κ≠κ''\end{cases}$
+	\end{enumerate}
+\end{lemma}
 
 \begin{lemma}
 	If $e \xrightarrow{Str} e'$, then
@@ -276,10 +322,10 @@ $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 	\begin{enumerate}
 		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
 		      $\#\Let{x}{\S κ.\,e}{t}
-			  = \#_κ e
-			  \stackrel{\#_κ t = 0}{=} \#_{κ} e + \#_{κ} e · \#_{κ} t
-			  = \#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
-			  = \# \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
+			  = 1 + \#_κ e
+			  \stackrel{\#_κ t = 0}{=} 1 + \#_{κ} e + \#_{κ} e · \#_{κ} t
+			  = 1 +\#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
+			  > \# \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
 			  $\#_κ \Let{x}{\S κ'.\,e}{t} = \#_κ e + \#_{κ'} e · \#_κ t
 			  = \#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]}
 			  = \#_κ \S κ'.\,e\subst{κ'}{κ'[\Let{x}{□}{t}]}$
@@ -293,6 +339,17 @@ $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 	\end{enumerate}
 \end{proof}
 
+Define the norm $|·|$ as follows:
+\begin{align*}
+	|x| &= 1 \\
+	|λx. e| &= |e| \\
+	|\S κ. e| &= 1 + |e| \\
+	|v\;u| &= |v| + |u| \\
+	|\Let{x}{e}{t}| &= |e| + \# e ·|t| \\
+	|⟨e⟩| &= |e| \\
+	|κ[e]| &= |e|
+\end{align*}
+
 \begin{lemma}
 	$|e\subst{κ}{κ[\Let{x}{□}{t}]}| = |e| + \#_κ e · |t|$
 \end{lemma}
@@ -302,6 +359,11 @@ $$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
 		\item $|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
 			= |e\subst{κ}{κ[\Let{x}{□}{t}]}| +  \# e\subst{κ}{κ[\Let{x}{□}{t}]} · |t|
 			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| + \# e · |t| = |κ[e]| + \#_κ κ[e] · |t|$
+%		\item
+%			If we had $|κ[e]| = |e| + \# e$. \\
+%			$|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
+%			= |e\subst{κ}{κ[\Let{x}{□}{t}]}| + \# e\subst{κ}{κ[\Let{x}{□}{t}]} +  \# e\subst{κ}{κ[\Let{x}{□}{t}]} · |t|
+%			\stackrel{\text{IH}}{=} |e| + \# e + \#_κ e · |t| + \# e · |t| = |κ[e]| + \#_κ κ[e] · |t|$
 
 		\item ($κ' ≠ κ$) $|(κ'[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ'[e\subst{κ}{κ[\Let{x}{□}{t}]}]| =
 			|e\subst{κ}{κ[\Let{x}{□}{t}]}]|
@@ -387,7 +449,11 @@ but for completeness we show it directly.
 
 \section*{Confluence}
 
+
+
 \section*{Tail reductions and letcc}
+
+\section*{Expressing return clauses}
 
 \chapter{Discussion and future work}
 
