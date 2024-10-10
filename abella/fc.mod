@@ -13,3 +13,22 @@ module fc.
 %
 %steps E E.
 %steps E E' :- step E E'', steps E'' E'.
+
+is_nat z.
+is_nat (s N) :- is_nat N.
+
+add z N N :- is_nat N.
+add (s N) M (s L) :- add N M L.
+
+mult z N z :- is_nat N.
+mult (s N) M L :- mult N M NM, add M NM L.
+
+eval (lit N) N :- is_nat N.
+eval (plus N M) L :- eval N N', eval M M', add N' M' L.
+eval (times N M) L :- eval N N', eval M M', mult N' M' L.
+
+lt z (s N) :- is_nat N.
+lt (s N) (s M) :- lt N M.
+
+le N M :- lt N M.
+lt N N :- is_nat N.
