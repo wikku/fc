@@ -93,29 +93,57 @@ Theorem float_ass : forall A B C AB BC, nabla x, float A B AB -> float (B x) C (
     search.
     permute (n1 n2) H2. apply IH to H3 H2. search.
 
+%Theorem float_ass : forall A1 A2 B1 B2 C AB BC1 BC2, nabla x, float A1 B1 AB -> float A2 B2 AB -> float (B1 x) C (BC1 x) -> float (B2 x) C (BC2 x) -> exists ABC, float A1 BC1 ABC /\ float A2 BC2 ABC.
+%  induction on 1.
+%  intros. case H1.
+%    case H2.
+%  % false?
+Quit.
+
 Theorem float_par_comm : forall E E' T T' LET, nabla x, float E T LET -> par E E' -> par (T x) (T' x) -> exists LET', par LET LET' /\ float E' T' LET'.
   induction on 1. intros.
   case H1.
     search.
     case H2. permute (n1 n2) H3. apply IH to H4 H6 H3. apply float_ass to H7 H9. search.
 
-Theorem float_eq :
-  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3) /\
-  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3).
-  induction on 1 2. split.
-  intros. case H1.
-    case H2.
-      search.
-      case H4. permute (n1 n2) H6. apply float_par_comm to H7 H9 H6. apply float_ass to H10 H12. search.
-    case H2.
-      case H3. permute (n1 n2) H5. apply float_par_comm to H7 H9 H5. apply float_ass to H10 H12. search.
-      %case H3. case H4.
-      %permute (n1 n2) H5. permute (n1 n2) H6. apply float_par_comm to H7 H10 H5. apply float_par_comm to H8 H13 H6. apply float_ass to H11 H16. apply float_ass to H14 H18.
-        % need: float E' LET' E1 /\ float E'1 LET'1 E1
+%Theorem float_par_cong : forall E E' T T' LET LET', nabla x, float E T LET -> par E E' -> par (T x) (T' x) -> float E' T' LET' -> par LET LET'.
+% false since second float may float less than first?
 
-    
-  Quit.
-
+%Theorem let_valley : forall E1 E2 T1 T2 E, par (let E1 T1) E -> par (let E2 T2) E -> exists T, nabla x, par (T1 x) (T x) /\ par (T2 x) (T x).
+%  intros. case H1.
+%  false?
+%
+%Theorem float_eq :
+%  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3) /\
+%  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3).
+%  induction on 1 2. split.
+%  intros. case H1.
+%    case H2.
+%      search.
+%      case H4. permute (n1 n2) H6. apply float_par_comm to H7 H9 H6. apply float_ass to H10 H12. search.
+%    case H2.
+%      case H3. permute (n1 n2) H5. apply float_par_comm to H7 H9 H5. apply float_ass to H10 H12. search.
+%      case H3. case H4.
+%      permute (n1 n2) H5. permute (n1 n2) H6. %apply float_par_comm to H7 H10 H5. apply float_par_comm to H8 H13 H6. %apply float_ass to H11 H16. apply float_ass to H14 H18.
+%      apply IH to H7 H8 H10 H13 H5 H6.
+%        % need: float E' LET' E1 /\ float E'1 LET'1 E1
+%
+%Theorem float_eq :
+%  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3) /\
+%  (forall E1 E2 E T1 T2 T LET1 LET2, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E -> par E2 E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists E3, par LET1 E3 /\ par LET2 E3).
+%  induction on 1 2. split.
+%  intros. case H1.
+%    case H2.
+%      search.
+%      case H4. permute (n1 n2) H6. apply float_par_comm to H7 H9 H6. apply float_ass to H10 H12. search.
+%    case H2.
+%      case H3. permute (n1 n2) H5. apply float_par_comm to H7 H9 H5. apply float_ass to H10 H12. search.
+%      case H3. case H4.
+%      permute (n1 n2) H5. permute (n1 n2) H6. %apply float_par_comm to H7 H10 H5. apply float_par_comm to H8 H13 H6. %apply float_ass to H11 H16. apply float_ass to H14 H18.
+%      % apply IH to H7 H8 H10 H13 H5 H6.
+%      % can't because 3rd 4th argument pars different right sides
+%        % need: float E' LET' E1 /\ float E'1 LET'1 E1
+%Quit.
 
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
@@ -128,7 +156,14 @@ Theorem pars_diam :
     case H2.
       apply IH1 to H3 H4. search.
       case H4. apply IH1 to H3 H5. search.
-    case H2. apply IH to H3 H6. apply IH to H4 H7. apply float_par_comm to H5 H9 H11. apply float_par_comm to H8 H10 H12.
+    case H2. case H5.
+      case H8.
+        apply IH to H3 H6. apply IH to H4 H7. search.
+        apply IH to H3 H6. apply IH to H4 H7. case H11. permute (n1 n2) H13. apply float_par_comm to H9 H15 H13. apply float_ass to H16 H18. search.
+      case H8.
+        apply IH to H3 H6. apply IH to H4 H7. case H10. permute (n1 n2) H12. apply float_par_comm to H9 H15 H12. apply float_ass to H16 H18. search.
+        apply IH to H3 H6. apply IH to H4 H7. case H11. case H12. permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to H9 H16 H13. apply float_par_comm to H10 H19 H14.
+      
     Quit.
     case H2.
       case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. search.
