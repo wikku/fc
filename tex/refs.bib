@@ -1,3 +1,69 @@
+@misc{sheep,
+  author       = {Daniel Hillerström},
+  title        = {Comment Re: An alternative effect API},
+  howpublished = {\url{https://github.com/ocaml/ocaml/pull/12736\#issuecomment-1820817936}},
+  note         = {Issue \#12736 in the OCaml GitHub repository},
+  year         = {2023},
+  month        = {nov},
+}
+@inproceedings{baba,
+  author       = {Kensuke Baba and
+                  Sachio Hirokawa and
+                  Ken{-}etsu Fujita},
+  editor       = {Colin J. Fidge},
+  title        = {Parallel Reduction in Type Free $λμ$-Calculus},
+  booktitle    = {Computing: The Australasian Theory Symposium, {CATS} 2001, Gold Coast,
+                  Australia, January 29-30, 2001},
+  series       = {Electronic Notes in Theoretical Computer Science},
+  volume       = {42},
+  pages        = {52--66},
+  publisher    = {Elsevier},
+  year         = {2001},
+  url          = {https://doi.org/10.1016/S1571-0661(04)80878-8},
+  doi          = {10.1016/S1571-0661(04)80878-8},
+  timestamp    = {Fri, 11 Nov 2022 16:01:10 +0100},
+  biburl       = {https://dblp.org/rec/journals/tcs/BabaHF01.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{parigot92,
+  author       = {Michel Parigot},
+  editor       = {Andrei Voronkov},
+  title        = {Lambda-Mu-Calculus: An Algorithmic Interpretation of Classical Natural
+                  Deduction},
+  booktitle    = {Logic Programming and Automated Reasoning,International Conference
+                  LPAR'92, St. Petersburg, Russia, July 15-20, 1992, Proceedings},
+  series       = {Lecture Notes in Computer Science},
+  volume       = {624},
+  pages        = {190--201},
+  publisher    = {Springer},
+  year         = {1992},
+  url          = {https://doi.org/10.1007/BFb0013061},
+  doi          = {10.1007/BFB0013061},
+  timestamp    = {Tue, 14 May 2019 10:00:55 +0200},
+  biburl       = {https://dblp.org/rec/conf/lpar/Parigot92.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{koji,
+author = {Nakazawa, Koji},
+title = {Confluency and strong normalizability of call-by-value $λμ$-calculus},
+year = {2003},
+issue_date = {1 January 2003},
+publisher = {Elsevier Science Publishers Ltd.},
+address = {GBR},
+volume = {290},
+number = {1},
+issn = {0304-3975},
+url = {https://doi.org/10.1016/S0304-3975(01)00380-2},
+doi = {10.1016/S0304-3975(01)00380-2},
+abstract = {This paper proves the confluency and the strong normalizability of the call-by-value $λμ$-calculus with the domain-free style. The confluency of the system is proved by improving the parallel reduction method of Baba et al. The strong normalizability is proved by using the modified CPS-translation, which preserves the typability and the reduction relation. This paper defines the class of the reductions whose strictness is preserved by the modified CPS-translation to prove the strong normalizability.},
+journal = {Theor. Comput. Sci.},
+month = jan,
+pages = {429–463},
+numpages = {35},
+keywords = {CPS-translation, call-by-value $λμ$-calculus, confluency, domain-free type system, strong normalizability}
+}
 @inproceedings{10.1145/3062341.3062380,
 author = {Maurer, Luke and Downen, Paul and Ariola, Zena M. and Peyton Jones, Simon},
 title = {Compiling without continuations},
@@ -15,7 +81,6 @@ keywords = {ANF, CPS, GHC, Haskell, intermediate languages, list fusion},
 location = {Barcelona, Spain},
 series = {PLDI 2017}
 }
-
 @article{cwc,
 author = {Maurer, Luke and Downen, Paul and Ariola, Zena M. and Peyton Jones, Simon},
 title = {Compiling without continuations},
@@ -212,175 +277,5 @@ keywords = {ANF, CPS, GHC, Haskell, intermediate languages, list fusion}
   doi       = {10.1007/978-3-540-73228-0_19},
   timestamp = {Tue, 14 May 2019 10:00:41 +0200},
   biburl    = {https://dblp.org/rec/conf/tlca/Lindley07.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@article{expressive,
-  author    = {Yannick Forster and
-               Ohad Kammar and
-               Sam Lindley and
-               Matija Pretnar},
-  title     = {On the expressive power of user-defined effects: Effect handlers,
-               monadic reflection, delimited control},
-  journal   = {J. Funct. Program.},
-  volume    = {29},
-  pages     = {e15},
-  year      = {2019},
-  url       = {https://doi.org/10.1017/S0956796819000121},
-  doi       = {10.1017/S0956796819000121},
-  timestamp = {Sat, 09 Apr 2022 12:29:43 +0200},
-  biburl    = {https://dblp.org/rec/journals/jfp/0002KLP19.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-@article{sol,
-  author    = {Makoto Hamana},
-  title     = {Modular Termination Checking Theorems for Second-Order Computation},
-  journal   = {CoRR},
-  volume    = {abs/1912.03434},
-  year      = {2019},
-  url       = {http://arxiv.org/abs/1912.03434},
-  eprinttype = {arXiv},
-  eprint    = {1912.03434},
-  timestamp = {Thu, 02 Jan 2020 18:08:18 +0100},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-1912-03434.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@InCollection{operfl,
-  author =       {Andrew Pitts and Ian Stark},
-  title =        {Operational Reasoning for Functions with Local
-                  State}, 
-  booktitle =    {Higher Order Operational Techniques in Semantics},
-  editor =       {Andrew Gordon and Andrew Pitts},
-  year =         {1998},
-  pages =        {227--273},
-  publisher =    {Publications of the Newton Institute, Cambridge
-                  University Press}, 
-  url =          {http://www.inf.ed.ac.uk/~stark/operfl.html},
-}
-
-@inproceedings{altenkirch,
-  author    = {Thorsten Altenkirch},
-  editor    = {Georg Gottlob and
-               Etienne Grandjean and
-               Katrin Seyr},
-  title     = {Logical Relations and Inductive/Coinductive Types},
-  booktitle = {Computer Science Logic, 12th International Workshop, {CSL} '98, Annual
-               Conference of the EACSL, Brno, Czech Republic, August 24-28, 1998,
-               Proceedings},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {1584},
-  pages     = {343--354},
-  publisher = {Springer},
-  year      = {1998},
-  url       = {https://doi.org/10.1007/10703163_23},
-  doi       = {10.1007/10703163_23},
-  timestamp = {Tue, 14 May 2019 10:00:42 +0200},
-  biburl    = {https://dblp.org/rec/conf/csl/Altenkirch98.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-@inproceedings{oleg,
-  author    = {Oleg Kiselyov and
-               Chung{-}chieh Shan},
-  editor    = {Simona Ronchi Della Rocca},
-  title     = {A Substructural Type System for Delimited Continuations},
-  booktitle = {Typed Lambda Calculi and Applications, 8th International Conference,
-               {TLCA} 2007, Paris, France, June 26-28, 2007, Proceedings},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {4583},
-  pages     = {223--239},
-  publisher = {Springer},
-  year      = {2007},
-  url       = {https://doi.org/10.1007/978-3-540-73228-0_17},
-  doi       = {10.1007/978-3-540-73228-0_17},
-  timestamp = {Tue, 14 May 2019 10:00:41 +0200},
-  biburl    = {https://dblp.org/rec/conf/tlca/KiselyovS07.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@article{Plotkin_2013,
-	doi = {10.2168/lmcs-9(4:23)2013},
-	url = {https://doi.org/10.2168%2Flmcs-9%284%3A23%292013},
-	year = 2013,
-	month = {dec},
-	publisher = {Centre pour la Communication Scientifique Directe ({CCSD})},
-	volume = {9},
-	number = {4},
-	author = {Gordon Plotkin and Matija Pretnar},
-	editor = {Andrzej Tarlecki},
-	title = {Handling Algebraic Effects},
-	journal = {Logical Methods in Computer Science}
-}
-
-@inproceedings{monads,
-  author    = {Philip Wadler},
-  editor    = {Gilles Kahn},
-  title     = {Comprehending Monads},
-  booktitle = {Proceedings of the 1990 {ACM} Conference on {LISP} and Functional
-               Programming, {LFP} 1990, Nice, France, 27-29 June 1990},
-  pages     = {61--78},
-  publisher = {{ACM}},
-  year      = {1990},
-  url       = {https://doi.org/10.1145/91556.91592},
-  doi       = {10.1145/91556.91592},
-  timestamp = {Fri, 06 Aug 2021 15:08:55 +0200},
-  biburl    = {https://dblp.org/rec/conf/lfp/Wadler90.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-@article{koka,
-	doi = {10.4204/eptcs.153.8},
-	url = {https://doi.org/10.4204%2Feptcs.153.8},
-	year = 2014,
-	month = {jun},
-	publisher = {Open Publishing Association},
-	volume = {153},
-	pages = {100--126},
-	author = {Daan Leijen},
-	title = {Koka: Programming with Row Polymorphic Effect Types},
-	journal = {Electronic Proceedings in Theoretical Computer Science}
-}
-
-@techreport{xie2020effect,
-author = {Xie, Ningning and Brachthauser, Jonathan and Hillerstrom, Daniel and Schuster, Philipp and Leijen, Daan},
-title = {Effect Handlers, Evidently  (Extended Version)},
-institution = {Microsoft},
-year = {2020},
-month = {July},
-abstract = {Algebraic effect handlers are a powerful way to incorporate effects in a
-programming language. Sometimes perhaps even _too_ powerful. In this
-article we define a restriction of general effect handlers with _scoped
-resumptions_. We argue one can still express all important effects, while
-improving reasoning about effect handlers. Using the newly gained
-guarantees, we define a sound and coherent evidence translation for effect handlers,
-which directly passes the handlers as evidence to each operation. We
-prove full soundness and coherence of the translation into plain lambda calculus. The
-evidence in turn enables efficient implementations of effect operations;
-in particular, we show we can execute tail-resumptive operations _in
-place_ (without needing to capture the evaluation context), and how we
-can replace the runtime search for a handler by indexing with a constant
-offset.},
-url = {https://www.microsoft.com/en-us/research/publication/effect-handlers-evidently-extended-version/},
-number = {MSR-TR-2020-23},
-note = {Extended version of the ICFP'20 article.},
-}
-@book{ch,
-author = {S\o{}rensen, Morten Heine and Urzyczyn, Pawel},
-title = {Lectures on the Curry-Howard Isomorphism, Volume 149 (Studies in Logic and the Foundations of Mathematics)},
-year = {2006},
-isbn = {0444520775},
-publisher = {Elsevier Science Inc.},
-address = {USA}
-}
-@article{lr,
-  author    = {Lau Skorstengaard},
-  title     = {An Introduction to Logical Relations},
-  journal   = {CoRR},
-  volume    = {abs/1907.11133},
-  year      = {2019},
-  url       = {http://arxiv.org/abs/1907.11133},
-  eprinttype = {arXiv},
-  eprint    = {1907.11133},
-  timestamp = {Thu, 01 Aug 2019 08:59:33 +0200},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-1907-11133.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }

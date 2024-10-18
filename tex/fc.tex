@@ -18,6 +18,7 @@
 \usepackage{hyperref}
 \usepackage{cleveref}
 \usepackage{tikz}
+\usepackage{tikz-cd}
 \usepackage{listings}
 \lstset{basicstyle= \footnotesize \ttfamily}
 \lstset{language=ml}
@@ -57,18 +58,28 @@
 }
 
 
+\newcommand{\shiftz}{\textsf{shift0}}
 \newcommand{\keyword}[1]{\textsf{\textup{#1}}}
-\newcommand{\KwDo}{\keyword{do}}
-\newcommand{\Do}{\KwDo\;}
+\newcommand{\KwOp}{\keyword{op}}
+\newcommand{\Op}{\KwOp\,}
 \newcommand{\KwHandle}{\keyword{handle}}
 \newcommand{\Handle}{\KwHandle\;}
+\newcommand{\KwWith}{\keyword{with}}
+\newcommand{\With}{\;\KwWith\;}
+\newcommand{\KwRaise}{\keyword{raise}}
+\newcommand{\Raise}{\KwRaise\;}
+\newcommand{\KwTry}{\keyword{try}}
+\newcommand{\Try}{\KwTry\;}
 \newcommand{\KwLet}{\keyword{let}}
-\newcommand{\Let}[3]{\keyword{let}\;#1=#2\;\keyword{in}\;#3}
-\newcommand{\Lift}[1]{\boldsymbol{[}#1\boldsymbol{]}}
+\newcommand{\Let}[3]{\keyword{let}\;#1\;\keyword{=}\;#2\;\keyword{in}\;#3}
+\newcommand{\RLet}[3]{\Let{#1}{\raisebox{0.5 ex}{$#2$}}{#3}}
+\newcommand{\KwLift}{\keyword{lift}}
+\newcommand{\Lift}[1]{\KwLift\;#1}
 \newcommand{\subst}[2]{\{#1{:=}#2\}}
 \newcommand{\E}{\mathcal{E}}
 \newcommand{\K}{\mathcal{K}}
 \renewcommand{\S}{\mathcal{S}}
+\newcommand{\A}{\mathcal{A}}
 \newcommand{\kT}{\mathsf{T}}
 \newcommand{\kE}{\mathsf{E}}
 \newcommand{\kR}{\mathsf{R}}
@@ -128,6 +139,8 @@
 \newunicodechar{⟧}{\rrbracket} % Digr ]] 10215 nonstandard
 \newunicodechar{≥}{\ge}
 \newunicodechar{≤}{\le}
+\newunicodechar{≡}{\equiv}
+\newunicodechar{≈}{\approx}
 
 
 % cursed
@@ -150,12 +163,15 @@
 \begin{abstract}
 	We consider a variant of the call-by-value $λμ$-calculus extended with control delimiters,
 	in which $μ$ becomes the static delimited control operator shift0.
-	We propose new reduction rules allowed by static delimited control.
-	We let delimiters carry data (resulting in a form of dynamic binding), which lets us express algebraic effects and handlers as well as exceptions.
-	We propose purity assertions for lightweight purity-based reasoning.
-	We prove the reduction is confluent and adequate wrt.\ operational semantics.
-	The calculus is stronger than previous results in the literature and could form basis for
-	reasoning and optimizations for all the aforementioned forms of control.
+	We propose new reduction rules for cases where the captured continuation can be determined statically.
+	We prove the calculus confluent and adequate wrt.\,operational semantics.
+	We then let delimiters carry data (resulting in a form of dynamic binding), which lets us express deep effect handlers.
+	The new reductions cooperate with the encoding to let us statically handle effects.
+	We also propose natural encodings of return clauses for delimiters.
+%	We propose purity assertions for lightweight purity-based reasoning.
+%	We prove the reduction is confluent and adequate wrt.\ operational semantics.
+	We argue that the calculus is stronger than previous results in the literature and could form basis for
+	reasoning and optimizations for the aforementioned forms of control.
 	\begin{center} \rule[3pt]{300pt}{1pt} \end{center}
 	polski
 \end{abstract}
@@ -168,8 +184,201 @@
 
 
 \chapter{Introduction}
+Consider a program of the following form in a language with (unnamed) exceptions:
+\begin{align*}
+	&\Try \\
+	&\quad \Let{x}{e}{\Raise (x*2)} \\
+	&\KwWith\; z.\,z*3
+\end{align*}
+If the execution gets to $\Raise (x*2)$, the handler will catch the exception and produce the result $x*2*3$.
+%$$\Try \Let{x}{e}{\Raise (2*x)} \With z.\,3 * z$$
+%We know that \textit{the} $\KwRaise$ (if we get to it) is going to be handled by \textit{the} handler.
+%And in that case, $x*2$ is going to be multiplied by $3$.
+How to \textit{optimize} the program, so that we only perform one multiplication, $x*6$?
+
+We can ask a similar question for \textit{effect handlers}.
+This generalization allows us to capture the \textit{continuation} of the \textit{operation} (a.k.a.\,\textit{generic effect}) we are handling
+and bind it as a variable.
+The conventional evaluation step rule is
+$$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λy.\,\Handle E[y] \With x\;k.\,e} $$
+This is a form of \textit{static delimited control}: control because we capture continuations,
+delimited because the continuation is delimited by the handler, and static because the delimiter remains
+in the captured continuation.
+%The last part is crucial.
+
+Let's consider a similar example:
+$$ \Handle \Let{x}{e}{\Op (x*2)} \With z\;k.\,k\,(z*3) $$
+Similarly to the example of exceptions, we know that $\Op (x*2)$ will be handled
+by the $z\;k.\,k\,(z*3)$ handler -- even if the evaluation of $e$ captures continuations,
+the $\KwOp$ and $\KwHandle$ will stay together.
+%Now let's argue semi-formally why the handler will handle the operation.% (if we get to it).
+%%Let's assume $e$ doesn't loop forever, otherwise we don't get to it.
+%\begin{enumerate}
+%	\item
+%	If $e$ evaluates to a value $v$,
+%	% (which is necessary to reach the $\KwRaise$)
+%	then by the rule $\Let{x}{v}{t} ↦ t\subst{x}{v}$ we get
+%	$$ \Handle {\Op (v*2)} \With z\;k.\,k\,(z*3) $$
+%	and the previous rule applies.
+%	%$$ (λy.\,\Handle y \With z\;k.\,k\,(z*3)) ((v*2)*3)$$
+%	%If $e$ installs any handlers, their scope is limited to remain inside $e$, and won't influence the $\KwRaise$.
+%	\item
+%	If $e$ performs an operation and doesn't handle it internally, then the captured continuation will be
+%	$λy.\,\Handle \Let{x}{E[y]}{\Op (x*2)} \With z\;k.\,k\,(z*3)$.
+%	The body of the abstraction is the expression we originally considered but after some evaluation steps, so we reason by induction.
+%\end{enumerate}
+
+We therefore know the substitution that will be performed during the handling of the operation:
+$z:=x*2$. Exactly this substitution is needed to rewrite the two multiplications into one.
+We even know that $k:=λy.\,\Handle y \With z\;k.\,k\,(z*3)$.
+But we can't substitute that into the clause, because the clause is shared for all operations inside,
+and $x$ is not even in scope.
+
+What we can do is copy the clause, perform the substitution and \textit{abort} the handler:
+$$\Handle \Let{x}{e}{\A\,(k (z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle \Let{x}{e}}}$$
+
+So let's instead consider the other form of static delimited control, $\shiftz$ and $\textsf{reset}$,
+which is closely related to deep effect handlers. The evaluation rule is:
+$$⟨E[\shiftz\,k.\,e]⟩ ↦ e\subst{k}{λy.\,⟨E[y]⟩}$$
+Here, \textsf{reset} (written $⟨·⟩$) is the delimiter and doesn't have any clauses.
+Instead, the body of the $\shiftz$ tells us what to do with the captured continuation.
+The final form of our example is
+$$\Let{op}{λz.\,x*2}⟨\Let{x}{e}{\shiftz\,k.\,k\,(z*3)}$$
+And finally, we have our reduction rule:
+$$⟨L[E[\shiftz\,k.\,e]]⟩ → ⟨L[\A\,e\subst{k}{λy.\,⟨E[y]⟩}]⟩$$
+
+If that problem 
+
+\begin{enumerate}
+	\item
+		We introduce an extension of the $λμ$-calculus with delimiters, where
+		$μ$ behaves like the $shift0$ operator
+	\item
+		We add new reduction rules that let us statically determine the captured continuation.
+	\item
+		We prove the above rules confluent and adequate wrt.\,operational semantics
+	\item
+		We let delimiters carry data
+\end{enumerate}
+
+
+We haven't figured out a rewrite rule for our optimization yet.
+The key part that allows it is the substitution for $z$ and $k$
+
+
+
+
+
+
+It should be intuitively clear that the $\KwRaise$ we see is going to be handled by the exception handler we see.
+That is, if we get to it at all, since $e$ might loop forever or exit the program or crash or raise an exception.
+It might install a handler of its own, but it won't contain $\Raise Exn$ in scope, so it doesn't affect it.
+If all of that didn't happen and $e_1$ happily evaluated to a value $n$, then we can perform an evaluation step
+and get
+$$\Try \Raise (2*n) \With z → 1+z$$
+At this point, we can refer to the evaluation rule for handling a raised exception
+$$\Try E[\Raise v] \With z → e_h ↦  e_h\subst{z}{v}$$
+where $E$ are contexts of the form $E ::= □ │ \Let{x}{E}{e}$.
+Applying this to our example, we get $3*(2*n)$, which we could simplify to $6*n$.
+
+Shouldn't we be able to \textit{optimize} the program to get from two multiplications to just one?
+Of course, this is a very basic and contrived example.
+But optimization is often about many almost trivial steps that in the end
+amount to big improvements.
+
+Generalizing the above example, we can say that for a program of the form $\Try L[E[\Raise v]] \With z. e$
+where $L$ are sequences of $\KwLet$s, i.e. $L ::= □ │ \Let{x}{e}{L}$,
+if we get to executing the $\KwRaise$, then $e\subst{z}{v}$ will be the result.
+How to turn this insight into a rewrite rule?
+
+We can't perform the substitution in the handler's clause, since we are focusing
+on one $\KwRaise$ and there might be potential previous $\KwRaise$s inside $L$.
+It wouldn't make sense anyway since $v$ might refer to variables bound in $L$.
+We have to rewrite the $\Raise v$. We consider a new construct $\A\, e$ that \textit{aborts}
+the exception handler, ignoring its clauses and returns the result $e$.
+The rewrite rule is
+$$\Try L[E[\Raise v]] \With z.\, e  → \Try L[\A\,e\subst{z}{v}] \With z.\,e$$
+We copy the handler clause to the place of the $\KwRaise$, apply the substitution,
+and perform the abort $\A$ which bypasses the usual flow of exception handling.
+
+Applying it to our original example, we get
+$$\Try \Let{x}{e}{\A\,(3*(2*x))}\With z.\,3*z$$
+in which we can perform our desired rewrite $3*(2*n) → 6*n$.
+
+All of the above extends to \textit{effect handlers}.
+Effect handlers are exception handlers, where the clause can also refer to the \textit{continuation}:
+$$\Try E[\Raise v] \With z\;k.\, e → e\subst{z}{v}\subst{k}{λx.\,\Try E[x] \With z\;k.\,e}$$
+This is a powerful feature that lets us write code with effectful operations,
+whose interpretations can be dynamically provided by the handlers.
+
+
+
+
+\chapter{Syntax}
+
+
 
 \chapter{Confluence}
+
+\section*{The problems with $\KwLet$ reassociation}
+
+The $\KwLet$ reassociation reduction
+$$\RLet{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$$
+flattens the structure of the term by getting rid of $\KwLet$s nested on the left
+(here raised).
+It has the following critical pair with itself:
+$$
+\begin{tikzpicture}
+	\node (E1) at (2,5) {$\RLet{x}{\RLet{y}{\Let{z}{e}{t_1}}{t_2}}{t_3}$};
+	\node (E2) at (6,3) {$\RLet{y}{\Let{z}{e}{t_1}}{\Let{x}{t_2}{t_3}}$};
+	\node (E3) at (0,2) {$\RLet{x}{\Let{z}{e}{\Let{y}{t_1}{t_2}}}{t_3}$};
+	\node (E3') at (2,1) {$\Let{z}{e}{\RLet{x}{\Let{y}{t_1}{t_2}}}{t_3}$};
+	\node (E4) at (4,0) {$\Let{z}{e}{\Let{y}{t_1}{\Let{x}{t_2}{t_3}}}$};
+	\path[->]
+		(E1) edge (E2)
+		(E1) edge (E3);
+	\path[->,dashed]
+		(E2) edge[bend left] (E4)
+		(E3) edge (E3')
+		(E3') edge (E4);
+	%\draw [brown] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{tikzpicture}
+$$
+Two steps are needed on the left to complete the diagram.
+This calls for the following generalization, which can do it in one step and \textit{does} have the diamond property:
+$$\Let{x}{L[t_1]}{t_2} → L[\Let{x}{t_1}{t_2}]$$
+However, this is not enough for \textit{parallel} reduction.
+Here, the redex above overlaps with two different redexes below:
+$$
+\begin{tikzpicture}
+	\node (E1) at (0,0) {$\RLet{x}{\RLet{y}{\RLet{z}{\Let{w}{e}{t_1}}{t_2}}{t_3}}{t_4}$};
+	\node (E2) at (5.3,1.1) {$\RLet{x}{\RLet{z}{\Let{w}{e}{t_1}}{\Let{y}{t_2}}{t_3}}{t_4}$};
+	\node (E3) at (5.3,-1.1) {$\RLet{y}{\Let{w}{e}{\Let{z}{t_1}}{t_2}}{\Let{x}{t_3}}{t_4}$};
+	\path[->] (E1.east) edge[] (E2.south);
+	\path[->>] (E1.east) edge[] (E3.north);
+	%\draw [brown] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{tikzpicture}
+$$
+To complete this diagram in one parallel reduction step, it would need to have not only length-wise, but also a depth-wise generalization
+of $\KwLet$ reassociation.
+We don't provide a definition here, since we haven't managed to prove any attempt right.
+
+The other challenge is that a $let.\S$ reduction can tear apart a $let.let$ redex:
+$$
+\begin{tikzpicture}
+	\node (E1) at (0,0) {$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$};
+	\node (E2) at (3.5,-2) {$\Let{y}{\S κ.\,e}{\Let{x}{t_1}{t_2}}$};
+	\node (E3) at (-3.5,-1.333) {$\Let{x}{\S κ.\,e\subst{κ}{κ[\Let{y}{□}{t_1}]}}{t_2}$};
+	\node (E3') at (-3.5,-2.666) {$\S κ.\,e\subst{κ}{κ[\Let{x}{\Let{y}{□}{t_1}}{t_2}]}$};
+	\node (E4) at (0,-4) {$\S κ.\,e\subst{κ}{κ[\Let{y}{□}{\Let{x}{t_1}{t_2}}]}$};
+	\path[->] (E1) edge (E2);
+	\path[->] (E1) edge (E3);
+	\path[->,dashed] (E3) edge (E3') (E2) edge (E4);
+	\path[->>,dashed] (E3') edge (E4);
+\end{tikzpicture}
+$$
+We need a successive $let.\S$ step to make the $let.let$ redexes whole, now after structural substitution.
+
 
 Let's demonstrate the main challenges for proving confluence.
 Previous proofs of confluence for $λμ$-calculi amounted to the diamond property of parallel reduction.
@@ -449,11 +658,60 @@ but for completeness we show it directly.
 
 \section*{Confluence}
 
+Proofs of confluence have been notoriously difficult since the beginning --
+the many early attempts for the $λ$-calculus were flawed.
+
+The proof alongside the introduction of the $λμ$-calculus \cite{parigot92} also turned out to be incorrect \cite{baba}.
+The fix involves performing multiple structural reduction steps \cite{baba,koji}, which we have employed in our formalization
+and verified that it works also with our tail-of-delimiter reductions.
+
+Herbelin and Zimmerman \cite{Herbelin} claim that a proof by parallel reduction is possible for a $λμ$-calculus with
+$\KwLet$ reassociation, but provide no details. We don't see how they could deal with the $let.\S$-$let.let$ critical pair
+unless they add a $κ[\Let{x}{e}{t}] → \Let{x}{e}{κ[t]}$ reduction, which is similar to theirs
+$x(\Let{x}{e}{t}) → \Let{x}{e}{xt}$ and seems to be valid in the undelimited setting.
+
+The proof in \cite{ppdp21} is claimed by local confluence of $\Rightarrow$ such that $→^*=\Rightarrow^*$,
+which is not a valid argument (take $\Rightarrow=→$ for a counterexample, it is known that local confluence does not imply confluence). Diamond property is needed instead of local confluence.
+
 
 
 \section*{Tail reductions and letcc}
+The central idea in our paper is the reduction
+$$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
+It can be tempting to decompose $\S$ into its constituent parts:
+a $\keyword{letcc}$ which binds the continuation without aborting, and an abort $\A$:
+$$\S κ.\,e ≡ \keyword{letcc}\;κ.\,\A\,e$$
+Then we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
+$$\Let{x}{e}{\keyword{letcc}\;κ.\,t} → \keyword{letcc}\;κ.\,\Let{x}{e}{t}$$
+Analogous reductions have been considered for undelimited continuations.
+
+There are issues with this approach, though:
+\begin{enumerate}
+
+	\item
+Because $\keyword{letcc}$ binds the continuation and keeps running in it
+$$⟨E[\keyword{letcc}\;κ.\,e]⟩ ↦ ⟨E[e\subst{κ}{⟨E⟩}]⟩$$
+it is inherently incompatible with one-shot (linear) continuations.
+This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5.
+\item
+Perhaps more importantly, the above reduction isn't semantics-preserving. If $e$ above is the nonterminating $Ω$,
+then the left side diverges, while the right side gets stuck on searching for a delimiter.
+Of course we could ensure a delimiter is found by performing the reduction only in $⟨L⟩$,
+but then there are few benefits to this approach.
+\end{enumerate}
+
 
 \section*{Expressing return clauses}
+Recall our encoding of return clauses:
+$$⟨e│x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\;e_r}⟩$$
+$$\Handle e \With x,k.\,e_h │ x.\,e_r ≡ ⟨\Let{x}{e}{\A\;e_r}│λx,k.\,e_h⟩$$
+An equivalence reminiscent of it has been proven for typed algebraic effects \cite{hwc}:
+$$\Handle e \With x,k.\,e_h │ x.\,e_r ≈\Handle \Let{x}{e}{\Lift{e_r}} \With x,k.\,e_h$$
+After $e$ has finished evaluating and we start evaluating the rhs of $\KwLet$,
+we know that the frame at the top of the stack will be the handler.
+So instead of adding a $\KwLift$ stack frame that makes effects skip the $\KwLift$-handler pair \cite[Appendix A]{hwc},
+we can just pop the handler with an $\A$ for an equivalent result.
+Our approach is therefore slightly more space- and time-efficient.
 
 \chapter{Discussion and future work}
 
@@ -462,16 +720,35 @@ While this work brings forth many new ideas, it is far from being the IR of a co
 We believe all results transfer to multi-prompt delimited control, where we have independent sets of labeled operators $S^\ell κ. e$, $⟨e⟩^\ell$.
 This is necessary for working with multiple effects, though the lift construct can to some extent simulate that.
 Naturally, the purity assertions also could be refined to block or allow specific listed effects.
+The multi-prompt calculus need a mild form of typing: in the renaming reduction we need to know that the continuation variable $κ$ comes
+from an $\S$ with the matching label
+$$κ^\ell[\S^\ell κ'.\,e] → e\subst{κ'}{κ}$$
+
+One could wonder why we don't have tail-of-plug reductions
+$$κ[L[\S κ'.\,e]] → κ[L[A\,e\subst{κ'}{κ}]]$$
+The reason is they don't work in the multi-prompt setting.
+If $κ$ is allowed to have delimiters of different labels in the middle, then
+the continuation may not be intact by the time we get to the $\S$.
+
+It should be clear that the central idea of this work, the tail-of-delimiter reductions,
+doesn't apply to \textit{dynamic} delimited control.
+They are those that make the delimiter disappear after capture, for example \textsf{control\textsubscript{0}}:
+$$⟨E[\mathsf{control_0} κ.\,e]⟩ ↦ e\subst{κ}{E}$$
+The only hope for optimizations seems to be purity-aware reductions,
+which could move the delimiter directly to the operator. The same applies to the related \textit{shallow} effect handlers.
+There is however an option between shallow and deep handlers: \textit{sheep} handlers \cite{sheep},
+where the delimiter is static,
+but the dynamically bound interpretation of the effect can be used at most once
+and has to be manually reinstated every time a continuation is installed.
+
+
+
 
 Realistic languages also have more tail contexts such as $if b then □ else □$ as well as evaluation contexts.
 
 join points?
 
-
-
-
-
-\hfuzz=1pt
+%\hfuzz=1pt
 \printbibliography[heading=bibintoc]
 
 \end{document}
