@@ -59,6 +59,7 @@
 
 
 \newcommand{\shiftz}{\textsf{shift0}}
+\newcommand{\abort}{\textsf{abort}}
 \newcommand{\keyword}[1]{\textsf{\textup{#1}}}
 \newcommand{\KwOp}{\keyword{op}}
 \newcommand{\Op}{\KwOp\,}
@@ -68,6 +69,7 @@
 \newcommand{\With}{\;\KwWith\;}
 \newcommand{\KwRaise}{\keyword{raise}}
 \newcommand{\Raise}{\KwRaise\;}
+\newcommand{\Ask}{\textsf{ask}}
 \newcommand{\KwTry}{\keyword{try}}
 \newcommand{\Try}{\KwTry\;}
 \newcommand{\KwLet}{\keyword{let}}
@@ -209,116 +211,180 @@ in the captured continuation.
 Let's consider a similar example:
 $$ \Handle \Let{x}{e}{\Op (x*2)} \With z\;k.\,k\,(z*3) $$
 Similarly to the example of exceptions, we know that $\Op (x*2)$ will be handled
-by the $z\;k.\,k\,(z*3)$ handler -- even if the evaluation of $e$ captures continuations,
-the $\KwOp$ and $\KwHandle$ will stay together.
-%Now let's argue semi-formally why the handler will handle the operation.% (if we get to it).
-%%Let's assume $e$ doesn't loop forever, otherwise we don't get to it.
-%\begin{enumerate}
-%	\item
-%	If $e$ evaluates to a value $v$,
-%	% (which is necessary to reach the $\KwRaise$)
-%	then by the rule $\Let{x}{v}{t} ↦ t\subst{x}{v}$ we get
-%	$$ \Handle {\Op (v*2)} \With z\;k.\,k\,(z*3) $$
-%	and the previous rule applies.
-%	%$$ (λy.\,\Handle y \With z\;k.\,k\,(z*3)) ((v*2)*3)$$
-%	%If $e$ installs any handlers, their scope is limited to remain inside $e$, and won't influence the $\KwRaise$.
-%	\item
-%	If $e$ performs an operation and doesn't handle it internally, then the captured continuation will be
-%	$λy.\,\Handle \Let{x}{E[y]}{\Op (x*2)} \With z\;k.\,k\,(z*3)$.
-%	The body of the abstraction is the expression we originally considered but after some evaluation steps, so we reason by induction.
-%\end{enumerate}
+by the $z\;k.\,k\,(z*3)$ handler -- even if continuation capture occurs during the execution of $e$,
+the $\KwOp$ and the $\KwHandle$ will stay together.
 
 We therefore know the substitution that will be performed during the handling of the operation:
 $z:=x*2$. Exactly this substitution is needed to rewrite the two multiplications into one.
-We even know that $k:=λy.\,\Handle y \With z\;k.\,k\,(z*3)$.
-But we can't substitute that into the clause, because the clause is shared for all operations inside,
+We also can deduce the substitution $k:=λy.\,\Handle y \With z\;k.\,k\,(z*3)$.
+But we can't substitute those into the handler's clause, because the clause is shared for all operations inside,
 and $x$ is not even in scope.
 
-What we can do is copy the clause, perform the substitution and \textit{abort} the handler:
-$$\Handle \Let{x}{e}{\A\,(k (z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle \Let{x}{e}}}$$
+Since we know the clause that will run for the specific operation,
+instead of performing it, we can \textit{abort} the handler and execute the clause specialized with the specific substitutions.
+That is, rewrite the $\Op (z*2)$ into
+$$\A\,(k\,(z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle y \With z\;k.\,k\,(z*3)},$$
+where $\A$ is the new \textit{abort} expression former.
+We get
+$$\Handle \Let{x}{e}{\A\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
+which simplifies to
+$$\Handle \Let{x}{e}{\A\,(x*6)} \With z\;k.\,k\,(z*3)$$
 
-So let's instead consider the other form of static delimited control, $\shiftz$ and $\textsf{reset}$,
-which is closely related to deep effect handlers. The evaluation rule is:
+Of course, this poses questions such as ``where does the abort come from?''.
+One can also imagine that the general rewrite rule for this would be rather complicated...
+
+The issue with conventional syntax for operations and effect handlers is that
+the operations are \textit{passive}.
+In a real implementation, when we get to an operation, we immediately begin the search for a handler.
+The syntax does not reflect that, it doesn't say what happens next. It's just an operation name and a payload value.
+
+We will therefore base our calculus for optimizations on the other static delimited control operator:
+$\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) is:
 $$⟨E[\shiftz\,k.\,e]⟩ ↦ e\subst{k}{λy.\,⟨E[y]⟩}$$
-Here, \textsf{reset} (written $⟨·⟩$) is the delimiter and doesn't have any clauses.
-Instead, the body of the $\shiftz$ tells us what to do with the captured continuation.
-The final form of our example is
-$$\Let{op}{λz.\,x*2}⟨\Let{x}{e}{\shiftz\,k.\,k\,(z*3)}$$
-And finally, we have our reduction rule:
-$$⟨L[E[\shiftz\,k.\,e]]⟩ → ⟨L[\A\,e\subst{k}{λy.\,⟨E[y]⟩}]⟩$$
+Here, the $\shiftz$ assumes the active role by initiating capture of continuation $k$ and carrying the expression $e$ that says what to do with it,
+while the delimiter is passive -- it merely delimits.
+We can now express \textsf{abort} simply as a $\shiftz$ that ignores the continuation: $\textsf{abort}\,e ≡ \shiftz\,\_.\,e$.
 
-If that problem 
+To express effect handlers, we will extend delimiters by letting them carry a value.
+The value will be a lambda abstraction $λz\;k.\,e$ representing the handler's clause.
+An operation will be a $\shiftz$ that explicitly asks for it and applies the payload and continuation.
 
+Finally, to achieve fine-grained steps instead of complex rules that move entire contexts around,
+we will get rid of the irregularity that is the $λ$-abstraction wrapping the continuation.
+Delimited continuations will not be represented as call-by-value functions, but instead
+as their own sort with the ability to plug in any expression, not just a value.
+This lets us use structural substitution known from the $λμ$-calculus and all the benefits it brings \cite{benefit}.
+
+\chapter{Syntax}
+
+\begin{figure}
+\begin{align*}
+	v,u &::= x │ λx.\,e \\
+	e,t &::= v │ v\;v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e / v⟩ │ κ[e] │ \Ask(κ) \\
+	E   &::= □ │ \Let{x}{E}{t}
+\end{align*}
+\caption{Syntax.}
+\label{syntax}
+\end{figure}
+
+The syntax of the calculus is in figure \ref{syntax}.
+We will be using a few shorthands:
 \begin{enumerate}
-	\item
-		We introduce an extension of the $λμ$-calculus with delimiters, where
-		$μ$ behaves like the $shift0$ operator
-	\item
-		We add new reduction rules that let us statically determine the captured continuation.
-	\item
-		We prove the above rules confluent and adequate wrt.\,operational semantics
-	\item
-		We let delimiters carry data
+	\item $\A\,e ≡ \S\_.\,e$, i.e. an abort: an $\S$ that ignores the captured continuation
+	\item $f\;x\;y ≡ \Let{g}{f\;x}{g\;y}$
+	\item $λx\,y.\,e ≡ λx.\,λy.\,e$
 \end{enumerate}
 
 
-We haven't figured out a rewrite rule for our optimization yet.
-The key part that allows it is the substitution for $z$ and $k$
+We will use $\A\,e$ as a shorthand for $\S\_.\,e$, i.e.\, an $\S$ that ignores the captured continuation.
+We have shifted away from the $\shiftz$/$\abort$ naming to differentiate from the variant that binds the continuation as a function and for brevity.
+
+The operational semantics is in figure \ref{step}.
+Let's use it verify the correctness of the macro-encodings we will be using:
+$$\shiftz\,k.\,e ≡ \S κ.\,\Let{k}{λx.\,κ[x]}{e}$$
+\begin{align*}
+	⟨E[\shiftz\,k.\,e]⟩
+	&≡ ⟨E[\S κ.\,\Let{k}{λx.\,κ[x]}{e}]⟩ \\
+	&↦ \Let{k}{λx.\,⟨E[x]⟩}{e} ↦ e\subst{κ}{λx.\,⟨E[x]⟩}
+\end{align*}
+
+$$\Handle e \With x\,k.\,t ≡ ⟨e/λx\,k.\,t⟩$$
+$$\Op v ≡ \S κ.\,{\Ask(κ)\;v\;(λx.\,κ[x])}$$
+
+\begin{align*}
+	\Handle E[\Op v] \With x\,k.\,t
+	&≡ ⟨E[\S κ.\,\Ask(κ)\;v\;(λx.\,κ[x])]/λx\,k.\,t⟩] \\
+	&↦ (λx\,k.\,t)\;v\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
+	&↦ (λk.\,t\subst{x}{v})\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
+	&↦ t\subst{x}{v}\subst{k}{λx.\,⟨E[x]/λx\,k.\,t⟩} \\
+	&≡ t\subst{x}{v}\subst{k}{λx.\,\Handle E[x] \With x\,k.\,t}
+\end{align*}
+
+Many calculi take a \textit{return clause} to be an integral part of the delimiter.
+We will denote it by tacking on $│ x.\,t_r$.
+The defining evaluation rule is
+$$\Handle v \With x\,k.\,t_h │ x.\,t_r ↦  t_r\subst{x}{v}$$
+and similarly for the reset (with the return clause often called \textit{dollar}):
+$$⟨v│x.\,t_r⟩ ↦ t_r\subst{x}{v}$$
+In words, the $t_r$ is a part of the captured continuation,
+but the delimiter is dropped when we execute it.
+
+We encode it thus:
+$$⟨e│x.\,t_r⟩ ≡ ⟨\Let{x}{e}{\A\,t_r}⟩$$
+$$\Handle e \With x\,k.\,t_h │ x.\,t_r ≡ ⟨\Let{x}{e}{\A\,t_r}/λx\,k.\,t_h⟩$$
+Verifying the evaluation rule is easy, here's the one for the effect handler:
+\begin{align*}
+	\Handle v \With x\,k.\,t_h │ x.\,t_r
+	&≡ ⟨\Let{x}{v}{\A\,t_r}/λx\,k.\,t_h⟩ \\
+	&↦ ⟨\A\,t_r\subst{x}{v}/λx\,k.\,t_h⟩ ↦ t_r\subst{x}{v}
+\end{align*}
 
 
 
 
+\begin{figure}
+\begin{mathpar}
+	\inferrule
+		{}
+		{(λx.\,e)\;v ↦ e\subst{x}{v}}
 
+	\inferrule
+		{}
+		{\Let{x}{v}{t} ↦ t\subst{x}{v}}
 
-It should be intuitively clear that the $\KwRaise$ we see is going to be handled by the exception handler we see.
-That is, if we get to it at all, since $e$ might loop forever or exit the program or crash or raise an exception.
-It might install a handler of its own, but it won't contain $\Raise Exn$ in scope, so it doesn't affect it.
-If all of that didn't happen and $e_1$ happily evaluated to a value $n$, then we can perform an evaluation step
-and get
-$$\Try \Raise (2*n) \With z → 1+z$$
-At this point, we can refer to the evaluation rule for handling a raised exception
-$$\Try E[\Raise v] \With z → e_h ↦  e_h\subst{z}{v}$$
-where $E$ are contexts of the form $E ::= □ │ \Let{x}{E}{e}$.
-Applying this to our example, we get $3*(2*n)$, which we could simplify to $6*n$.
+	\inferrule
+		{}
+		{⟨v/u⟩ ↦ v}
 
-Shouldn't we be able to \textit{optimize} the program to get from two multiplications to just one?
-Of course, this is a very basic and contrived example.
-But optimization is often about many almost trivial steps that in the end
-amount to big improvements.
+	\inferrule
+		{}
+		{⟨E[\S κ.\,e]/v⟩ ↦ e\subst{κ}{⟨E/v⟩}}
 
-Generalizing the above example, we can say that for a program of the form $\Try L[E[\Raise v]] \With z. e$
-where $L$ are sequences of $\KwLet$s, i.e. $L ::= □ │ \Let{x}{e}{L}$,
-if we get to executing the $\KwRaise$, then $e\subst{z}{v}$ will be the result.
-How to turn this insight into a rewrite rule?
+	\inferrule
+		{}
+		{κ[E[\S κ'.\,e]] ↦ e\subst{κ'}{κ[E]}}
 
-We can't perform the substitution in the handler's clause, since we are focusing
-on one $\KwRaise$ and there might be potential previous $\KwRaise$s inside $L$.
-It wouldn't make sense anyway since $v$ might refer to variables bound in $L$.
-We have to rewrite the $\Raise v$. We consider a new construct $\A\, e$ that \textit{aborts}
-the exception handler, ignoring its clauses and returns the result $e$.
-The rewrite rule is
-$$\Try L[E[\Raise v]] \With z.\, e  → \Try L[\A\,e\subst{z}{v}] \With z.\,e$$
-We copy the handler clause to the place of the $\KwRaise$, apply the substitution,
-and perform the abort $\A$ which bypasses the usual flow of exception handling.
+\end{mathpar}
+\caption{Evaluation step.}
+	\label{step}
+\end{figure}
 
-Applying it to our original example, we get
-$$\Try \Let{x}{e}{\A\,(3*(2*x))}\With z.\,3*z$$
-in which we can perform our desired rewrite $3*(2*n) → 6*n$.
+\begin{figure}
+	\begin{mathpar}
+		(λx.\,e)\,v → e\subst{x}{v}
 
-All of the above extends to \textit{effect handlers}.
-Effect handlers are exception handlers, where the clause can also refer to the \textit{continuation}:
-$$\Try E[\Raise v] \With z\;k.\, e → e\subst{z}{v}\subst{k}{λx.\,\Try E[x] \With z\;k.\,e}$$
-This is a powerful feature that lets us write code with effectful operations,
-whose interpretations can be dynamically provided by the handlers.
+		\Let{x}{v}{t} → t\subst{x}{v}
 
+		⟨v/u⟩ → v
 
+		κ[\S κ'.\,e] → e\subst{κ'}{κ}
 
+		⟨\S κ.\,e / v⟩ → e\subst{κ}{⟨□/v⟩}
 
-\chapter{Syntax}
+		\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}
+
+		⟨L[\S κ.\,e]/v⟩ → ⟨L[A\,e\subst{κ}{⟨□/v⟩}]⟩
+
+		⟨L[\A\,⟨e/v⟩]/v⟩ → ⟨L[e]/v⟩
+
+		⟨L[\A\,u]/v⟩ → ⟨L[u]/v⟩
+
+		\Let{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}
+
+	\end{mathpar}
+	\caption{Reduction.}
+\end{figure}
+
 
 
 
 \chapter{Confluence}
+
+We haven't managed to prove confluence for
+the entire calculus.
+
+We present a proof using the parallel reduction technique for the subcalculus without
+data in delimiters and without let reassociation.
 
 \section*{The problems with $\KwLet$ reassociation}
 
