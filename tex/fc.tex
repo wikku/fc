@@ -217,7 +217,7 @@ the $\KwOp$ and the $\KwHandle$ will stay together.
 We therefore know the substitution that will be performed during the handling of the operation:
 $z:=x*2$. Exactly this substitution is needed to rewrite the two multiplications into one.
 We also can deduce the substitution $k:=λy.\,\Handle y \With z\;k.\,k\,(z*3)$.
-But we can't substitute those into the handler's clause, because the clause is shared for all operations inside,
+But where to substitute? Certainly not in the handler's clause, because the clause is shared for all operations inside,
 and $x$ is not even in scope.
 
 Since we know the clause that will run for the specific operation,
@@ -350,28 +350,19 @@ Verifying the evaluation rule is easy, here's the one for the effect handler:
 \end{figure}
 
 \begin{figure}
-	\begin{mathpar}
-		(λx.\,e)\,v → e\subst{x}{v}
-
-		\Let{x}{v}{t} → t\subst{x}{v}
-
-		⟨v/u⟩ → v
-
-		κ[\S κ'.\,e] → e\subst{κ'}{κ}
-
-		⟨\S κ.\,e / v⟩ → e\subst{κ}{⟨□/v⟩}
-
-		\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}
-
-		⟨L[\S κ.\,e]/v⟩ → ⟨L[A\,e\subst{κ}{⟨□/v⟩}]⟩
-
-		⟨L[\A\,⟨e/v⟩]/v⟩ → ⟨L[e]/v⟩
-
-		⟨L[\A\,u]/v⟩ → ⟨L[u]/v⟩
-
-		\Let{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}
-
-	\end{mathpar}
+	$$L ::= □ │ \Let{x}{e}{L}$$
+	\begin{align*}
+		(λx.\,e)\,v &→ e\subst{x}{v} & λ.v \\
+		\Let{x}{v}{t} &→ t\subst{x}{v} & let.v \\
+		⟨v/u⟩ &→ v & d.v \\
+		κ[\S κ'.\,e] &→ e\subst{κ'}{κ} & k.\S \\
+		⟨\S κ.\,e / v⟩ &→ e\subst{κ}{⟨□/v⟩} & d.\S \\
+		\Let{x}{\S κ.\,e}{t} &→ \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]} & let.\S \\
+		⟨L[\S κ.\,e]/v⟩ &→ ⟨L[A\,e\subst{κ}{⟨□/v⟩}]/v⟩ & dL.\S \\
+		⟨L[\A\,⟨e/v⟩]/v⟩ &→ ⟨L[e]/v⟩ & \A.d \\
+		⟨L[\A\,u]/v⟩ &→ ⟨L[u]/v⟩ & \A.v \\
+		\Let{x}{\Let{y}{e}{t_1}}{t_2} &→ \Let{y}{e}{\Let{x}{t_1}{t_2}} & let.let
+	\end{align*}
 	\caption{Reduction.}
 \end{figure}
 
@@ -446,257 +437,48 @@ $$
 We need a successive $let.\S$ step to make the $let.let$ redexes whole, now after structural substitution.
 
 
-Let's demonstrate the main challenges for proving confluence.
-Previous proofs of confluence for $λμ$-calculi amounted to the diamond property of parallel reduction.
-The problem with confluence is that structural reduction ($let.\S$) can tear redexes apart, as in:
-$$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$$
-$$⟨L[\Let{x}{\S κ.\,e}{\S κ.\,t}]⟩$$
-and additional structural reductions are needed to make the $let.let$%
-%\footnote{
-%	Herbelin and Zimmerman \cite{Herbelin} report no problems with the critical pair involving $let.\S$ and $let.let$.
-%	$let.let$ by itself poses problems, with 
-%	We believe that's because they used a rule $κ[\Let{x}{e}{t}] → \Let{x}{e}{κ[t]}$, which seems to be valid in the undelimited case.
-%	This rule doesn't figure in the paper, but a similar one $z(\Let{x}{e}{t}) → \Let{x}{e}{zt}$ does.
-%}
-and $dlets.\S$ redexes whole again,
-now inside $e$.
-Conversely, the structural substitution can push the $k.\S$ redex apart:
-$$κ[\S κ'.\,e]\subst{κ}{κ[\Let{x}{□}{t}]} = κ[\Let{x}{\S κ'.\,e}{t}]$$
-Therefore a parallel reduction involving the entirety of the calculus needs to be generalized to involve multiple structural reduction steps in some places.
-Naively, such a definition would need to recursively refer to a parallel reduction of a term \textit{after} structural substitution.
-Such a term may be bigger than the original, which poses problems for inductive proofs.
-
-The parallel reduction approach does work, however, for the subcalculus without $let.let$ and without delimiters carrying data.
-
-We will prove confluence of $\xrightarrow{\lStr} ∪ \Rrightarrow$,
-where $\xrightarrow{\lStr}$ are structural reductions and $\Rrightarrow$ is a parallel reduction
-containing the other reductions,
-by the method of decreasing diagrams \cite{dd}.
-Confluence of $→$ will follow from ${→} ⊆ {\xrightarrow{Str} ∪ \Rrightarrow} ⊆ {→^*}$.
-
-We label $e \xrightarrow{\lStr} e'$ by $(\lStr, e)$ and $e \Rrightarrow e'$ by $\lPar$ and order the labels thus:
-for all $e$ set $\lPar > (\lStr, e)$ and for all $e, e'$ set $(\lStr, e) > (\lStr, e')$ iff $e \xrightarrow{\lStr}\mathrel{\vphantom{\to}^+} e'$.
-We need to prove that the order on labels is well-founded and that we can complete the three kinds of local peaks
-into decreasing valleys.\footnote{
-	The proof scheme is essentially Exercise 14.2.25 in Terese \cite{Terese}.
-}
-
-\section*{Strong normalization of $\xrightarrow{Str}$}
-Well-foundedness of the labels will follow from strong normalization of
-$$\xrightarrow{Str} \;=\; \xrightarrow{let.\S} ∪ \xrightarrow{d.\S} ∪ \xrightarrow{k.\S}.$$
-We adapt the approach of de Groote\cite{Groote}.
-
-and the ``frame occurences''\footnote{
-	We count the continuation frame before ($1$) and after the potential capture by a $\S κ.\, e$ ($\#_κ e$).
-} $\#$ and ``continuation variable count'' $\#_κ$ as follows:
-\begin{align*}
-	\# X[\S κ. e] &= 1 + \#_κ e \\
-	\# e &= 1 \text{ otherwise} \\
-%	\\
-	\#_κ x &= 0 \\
-	\#_κ λx. e &= \#_κ e \\
-	\#_κ \S κ'.\,e &= \#_κ e \\
-	\#_κ v\;u &= \#_κ v + \#_κ u \\
-	\#_κ \Let{x}{e}{t} &= \#_κ e + \# e · \#_κ t \\
-	\#_κ ⟨e⟩ &= \#_κ e \\
-	\#_κ κ[e] &= \#_κ e + \# e \\
-	\#_κ κ'[e] &= \#_κ e
-\end{align*}
-where $X$ are ``free contexts'' that skip across $\S$-delimiter brackets:
-$$X ::= □ │ \Let{x}{X}{t} │ ⟨X[\S κ.\,X]⟩ │ κ[X[\S κ'.\,X]]$$
-The idea is a $\KwLet$ can be captured by a particular $\S$
-iff the term can be written as $\Let{x}{X[\S κ. e]}{t}$, similarly for other continuation frames.
-
-\begin{prop}
-	If $κ$ doesn't occur in $e$, then $\#_κ e = 0$.
-\end{prop}
-
-\begin{lemma}
-	If $κ'$ doesn't occur in $t$, then
-	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
-		\item $\# e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \# e$
-		\item ($κ≠κ'$) $\#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]} = \#_κ e + \#_{κ'} e · \#_κ t$
-	\end{enumerate}
-\end{lemma}
-\begin{proof}
-	Induction on $e$. Let $K$ stand for $κ'[\Let{x}{□}{t}]$.
-	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
-%		\item
-%			\begin{enumerate}
-%				\item $\# v\subst{κ'}{K} = 1 = \# v$
-%				\item $\# \S κ.\,e\subst{κ'}{K}
-%					= 1 + \# e\subst{κ'}{K} + \#_κ e\subst{κ'}{K}
-%					\stackrel{\text{IH}}{=} 1 + \# e + (\#_κ e + \#_{κ'} e · \#_κ t)
-%					= 1 + \# e + (\#_κ e + \#_{κ'} e · 0)
-%					= \# \S κ.\,e$
-%				\item $\# v\subst{κ'}{K}\;u\subst{κ'}{K} = 1 = \# v\;u$
-%				\item $\# \Let{x}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# \Let{x}{e}{t'}$
-%				\item $\# ⟨e\subst{κ'}{K}⟩ = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# ⟨e⟩$
-%				\item $\# (κ'[e])\subst{κ'}{K} = \# κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ'[e]$
-%				\item ($κ≠κ'$) $\# (κ[e])\subst{κ'}{K} = \# κ[e\subst{κ'}{K}] = \# e\subst{κ'}{K} \stackrel{\text{IH}}{=} \# e = \# κ[e]$
-%			\end{enumerate}
-		\item
-			\begin{enumerate}
-				\item $\#_κ x\subst{κ'}{K} = \#_κ x = 0 = \#_κ x + \#_{κ'} x · \#_κ t$
-				\item $\#_κ λx.\,e\subst{κ'}{K} = \#_κ e\subst{κ'}{K} \stackrel{\text{IH}}{=}
-					\#_κ e + \#_{κ'} e · \#_κ t = \#_κ λx.\,e + \#_{κ'} λx.\,e · \#_κ t$
-				\item $\#_κ v\subst{κ'}{K}\;u\subst{κ'}{K} \stackrel{\text{IH}}{=} \#_κ v + \#_{κ'} v · \#_κ t + \#_κ u + \#_{κ'} u · \#_κ t
-					= (\#_κ v + \#_κ u) + (\#_{κ'} v + \#_{κ'} u) · \#_κ t = \#_κ (v\; u) + \#_{κ'} (v\;u) · \#_κ t$
-				\item $\#_κ \Let{y}{e\subst{κ'}{K}}{t'\subst{κ'}{K}} = \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_κ t'\subst{κ'}{K}
-					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e · (\#_κ t' + \#_{κ'} t' · \#_κ t)
-					= \#_κ e + \# e · \#_κ t' + (\#_{κ'} e + \# e · \#_{κ'} t') · \#_{κ} t
-					= \#_κ \Let{y}{e}{t'} + \#_{κ'} \Let{y}{e}{t'} · \#_κ t$
-				\item $\#_κ ⟨e\subst{κ'}{K}⟩ = \#_κ e\subst{κ'}{K} \stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t
-					= \#_κ ⟨e⟩ + \#_{κ'} ⟨e⟩ + \#_κ t$
-				\item ($κ≠κ'$) $\#_κ (κ'[e])\subst{κ'}{K} = \#_κ κ'[\Let{x}{e\subst{κ'}{K}}{t}] = \#_κ \Let{x}{e\subst{κ'}{K}}{t}
-					= \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_κ t
-					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e · \#_κ t
-					= \#_κ e + \#_{κ'} e · \#_κ t + \# e · \#_κ t = \#_κ κ'[e] + \#_{κ'} κ'[e] · \#_κ t$
-				\item ($κ≠κ''≠κ'$) $\#_κ (κ''[e])\subst{κ'}{K} = \#_κ κ''[e\subst{κ'}{K}] = \#_κ e\subst{κ'}{K}
-					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t
-					= \#_κ κ''[e] + \#_{κ'} κ''[e] · \#_κ t$
-				\item ($κ≠κ'$) $\#_κ (κ[e])\subst{κ'}{K} = \#_κ κ[e\subst{κ'}{K}]
-					= \#_κ e\subst{κ'}{K} + \# e\subst{κ'}{K}
-					\stackrel{\text{IH}}{=} \#_κ e + \#_{κ'} e · \#_κ t + \# e
-					= \#_κ κ[e] + \#_{κ'} κ[e] · \#_κ t$
-%				\item ($κ = κ'$) $\#_{κ'} (κ'[e])\subst{κ'}{K} = \#_{κ'} κ'[\Let{x}{e\subst{κ'}{K}}{t}]
-%					= \#_{κ'} \Let{x}{e\subst{κ'}{K}}{t} + \# \Let{x}{e\subst{κ'}{K}}{t}
-%					= \#_{κ'} e\subst{κ'}{K} + \# e\subst{κ'}{K} · \#_{κ'} t + \# e\subst{κ'}{K}
-%					\stackrel{\text{IH}}{=} \#_{κ'} e + \#_{κ'} e · \#_{κ'} t + \# e · \#_{κ'} t + \# e
-%					= \#_{κ'} κ'[e] + \#_{κ'} κ'[e] · \#_{κ'} t $
-			\end{enumerate}
-	\end{enumerate}
-\end{proof}
-
-\begin{lemma}
-	\item
-	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
-		\item $\# e\subst{κ'}{⟨□⟩} = \# e$
-		\item ($κ ≠ κ'$) $\#_κ e\subst{κ'}{⟨□⟩} = \#_κ e$
-%		\item $\#_κ e\subst{κ}{⟨□⟩} = 0$
-	\end{enumerate}
-\end{lemma}
-
-\begin{lemma}
-	\item
-	\begin{enumerate}[label=(\roman*),ref=\thelemma (\roman*)]
-		\item $\# e\subst{κ'}{κ''} = \# e$
-		\item ($κ ≠ κ'$) $\#_κ e\subst{κ'}{κ''} = \#_κ e + \begin{cases}\#_{κ'} e & \text{ if }κ=κ''\\ 0 & \text{ if } κ≠κ''\end{cases}$
-	\end{enumerate}
-\end{lemma}
-
-\begin{lemma}
-	If $e \xrightarrow{Str} e'$, then
-	\begin{enumerate*}[label=(\roman*),ref=\thelemma (\roman*)]
-		\item $\#e ≥ \#e'$ and \label{str_cnt}
-		\item $\#_κ e ≥ \#_κ e'$.
-	\end{enumerate*}
-\end{lemma}
-\begin{proof}
-	We check reductions at the root of the term, other cases follow by induction.
-	\begin{enumerate}
-		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
-		      $\#\Let{x}{\S κ.\,e}{t}
-			  = 1 + \#_κ e
-			  \stackrel{\#_κ t = 0}{=} 1 + \#_{κ} e + \#_{κ} e · \#_{κ} t
-			  = 1 +\#_{κ} e\subst{κ}{κ[\Let{x}{□}{t}]}
-			  > \# \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
-			  $\#_κ \Let{x}{\S κ'.\,e}{t} = \#_κ e + \#_{κ'} e · \#_κ t
-			  = \#_κ e\subst{κ'}{κ'[\Let{x}{□}{t}]}
-			  = \#_κ \S κ'.\,e\subst{κ'}{κ'[\Let{x}{□}{t}]}$
-		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$ \\
-		      $\#⟨\S κ.\,e⟩ = \# e = \#e\subst{κ}{⟨□⟩}$ \\
-			  $\#_κ ⟨\S κ'.\,e⟩ = \#_κ e = \#_κ e\subst{κ'}{⟨□⟩}$
-		\item $κ'[\S κ.\,e] → e\subst{κ}{κ'}$ \\
-			  $\#κ'[\S κ.\,e] = \# e = \# e\subst{κ}{κ'}$ \\
-			  $\#_{κ'} κ'[\S κ.\,e] = \#_{κ'} e + \# \S κ.\,e = \#_{κ'} e + \#_κ e = \#_{κ'} e\subst{κ}{κ'}$\\
-			  ($κ'' ≠ κ'$) $\#_{κ''} κ'[\S κ.\,e] = \#_{κ''} e = \#_{κ''} e\subst{κ}{κ'}$\\
-	\end{enumerate}
-\end{proof}
-
-Define the norm $|·|$ as follows:
-\begin{align*}
-	|x| &= 1 \\
-	|λx. e| &= |e| \\
-	|\S κ. e| &= 1 + |e| \\
-	|v\;u| &= |v| + |u| \\
-	|\Let{x}{e}{t}| &= |e| + \# e ·|t| \\
-	|⟨e⟩| &= |e| \\
-	|κ[e]| &= |e|
-\end{align*}
-
-\begin{lemma}
-	$|e\subst{κ}{κ[\Let{x}{□}{t}]}| = |e| + \#_κ e · |t|$
-\end{lemma}
-\begin{proof}
-	\item
-	\begin{enumerate}
-		\item $|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
-			= |e\subst{κ}{κ[\Let{x}{□}{t}]}| +  \# e\subst{κ}{κ[\Let{x}{□}{t}]} · |t|
-			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| + \# e · |t| = |κ[e]| + \#_κ κ[e] · |t|$
-%		\item
-%			If we had $|κ[e]| = |e| + \# e$. \\
-%			$|(κ[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ[\Let{x}{e\subst{κ}{κ[\Let{x}{□}{t}]}}{t}]|
-%			= |e\subst{κ}{κ[\Let{x}{□}{t}]}| + \# e\subst{κ}{κ[\Let{x}{□}{t}]} +  \# e\subst{κ}{κ[\Let{x}{□}{t}]} · |t|
-%			\stackrel{\text{IH}}{=} |e| + \# e + \#_κ e · |t| + \# e · |t| = |κ[e]| + \#_κ κ[e] · |t|$
-
-		\item ($κ' ≠ κ$) $|(κ'[e])\subst{κ}{κ[\Let{x}{□}{t}]}| = |κ'[e\subst{κ}{κ[\Let{x}{□}{t}]}]| =
-			|e\subst{κ}{κ[\Let{x}{□}{t}]}]|
-			\stackrel{\text{IH}}{=} |e| + \#_κ e · |t| = |κ'[e]|$
-
-	\end{enumerate}
-\end{proof}
-
-\begin{theorem}
-	If $e \xrightarrow{Str} e'$, then $|e| > |e'|$.
-\end{theorem}
-\begin{proof}
-	We check reductions at the root of the term, other cases follow by induction and Lemma \ref{str_cnt}.
-	\begin{enumerate}
-		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$ \\
-		      $|\Let{x}{\S κ.\,e}{t}| = 1 + |e| + \# \S κ.\, e · |t|
-			  = 1 + |e| + (1 + \#_κ e) · |t|
-			  > 1 + |e| + \#_κ e · |t|
-			  = 1 + |e\subst{κ}{κ[\Let{x}{□}{t}]}|
-			  = |\S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}|$
-		\item $⟨\S κ.\,e⟩ → e\subst{κ}{⟨□⟩}$ \\
-		      $|⟨\S κ.\,e⟩| = 1 + |e| > |e| = |e\subst{κ}{⟨□⟩}|$
-		\item
-			$κ'[\S κ.\,e] → e\subst{κ}{κ'}$ \\
-			$|κ'[\S κ.\,e]| = 1 + |e| > |e| = |e\subst{κ}{κ'}|$
-	\end{enumerate}
-\end{proof}
-\begin{corollary}
-	$\xrightarrow{Str}$ is strongly normalizing.
-\end{corollary}
-
 
 \chapter{Adequacy}
 
 \begin{theorem}[Standardization]
 \end{theorem}
 \begin{corollary} If $e →^* v$, then $e ↦^* v' →_i^* v$.
+	\label{stanv}
 \end{corollary}
 \begin{proof}
 	By standardization and since $→_i$ can't turn a nonvalue into a value.
 \end{proof}
 
 
-\begin{theorem}
+\begin{theorem}[Adequacy]
 	If $e → e'$, then $e$ evals to a value iff $e'$ evals to a value.
 \end{theorem}
 \begin{proof}
 %	We take the proof from Crary.
-
-	If $e' ↦^* v$, then $e →^* v$. By corollary to stan we have $e ↦^* v' →_i^* v$.
+	If $e' ↦^* v$, then $e →^* v$. By corollary \ref{stanv} we have $e ↦^* v' →_i^* v$.
 
 	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
-	because $→$ preserves valueness. By corollary to stan we have $e' ↦^* v'' →_i^* v'$.
+	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
+\end{proof}
 
+\begin{corollary}[Contextual equivalence (observation: termination to a value)]
+	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.
+	\label{ctxeqv1}
+\end{corollary}
+\begin{proof}
+	By congruence of reduction and adequacy.
 \end{proof}
 
 \begin{prop}[Stuck terms]
 \end{prop}
+
+\begin{theorem}[Contextual equivalence (observation: termination)]
+	If $e → e'$, then for all closing contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
+\end{theorem}
+\begin{proof}
+	By \ref{ctxeqv1} it suffices to show that
+	$C[e]$ terminates to a nonvalue iff $C[e']$ terminates to a nonvalue.
+\end{proof}
 
 \chapter{Abella mechanization}
 
@@ -722,6 +504,30 @@ but for completeness we show it directly.
 
 \section*{Delimited $λμ$}
 
+\section*{Fine-grained syntax for algebraic operations}
+The original syntax for algebraic operations involved continuations.
+What we may now express as the generic effect $arb : Bool$
+can be equivalently expresssed as an algebraic operation $or : (unit → τ)^2 → τ$
+with the equivalences $arb = or(λ\_.\,true, λ\_.\,false)$ and
+$or(k_1,k_2) = if arb then k_1 () else k_2 ()$ \cite{alggen}.
+
+%Handling of algebraic operations can be characterized by equalities \cite{handlers}, viz.
+%$$\Handle \Op(x_1.\,t_1,...,x_n.\,t_n) \With k_1,...,k_n.\,t_h =$$
+
+The connection of algebraic operations and control wasn't explicitly noted at first,
+but can be seen in the naturality condition for algebraic operations,
+which states that evaluation contexts commute with operations \cite{logic, handling}:
+$$E[\Op(x_1.\,t_1, ..., x_n.\,t_n)] = \Op(x_1.\,E[t_1], ..., x_n.\,E[t_n])$$
+
+The calculus in \cite{hia} has an intermediate approach,
+where an operation has only one continuation parameter.
+The intended surface syntax is of the generic effect form $\Op v$,
+which is elaborated to start with an identity continuation $\Op v\,(λx.\,x)$.
+The step relation captures the evaluation context in a fine-grained manner:
+$$\Let{y}{\Op v\,(λx.\,t_1)}{t_2} ↦ \Op v\,(λx.\,\Let{y}{t_1}{t_2})$$
+This bears similarity to our approach based on structural reduction.
+However, we don't see a way to express our optimizations without introducing $\abort$ in some form.
+
 \section*{Confluence}
 
 Proofs of confluence have been notoriously difficult since the beginning --
@@ -744,7 +550,7 @@ which is not a valid argument (take $\Rightarrow=→$ for a counterexample, it i
 \section*{Tail reductions and letcc}
 The central idea in our paper is the reduction
 $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
-It can be tempting to decompose $\S$ into its constituent parts:
+It is tempting to decompose $\S$ into its constituent parts:
 a $\keyword{letcc}$ which binds the continuation without aborting, and an abort $\A$:
 $$\S κ.\,e ≡ \keyword{letcc}\;κ.\,\A\,e$$
 Then we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
@@ -757,13 +563,14 @@ There are issues with this approach, though:
 	\item
 Because $\keyword{letcc}$ binds the continuation and keeps running in it
 $$⟨E[\keyword{letcc}\;κ.\,e]⟩ ↦ ⟨E[e\subst{κ}{⟨E⟩}]⟩$$
-it is inherently incompatible with one-shot (linear) continuations.
+it seems inherently incompatible with one-shot (linear) continuations.
 This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5.
 \item
-Perhaps more importantly, the above reduction isn't semantics-preserving. If $e$ above is the nonterminating $Ω$,
+
+The above reduction isn't semantics-preserving. If $e$ above is the nonterminating $Ω$,
 then the left side diverges, while the right side gets stuck on searching for a delimiter.
-Of course we could ensure a delimiter is found by performing the reduction only in $⟨L⟩$,
-but then there are few benefits to this approach.
+We could ensure a delimiter is found by performing the reduction only in $⟨L⟩$,
+but then it is unclear if there are serious benefits to this approach.
 \end{enumerate}
 
 
