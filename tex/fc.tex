@@ -377,7 +377,7 @@ the entire calculus.
 We present a proof using the parallel reduction technique for the subcalculus without
 data in delimiters and without let reassociation.
 
-\section*{The problems with $\KwLet$ reassociation}
+\section{The problems with \textsf{let} reassociation}
 
 The $\KwLet$ reassociation reduction
 $$\RLet{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$$
@@ -485,7 +485,7 @@ We need a successive $let.\S$ step to make the $let.let$ redexes whole, now afte
 \chapter{Related work}
 
 
-\section*{Distributing delimiters}
+\section{Distributing delimiters}
 There is a strand of work which tackles static delimited control from the opposite direction.
 Whereas we use structural reduction so that S moves closer to the delimiter, that strand's defining feature is
 the delimiter distributing over let expressions so that \textit{a} delimiter can meet the control operator:
@@ -498,13 +498,13 @@ Because they lack structural reduction, those systems cannot perform the optimiz
 We show that translations from those calculi preserve equations (understood as the equivalence closure of reduction)
 to argue that our calculus is more powerful.
 
-\section*{shift0 calculus}
+\section{shift0 calculus}
 By reflection\cite{ppdp21} it follows that the original shift0 equational theory by Materzok is also less powerful,
 but for completeness we show it directly.
 
-\section*{Delimited $λμ$}
+\section{Delimited \texorpdfstring{$λμ$}{lambda-mu}}
 
-\section*{Fine-grained syntax for algebraic operations}
+\section{Fine-grained syntax for algebraic operations}
 The original syntax for algebraic operations involved continuations.
 What we may now express as the generic effect $arb : Bool$
 can be equivalently expresssed as an algebraic operation $or : (unit → τ)^2 → τ$
@@ -528,7 +528,7 @@ $$\Let{y}{\Op v\,(λx.\,t_1)}{t_2} ↦ \Op v\,(λx.\,\Let{y}{t_1}{t_2})$$
 This bears similarity to our approach based on structural reduction.
 However, we don't see a way to express our optimizations without introducing $\abort$ in some form.
 
-\section*{Confluence}
+\section{Confluence}
 
 Proofs of confluence have been notoriously difficult since the beginning --
 the many early attempts for the $λ$-calculus were flawed.
@@ -547,7 +547,7 @@ which is not a valid argument (take $\Rightarrow=→$ for a counterexample, it i
 
 
 
-\section*{Tail reductions and letcc}
+\section{Tail reductions and letcc}
 The central idea in our paper is the reduction
 $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
 It is tempting to decompose $\S$ into its constituent parts:
@@ -574,7 +574,7 @@ but then it is unclear if there are serious benefits to this approach.
 \end{enumerate}
 
 
-\section*{Expressing return clauses}
+\section{Expressing return clauses}
 Recall our encoding of return clauses:
 $$⟨e│x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\;e_r}⟩$$
 $$\Handle e \With x,k.\,e_h │ x.\,e_r ≡ ⟨\Let{x}{e}{\A\;e_r}│λx,k.\,e_h⟩$$
