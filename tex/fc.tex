@@ -495,32 +495,76 @@ We need a successive $let.\S$ step to make the $let.let$ redexes whole, now afte
 
 \chapter{Adequacy}
 
-\begin{theorem}[Standardization]
+\begin{theorem}[Strong postponement]
+	${\Rrightarrow · ↦} ⊆ {↦^* · \Rrightarrow}$
 \end{theorem}
-\begin{corollary} \label{stanv}%
-	If $e →^* v$, then $e ↦^* v' →_i^* v$.
-\end{corollary}
-\begin{proof}
-	By standardization and since $→_i$ can't turn a nonvalue into a value.
-\end{proof}
 
+\begin{theorem}[Quasi-subcommutation]
+	${\Lleftarrow · ↦ } ⊆ {↦^? · \Lleftarrow · \mapsfrom^*}$
+\end{theorem}
+\begin{corollary}[Subcommutation]
+	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^? \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\end{corollary}
+
+
+
+%\begin{theorem}[Standardization]
+%\end{theorem}
+%\begin{corollary} \label{stanv}%
+%	If $e →^* v$, then $e ↦^* v' →_i^* v$.
+%\end{corollary}
+%\begin{proof}
+%	By standardization and since $→_i$ can't turn a nonvalue into a value.
+%\end{proof}
+\begin{lemma}
+	${→} ⊆ {↦ ∪ \Rrightarrow}$
+\end{lemma}
 
 \begin{theorem}[Adequacy]
 	If $e → e'$, then $e$ evals to a value iff $e'$ evals to a value.
 \end{theorem}
 \begin{proof}
-%	We take the proof from Crary.
-	If $e' ↦^* v$, then $e →^* v$. By corollary \ref{stanv} we have $e ↦^* v' →_i^* v$.
 
-	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
-	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
+%%	We take the proof from Crary.
+%	If $e' ↦^* v$, then $e →^* v$. By corollary \ref{stanv} we have $e ↦^* v' →_i^* v$.
+%
+%	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
+%	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
+	The case $e ↦ e'$ is easy, we consider $e \Rrightarrow e'$.
+
+	\begin{enumerate}
+		\item
+			Assume $e ↦ e_1 ↦ ... ↦ e_n = v$.
+			We prove $e'$ evals to a value by induction on $n$.
+
+			If $e=e_n=v$, then $e'$ is a value since $\Rrightarrow$ preserves valueness.
+
+			Otherwise, apply subcommutation for $e' \Lleftarrow e ↦ e_1$.
+			We obtain $e' ↦^? e'_1 \Lleftarrow · \mapsfrom^* e_1$ for some $e'_1$.
+			Since evaluation steps are deterministic and not possible beyond $e_n$,
+			we have $e_i \Rrightarrow e'_1$ for some $i$ s.t.\,$1 ≤ i ≤ n$.
+			By induction for $e'_1 \Lleftarrow e_i ↦^* v$ we get $e'_1 ↦^* v'$ for some value $v'$.
+			Therefore $e' ↦ e'_1 ↦^* v'$.
+
+		\item
+			Assume $e' ↦ e'_1 ↦ ... ↦ e'_n = v$.
+			We prove $e$ evals to a value by induction on $n$.
+
+			If $e'=e'_n=v$, then $e$ is a value since $\Rrightarrow$ can't make a nonvalue a value.
+
+			Otherwise, apply postponement for $e \Rrightarrow e' ↦ e'_1$.
+			We obtain $e ↦^* e'' \Rrightarrow e'_1$ for some $e''$.
+			By induction for $e'' \Rrightarrow e'_1 ↦^* v$ we know that $e''$ evals to a value,
+			so $e$ also does.
+
+	\end{enumerate}
 \end{proof}
 
-In the above, instead of confluence ${←^* · →^*} ⊆ {→^* · ←^*}$ we could have used
-commutation ${← · ↦^*} ⊆ {↦^* · ←^*}$.
-This could be easier to prove, but we do not explore this approach in this work.
+%In the above, instead of confluence ${←^* · →^*} ⊆ {→^* · ←^*}$ we could have used
+%commutation ${← · ↦^*} ⊆ {↦^* · ←^*}$.
+%This could be easier to prove, but we do not explore this approach in this work.
 
-\begin{corollary}[Contextual equivalence (observation: termination to a value)]
+\begin{corollary}[Contextual equivalence, observing termination to a value]
 	\label{ctxeqv1}
 	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.%
 \end{corollary}
@@ -528,10 +572,13 @@ This could be easier to prove, but we do not explore this approach in this work.
 	By congruence of reduction and adequacy.
 \end{proof}
 
+The above notion of contextual equivalence isn't the most common one.
+But we can deduce the usual notion from it using the argument of \cite{bisim}.
+
 \begin{prop}[Stuck terms]
 \end{prop}
 
-\begin{theorem}[Contextual equivalence (observation: termination)]
+\begin{theorem}[Contextual equivalence, observing termination]
 	If $e → e'$, then for all closing contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
 \end{theorem}
 \begin{proof}
