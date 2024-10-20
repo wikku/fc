@@ -146,8 +146,8 @@ Define int : mode -> expr -> expr -> prop,
   int M (let (let E T1) T2) (let E' x\ let (T1' x) T2') := int g E E' /\ nabla x, stan g (T1 x) (T1' x) /\ stan M (T2 x) (T2' x);
   nabla k, int M (k (E k)) (k (E' k)) := nabla k, int g (E k) (E' k);
   int d (shift0 E) (shift0 k\ E' delim) := nabla k, stan g (E k) (E' k);
-  int d (shift0 k\ ret (V k)) (ret (V' delim)) := nabla k, intv (V k) (V' k);
-  int d (shift0 k\ delim (E k)) E' := stan g (E delim) E';
+  int d (shift0 k_\ ret V) (ret V') := intv V V';
+  int d (shift0 k_\ delim E) E' := stan g E E';
 
   stan M E E' := exists E'', many step E E'' /\ int M E'' E'.
 
@@ -436,8 +436,7 @@ Theorem posts :
     case H2. case H4. apply steps_subdelim to H5. apply int_subdelim to H6. search.
     case H2.
     case H4. apply IH1 to H6 H2 _. apply steps_cong_delim to H5. case H8. apply stan_subdelim to H10.
-      exists (k\ delim (E1 k)).
-      split. search.
+      exists (k\ delim E1). split. search.
       unfold. assert many step (delim E''1) (E''' delim). apply steps_app to H9 H12. case H11. apply steps_app to H13 H14. search.
 
 Split posts as post, postc.
