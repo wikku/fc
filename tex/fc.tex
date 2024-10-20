@@ -259,15 +259,66 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 
 \begin{figure}
 \begin{align*}
-	v,u &::= x │ λx.\,e \\
-	e,t &::= v │ v\;v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e / v⟩ │ κ[e] │ \Ask(κ) \\
-	E   &::= □ │ \Let{x}{E}{t}
+	\text{values} &&v,u &::= x │ λx.\,e \\
+	\text{expressions} &&e,t &::= v │ v\;v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e / v⟩ │ κ[e] │ \Ask(κ) \\
+	\text{evaluation contexts}&&E   &::= □ │ \Let{x}{E}{t} \\
+	\text{metacontinuations}&&K   &::= □ │ \Let{x}{K}{t} │ κ[K] │ ⟨K/v⟩
 \end{align*}
 \caption{Syntax.}
 \label{syntax}
 \end{figure}
 
 The syntax of the calculus is in figure \ref{syntax}.
+We base it on a fine-grained call-by-value $λ$-calculus,
+meaning that the subterms of application $v\;u$ are values
+and computations have to be sequenced with $\KwLet$.
+We use the notation $\S κ.\,e$ for the generalization of $\shiftz$ to continuation parameters.
+It is analogous to the $μ$ operator from the $λμ$-calculus.
+We will use the shorthand $\A\,e ≡ \S\_.\,e$ for an abort, i.e. an $\S$ that ignores the captured continuation.
+The construct $⟨e/v⟩$ delimits continuations captured in $e$ and carries a value $v$.
+We use the notation $κ[e]$ for plugging the expression $e$ into a continuation $κ$.
+The $λμ$-calculus conventionally uses the notation $[κ]e$, but we abandon it
+as it's inconsistent with the metanotation of plugging an expression into a context.
+The value $\Ask (κ)$ refers to the value carried by the delimiter which delimited $κ$.
+
+Contexts are terms with a hole ($□$), with $C[e]$ denoting substituting (or plugging)
+the expression $e$ for the hole in $C$. We can also plug a context into a context, as in $C[C']$,
+to form another context.
+
+The operational semantics are in figure \ref{step}.
+The last two rules make use of substitution for continuation variables.
+We extend the notion of structural substitution of the $λμ$-calculus to the new $\Ask(κ)$ construct.
+
+Formally, we can consider \textit{preterms}, where we generalize $κ[e]$ and $\Ask(κ)$ into $K[e]$ and $\Ask(K)$.
+There, the substitution for continuation variables is defined in the natural way:
+$κ[K]\subst{κ}{K'} ≡ K'[K\subst{κ}{K'}]$.
+
+Now, we normalize preterms into terms according to the following rules:
+\begin{align*}
+	(□)[e] &→ e \\
+	(\Let{x}{K}{t})[e] &→ \Let{x}{K[e]}{t} \\
+	(κ[K])[e] &→ κ[K[e]] \\
+	(⟨K/v⟩)[e] &→ ⟨K[e]/v⟩ \\
+	\\
+	\Ask(⟨K/v⟩) &→ v \\
+	\Ask(κ[K]) &→ \Ask(κ)
+\end{align*}
+
+To give some examples for terms:
+\begin{align*}
+	κ[e]\subst{κ}{κ'} &≡ κ'[e] &
+	\Ask(κ)\subst{κ}{κ'} &≡ \Ask(κ') \\
+		κ[e]\subst{κ}{κ[\Let{x}{□}{t}]} &≡ κ[\Let{x}{e}{t}] &
+	\Ask(κ)\subst{κ}{κ[\Let{x}{□}{t}]} &≡ \Ask(κ) \\
+	κ[e]\subst{κ}{⟨□/v⟩} &≡ ⟨e/v⟩ &
+	\Ask(κ)\subst{κ}{⟨□/v⟩} &≡ v
+\end{align*}
+
+These examples are in fact sufficient as definitions, since the coarse-grained
+evaluation steps could be simulated through the smaller reduction steps in \ref{reduction}.
+We have taken the coarse-grained steps as the operational semantics because
+this simplifies adequacy and it's closer in spirit to actual implementations.
+
 We will be using a few shorthands:
 \begin{enumerate}
 	\item $\A\,e ≡ \S\_.\,e$, i.e. an abort: an $\S$ that ignores the captured continuation
@@ -364,6 +415,7 @@ Verifying the evaluation rule is easy, here's the one for the effect handler:
 		\Let{x}{\Let{y}{e}{t_1}}{t_2} &→ \Let{y}{e}{\Let{x}{t_1}{t_2}} & let.let
 	\end{align*}
 	\caption{Reduction.}
+	\label{reduction}
 \end{figure}
 
 
@@ -377,7 +429,9 @@ the entire calculus.
 We present a proof using the parallel reduction technique for the subcalculus without
 data in delimiters and without let reassociation.
 
-\section{The problems with \textsf{let} reassociation}
+\section{Parallel reduction}
+
+\section{The challenges with \textsf{let} reassociation}
 
 The $\KwLet$ reassociation reduction
 $$\RLet{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$$
@@ -436,14 +490,15 @@ $$
 $$
 We need a successive $let.\S$ step to make the $let.let$ redexes whole, now after structural substitution.
 
+\section{Conditional result}
 
 
 \chapter{Adequacy}
 
 \begin{theorem}[Standardization]
 \end{theorem}
-\begin{corollary} If $e →^* v$, then $e ↦^* v' →_i^* v$.
-	\label{stanv}
+\begin{corollary} \label{stanv}%
+	If $e →^* v$, then $e ↦^* v' →_i^* v$.
 \end{corollary}
 \begin{proof}
 	By standardization and since $→_i$ can't turn a nonvalue into a value.
@@ -461,9 +516,13 @@ We need a successive $let.\S$ step to make the $let.let$ redexes whole, now afte
 	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
 \end{proof}
 
+In the above, instead of confluence ${←^* · →^*} ⊆ {→^* · ←^*}$ we could have used
+commutation ${← · ↦^*} ⊆ {↦^* · ←^*}$.
+This could be easier to prove, but we do not explore this approach in this work.
+
 \begin{corollary}[Contextual equivalence (observation: termination to a value)]
-	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.
 	\label{ctxeqv1}
+	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.%
 \end{corollary}
 \begin{proof}
 	By congruence of reduction and adequacy.
@@ -503,6 +562,8 @@ By reflection\cite{ppdp21} it follows that the original shift0 equational theory
 but for completeness we show it directly.
 
 \section{Delimited \texorpdfstring{$λμ$}{lambda-mu}}
+
+\section{Expressing handlers using shift0}
 
 \section{Fine-grained syntax for algebraic operations}
 The original syntax for algebraic operations involved continuations.
