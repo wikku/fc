@@ -404,7 +404,7 @@ Define stanc : mode -> ((expr -> expr) -> expr) -> ((expr -> expr) -> expr) -> p
   stanc g E E' := nabla k, stan g (E k) (E' k);
   stanc d E E' := stan g (E delim) (E' delim).
 
-Theorem comm :
+Theorem comms :
   (forall M E1 E2 E3, int M E1 E2 -> step E1 E3 -> md M -> exists E4, maybe step E2 E4 /\ stan M E3 E4) /\
   (forall E1 E2 E3, int g E1 E2 -> stepc E1 E3 -> exists E4, stepc E2 E4 /\ nabla k, stan g (E3 k) (E4 k)).
   induction on 1 1. split.
@@ -437,6 +437,8 @@ Theorem comm :
       apply IH1 to H4 H3. apply stan_sublet to H7 H5. search.
       case H3. apply stan_sublet to H4 H5. search.
       case H3. apply IH1 to H4 H7. apply stan_subllet to H9 H5 H6. search.
+Split comms as comm, commc.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
