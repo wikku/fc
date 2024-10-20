@@ -392,36 +392,29 @@ Theorem comm :
   (forall M E1 E2 E3, int M E1 E2 -> step E1 E3 -> md M -> exists E4, step E2 E4 /\ stan M E3 E4) /\
   (forall E1 E2 E3, int g E1 E2 -> stepc E1 E3 -> exists E4, stepc E2 E4 /\ nabla k, stan g (E3 k) (E4 k)).
   induction on 1 1. split.
-  intros. case H1 (keep).
-    case H2.
-    case H2. case H4. apply stan_subv to H6 H5. apply stang_stanM to H7 _. search.
-    case H2.
-      case H4. apply stan_subv to H5 H6. search.
-      apply IH to H4 H6 _. case H8. apply steps_cong_let to H9 with T = T. search.
-    case H2.
-    case H2 (keep).
-      case H4. search.
+  intros. case H2.
+    case H1. case H4. apply stan_subv to H5 H6. search.
+    case H1. case H4. apply stan_subv to H6 H5. apply stang_stanM to H7 _. search.
+    case H1. case H4. search.
+    case H1. case H4.
       case H5.
-        case H4.
-          apply stan_subdelim to H6. apply stang_stanM to H7 _. search.
-          apply stan_subdelim to H6. apply stang_stanM to H7 _. search.
-          search.
-          skip. % maybe step
-        case H4.
-          apply IH1 to H7 H6. apply stan_subdlet to H10 H8. apply stang_stanM to H11 _. search.
-          case H6. apply stan_subdlet to H7 H8. apply stang_stanM to H9 _. search.
-          case H6. apply IH1 to H7 H10. apply stan_subdllet to H12 H8 H9. apply stang_stanM to H13 _. search.
-      apply IH to H4 H5 _. case H7. apply steps_cong_delim to H8. search.
-    case H2. case H6.
-    case H2. case H7.
-      case H4. apply stan_subv to H5 H8. case H9. apply steps_cong_let to H10 with T = T2. search.
-      apply IH to H4 H8 _. case H10. apply steps_cong_let to H11 with T = T1. apply steps_cong_let to H13 with T = T2. search.
-    case H2.
-      apply IH1 to H4 H5. apply stan_subk to H7. apply stang_stanM to H8 _. search.
-      apply IH to H4 H5 _. case H7. apply steps_cong_k to H8. search.
-    case H2.
-    case H2.
-    case H2.
+        apply stan_subdelim to H6. apply stang_stanM to H7 _. search.
+        apply stan_subdelim to H6. apply stang_stanM to H7 _. search.
+        search.
+        skip. % maybe step
+      case H5.
+        apply IH1 to H7 H6. apply stan_subdlet to H10 H8. apply stang_stanM to H11 _. search.
+        case H6. apply stan_subdlet to H7 H8. apply stang_stanM to H9 _. search.
+        case H6. apply IH1 to H7 H10. apply stan_subdllet to H12 H8 H9. apply stang_stanM to H13 _. search.
+    case H1. apply IH1 to H5 H4. apply stan_subk to H7. apply stang_stanM to H8 _. search.
+    case H1. apply IH to H5 H4 _. case H7. apply steps_cong_delim to H8. search.
+    case H1.
+      apply IH to H5 H4 _. case H8. apply steps_cong_let to H9 with T = T. search.
+      case H4.
+      case H4.
+        case H5. apply stan_subv to H6 H8. case H9. apply steps_cong_let to H10 with T = T. search.
+        apply IH to H5 H8 _. case H10. apply steps_cong_let to H11 with T = T1. apply steps_cong_let to H13 with T = T. search.
+    case H1. apply IH to H5 H4 _. case H7. apply steps_cong_k to H8. search.
   intros. case H2.
     case H1. search.
     case H1.
