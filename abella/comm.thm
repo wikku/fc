@@ -1,0 +1,542 @@
+% vim: et
+Specification "fc".
+
+Define step : expr -> expr -> prop,
+       stepc : expr -> ((expr -> expr) -> expr) -> prop by
+  step (let (ret V) T) (T V);
+  step (app (lam E) V) (E V);
+  step (delim (ret V)) (ret V);
+  step (delim E) (E' delim) := stepc E E';
+  nabla k, step (k (E k)) (E' k k) := nabla k, stepc (E k) (E' k);
+
+  step (delim E) (delim E') := step E E';
+  step (let E T) (let E' T) := step E E';
+  nabla k, step (k (E k)) (k (E' k)) := nabla k, step (E k) (E' k);
+
+  stepc (shift0 E) E;
+  stepc (let E T) (k\ E' (o\ k (let o T))) := stepc E E'.
+
+Define many : (A -> A -> prop) -> A -> A -> prop by
+  many R A A;
+  many R A A' := exists A'', R A A'' /\ many R A'' A'.
+
+Theorem steps_app : forall E E' E'', many step E E' -> many step E' E'' -> many step E E''.
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H4 H2. search.
+
+Theorem step_subvs :
+  (forall E E' U, nabla (x : val), step (E x) (E' x) -> step (E U) (E' U)) /\
+  (forall E E' U, nabla (x : val), stepc (E x) (E' x) -> stepc (E U) (E' U)).
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    search.
+    apply IH1 to H2 with U = U. search.
+    apply IH1 to H2 with U = (U n2). search.
+    apply IH to H2 with U = U. search.
+    apply IH to H2 with U = U. search.
+    apply IH to H2 with U = (U n2). search.
+  intros. case H1.
+    search.
+    apply IH1 to H2 with U = U. search.
+
+Split step_subvs as step_subv, stepc_subv.
+
+Theorem steps_subv : forall E E' U, nabla (x : val), many step (E x) (E' x) -> many step (E U) (E' U).
+  induction on 1. intros. case H1. search. apply step_subv to H2 with U = U. apply IH to H3 with U = U. search.
+
+Theorem step_subdelims :
+  (forall E E', nabla k, step (E k) (E' k) -> step (E delim) (E' delim)) /\
+  (forall E E', nabla k, stepc (E k) (E' k) -> stepc (E delim) (E' delim)).
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH1 to H2. search.
+
+Split step_subdelims as step_subdelim, stepc_subdelim.
+
+Theorem steps_subdelim : forall E E', nabla k, many step (E k) (E' k) -> many step (E delim) (E' delim).
+  induction on 1. intros. case H1. search. apply step_subdelim to H2. apply IH to H3. search.
+
+Theorem step_sublets :
+  (forall E E' T, nabla (k : expr -> expr), step (E k) (E' k) -> step (E (o\ k (let o T))) (E' (o\ k (let o T)))) /\
+  (forall E E' T, nabla (k : expr -> expr), stepc (E k) (E' k) -> stepc (E (o\ k (let o T))) (E' (o\ k (let o T)))).
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    search.
+    apply IH1 to H2 with T = T. search.
+    apply IH1 to H2 with T = (T n2). search.
+    apply IH1 to H2 with T = T. search.
+    apply IH to H2 with T = T. search.
+    apply IH to H2 with T = T. search.
+    apply IH to H2 with T = (T n2). search.
+    apply IH to H2 with T = T. search.
+  intros. case H1.
+    search.
+    apply IH1 to H2 with T = T. search.
+
+Split step_sublets as step_sublet, stepc_sublet.
+
+Theorem steps_sublet : forall E E' T, nabla (k : expr -> expr), many step (E k) (E' k) -> many step (E (o\ k (let o T))) (E' (o\ k (let o T))).
+  induction on 1. intros. case H1. search. apply step_sublet to H2 with T = T. apply IH to H3 with T = T. search.
+
+Theorem step_subks :
+  (forall E E', nabla (k l : expr -> expr), step (E k l) (E' k l) -> step (E k k) (E' k k)) /\
+  (forall E E', nabla (k l : expr -> expr), stepc (E k l) (E' k l) -> stepc (E k k) (E' k k)).
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH1 to H2. search.
+
+Split step_subks as step_subk, stepc_subk.
+
+Theorem steps_subk : forall E E', nabla (k l : expr -> expr), many step (E k l) (E' k l) -> many step (E k k) (E' k k).
+  induction on 1. intros. case H1. search. apply step_subk to H2. apply IH to H3. search.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Kind mode type.
+Type g, d mode.
+
+Define md : mode -> prop by
+  md g; md d.
+
+Define int : mode -> expr -> expr -> prop,
+       intv : val -> val -> prop,
+       stan : mode -> expr -> expr -> prop by
+  nabla x, intv x x;
+  intv (lam E) (lam E') := nabla x, stan g (E x) (E' x);
+
+  int M (ret V) (ret V') := intv V V';
+  int M (app V U) (app V' U') := intv V V' /\ intv U U';
+  int M (let E T) (let E' T') := int g E E' /\ nabla x, stan M (T x) (T' x);
+  int M (shift0 E) (shift0 E') := nabla k, stan g (E k) (E' k);
+  int M (delim E) (delim E') := int d E E';
+  int M (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) := nabla x k, stan g (E k) (E' k) /\ stan M (T x) (T' x);
+  %int M (let (let E T1) T2) (let E' T') := int g E E' /\ nabla x, int M (let (T1 x) T2) (T' x);
+  int M (let (let E T1) T2) (let E' x\ let (T1' x) T2') := int g E E' /\ nabla x, stan g (T1 x) (T1' x) /\ stan M (T2 x) (T2' x);
+  nabla k, int M (k (E k)) (k (E' k)) := nabla k, int g (E k) (E' k);
+  int d (shift0 E) (shift0 k\ E' delim) := nabla k, stan g (E k) (E' k);
+  int d (shift0 k\ ret (V k)) (ret (V' delim)) := nabla k, intv (V k) (V' k);
+  int d (shift0 k\ delim (E k)) E' := stan g (E delim) E';
+
+  stan M E E' := exists E'', many step E E'' /\ int M E'' E'.
+
+
+Theorem intg_intds :
+  (forall E E', int g E E' -> int d E E') /\
+  (forall E E', stan g E E' -> stan d E E').
+  induction on 1 1. split.
+  intros. case H1.
+    search.
+    search.
+    apply IH1 to H3. search.
+    search.
+    search.
+    apply IH1 to H3. search.
+    apply IH1 to H4. search.
+    search.
+  intros. case H1.
+    apply IH to H3. search.
+
+Split intg_intds as intg_intd, stang_stand.
+
+Theorem int_ret : forall E V, int g E (ret V) -> exists V', E = ret V'.
+  intros. case H1. search.
+
+Theorem subvs :
+  (forall M E E' U U', nabla x, int M (E x) (E' x) -> intv U U' -> int M (E U) (E' U')) /\
+  (forall E E' U U', nabla x, intv (E x) (E' x) -> intv U U' -> intv (E U) (E' U')) /\
+  (forall M E E' U U', nabla x, stan M (E x) (E' x) -> intv U U' -> stan M (E U) (E' U')).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. apply IH2 to H5 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+  intros. case H1.
+    search.
+    search.
+    apply IH2 to H3 H2. search.
+  intros. case H1.
+    apply steps_subv to H3 with U = U. apply IH to H4 H2. search.
+
+Split subvs as int_subv, intv_subv, stan_subv.
+
+Theorem subdelims :
+  (forall M E E', nabla k, int M (E k) (E' k) -> int M (E delim) (E' delim)) /\
+  (forall E E', nabla k, intv (E k) (E' k) -> intv (E delim) (E' delim)) /\
+  (forall M E E', nabla k, stan M (E k) (E' k) -> stan M (E delim) (E' delim)).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H2. search.
+    apply IH1 to H2. apply IH1 to H3. search.
+    apply IH to H2. apply IH2 to H3. search.
+    apply IH2 to H2. search.
+    apply IH to H2. search.
+    apply IH2 to H2. apply IH2 to H3. search.
+    apply IH to H2. apply IH2 to H3. apply IH2 to H4. search.
+    apply IH to H2. search.
+    apply IH to H2. apply intg_intd to H3. search.
+    apply IH2 to H2. search.
+    apply IH1 to H2. search.
+    apply IH2 to H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H2. search.
+  intros. case H1.
+    apply steps_subdelim to H2. apply IH to H3. search.
+
+Split subdelims as int_subdelim, intv_subdelim, stan_subdelim.
+
+Theorem sublets :
+  (forall M E E' T T', nabla (k : expr -> expr) x, int M (E k) (E' k) -> stan g (T x) (T' x) -> int M (E (o\ k (let o T))) (E' (o\ k (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, intv (E k) (E' k) -> stan g (T x) (T' x) -> intv (E (o\ k (let o T))) (E' (o\ k (let o T')))) /\
+  (forall M E E' T T', nabla (k : expr -> expr) x, stan M (E k) (E' k) -> stan g (T x) (T' x) -> stan M (E (o\ k (let o T))) (E' (o\ k (let o T')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. apply IH2 to H5 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH2 to H3 H2. search.
+  intros. case H1.
+    apply steps_sublet to H3 with T = T. apply IH to H4 H2. search.
+
+Split sublets as int_sublet, intv_sublet, stan_sublet.
+
+Theorem subdlets :
+  (forall M E E' T T', nabla (k : expr -> expr) x, int M (E k) (E' k) -> stan d (T x) (T' x) -> int M (E (o\ delim (let o T))) (E' (o\ delim (let o T')))) /\
+  (forall E E' T T', nabla (k : expr -> expr) x, intv (E k) (E' k) -> stan d (T x) (T' x) -> intv (E (o\ delim (let o T))) (E' (o\ delim (let o T')))) /\
+  (forall M E E' T T', nabla (k : expr -> expr) x, stan M (E k) (E' k) -> stan d (T x) (T' x) -> stan M (E (o\ delim (let o T))) (E' (o\ delim (let o T')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n3) H2. case H1.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH to H3 H2. apply IH2 to H4 H2. apply IH2 to H5 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+  intros. permute (n2 n3) H2. case H1.
+    search.
+    apply IH2 to H3 H2. search.
+  intros. case H1.
+    apply steps_sublet to H3 with T = T. apply steps_subdelim to H5. apply IH to H4 H2. search.
+
+Split subdlets as int_subdlet, intv_subdlet, stan_subdlet.
+
+Theorem subllets :
+  (forall M E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, int M (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan g (T2 x) (T2' x) -> int M (E (o\ k (let (let o T1) T2))) (E' (o\ k (let o x\ let (T1' x) T2')))) /\
+  (forall E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, intv (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan g (T2 x) (T2' x) -> intv (E (o\ k (let (let o T1) T2))) (E' (o\ k (let o x\ let (T1' x) T2')))) /\
+  (forall M E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, stan M (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan g (T2 x) (T2' x) -> stan M (E (o\ k (let (let o T1) T2))) (E' (o\ k (let o x\ let (T1' x) T2')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n4) H2. permute (n2 n4) H3. case H1.
+    apply IH1 to H4 H2 H3. search.
+    apply IH1 to H4 H2 H3. apply IH1 to H5 H2 H3. search.
+    apply IH to H4 H2 H3. apply IH2 to H5 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. apply IH2 to H5 H2 H3. search.
+    apply IH to H4 H2 H3. apply IH2 to H5 H2 H3. apply IH2 to H6 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+    apply IH1 to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+  intros. permute (n2 n3) H2. permute (n2 n3) H3. case H1.
+    search.
+    apply IH2 to H4 H2 H3. search.
+  intros. case H1.
+    apply steps_sublet to H4 with T = T1. apply steps_sublet to H6 with T = T2. apply IH to H5 H2 H3. search.
+
+Split subllets as int_subllet, intv_subllet, stan_subllet.
+
+Theorem subdllets :
+  (forall M E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, int M (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan d (T2 x) (T2' x) -> int M (E (o\ delim (let (let o T1) T2))) (E' (o\ delim (let o x\ let (T1' x) T2')))) /\
+  (forall E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, intv (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan d (T2 x) (T2' x) -> intv (E (o\ delim (let (let o T1) T2))) (E' (o\ delim (let o x\ let (T1' x) T2')))) /\
+  (forall M E E' T1 T1' T2 T2', nabla (k : expr -> expr) x, stan M (E k) (E' k) -> stan g (T1 x) (T1' x) -> stan d (T2 x) (T2' x) -> stan M (E (o\ delim (let (let o T1) T2))) (E' (o\ delim (let o x\ let (T1' x) T2')))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n4) H2. permute (n2 n4) H3. case H1.
+    apply IH1 to H4 H2 H3. search.
+    apply IH1 to H4 H2 H3. apply IH1 to H5 H2 H3. search.
+    apply IH to H4 H2 H3. apply IH2 to H5 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. apply IH2 to H5 H2 H3. search.
+    apply IH to H4 H2 H3. apply IH2 to H5 H2 H3. apply IH2 to H6 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+    apply IH1 to H4 H2 H3. search.
+    apply IH2 to H4 H2 H3. search.
+  intros. permute (n2 n3) H2. permute (n2 n3) H3. case H1.
+    search.
+    apply IH2 to H4 H2 H3. search.
+  intros. case H1.
+    apply steps_sublet to H4 with T = T1. apply steps_sublet to H6 with T = T2. apply steps_subdelim to H7. apply IH to H5 H2 H3. search.
+
+Split subdllets as int_subdllet, intv_subdllet, stan_subdllet.
+
+
+Theorem subks :
+  (forall M E E', nabla (k l : expr -> expr), int M (E k l) (E' k l) -> int M (E k k) (E' k k)) /\
+  (forall E E', nabla (k l : expr -> expr), intv (E k l) (E' k l) -> intv (E k k) (E' k k)) /\
+  (forall M E E', nabla (k l : expr -> expr), stan M (E k l) (E' k l) -> stan M (E k k) (E' k k)).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H2. search.
+    apply IH1 to H2. apply IH1 to H3. search.
+    apply IH to H2. apply IH2 to H3. search.
+    apply IH2 to H2. search.
+    apply IH to H2. search.
+    apply IH2 to H2. apply IH2 to H3. search.
+    apply IH to H2. apply IH2 to H3. apply IH2 to H4. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH to H2. search.
+    apply IH2 to H2. search.
+    apply IH1 to H2. search.
+    apply IH2 to H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H2. search.
+  intros. case H1.
+    apply steps_subk to H2. apply IH to H3. search.
+
+Split subks as int_subk, intv_subk, stan_subk.
+
+
+Theorem steps_cong_let :
+  forall E E' T, many step E E' -> many step (let E T) (let E' T).
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3 with T = T. search.
+
+Theorem steps_cong_delim :
+  forall E E', many step E E' -> many step (delim E) (delim E').
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3. search.
+
+Theorem steps_cong_k :
+  forall E E', nabla k, many step (E k) (E' k) -> many step (k (E k)) (k (E' k)).
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3. search.
+
+Theorem stang_stanM : forall M E E', stan g E E' -> md M -> stan M E E'.
+  intros. case H2.
+    search.
+    backchain stang_stand.
+
+Define stanc : mode -> ((expr -> expr) -> expr) -> ((expr -> expr) -> expr) -> prop by
+  stanc g E E' := nabla k, stan g (E k) (E' k);
+  stanc d E E' := stan g (E delim) (E' delim).
+
+Theorem comm :
+  (forall M E1 E2 E3, int M E1 E2 -> step E1 E3 -> md M -> exists E4, step E2 E4 /\ stan M E3 E4) /\
+  (forall M E1 E2 E3, int M E1 E2 -> stepc E1 E3 -> md M -> exists E4, stepc E2 E4 /\ stanc M E3 E4).
+  induction on 1 1. split.
+  intros. case H1.
+    case H2.
+    case H2. case H4. apply stan_subv to H6 H5. apply stang_stanM to H7 _. search.
+    case H2.
+      case H4. apply stan_subv to H5 H6. search.
+      apply IH to H4 H6 _. case H8. apply steps_cong_let to H9 with T = T. search.
+    case H2.
+    case H2.
+      case H4. search.
+      apply IH1 to H4 H5 _. case H7. apply stang_stanM to H8 _. search.
+      apply IH to H4 H5 _. case H7. apply steps_cong_delim to H8. search.
+    case H2. case H6.
+    case H2. case H7.
+      case H4. apply stan_subv to H5 H8. case H9. apply steps_cong_let to H10 with T = T2. search.
+      apply IH to H4 H8 _. case H10. apply steps_cong_let to H11 with T = T1. apply steps_cong_let to H13 with T = T2. search.
+    case H2.
+      apply IH1 to H4 H5 _. case H7. apply stan_subk to H8. apply stang_stanM to H9 _. search.
+      apply IH to H4 H5 _. case H7. apply steps_cong_k to H8. search.
+    case H2.
+    case H2.
+    case H2.
+  intros. case H1.
+    case H2.
+    case H2.
+    case H2. apply IH1 to H4 H6 _. case H8. case H3.
+      apply stan_sublet to H9 H5. search.
+      apply stan_subdlet to H9 H5. search.
+    case H2. case H3.
+      search.
+      apply stan_subdelim to H4. search.
+    case H2.
+    case H2. case H6. case H3.
+      apply stan_sublet to H4 H5. search.
+      apply stan_subdlet to H4 H5. search.
+    case H2. case H7. apply IH1 to H4 H8 _. case H3.
+      case H10. apply stan_subllet to H11 H5 H6. search.
+      case H10. apply stan_subdllet to H11 H5 H6. search.
+    case H2.
+    case H2. apply stan_subdelim to H4. search.
+    case H2. apply intv_subdelim to H4. skip. % some step E2 E4.
+    case H2.
+
+
+      
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%Define is_expr : expr -> prop,
+%       is_val : val -> prop by
+%  nabla x, is_val x;
+%  is_val (lam E) := nabla x, is_expr (E x);
+%
+%  is_expr (app V U) := is_val V /\ is_val U;
+%  is_expr (let E T) := is_expr E /\ nabla x, is_expr (T x);
+%  is_expr (delim E) := is_expr E;
+%  is_expr (shift0 E) := nabla k, is_expr (E k);
+%  is_expr (ret V) := is_val V;
+%  nabla k, is_expr (k (E k)) := nabla k, is_expr (E k).
+%
+%
+%Theorem refls :
+%  (forall E, is_expr E -> int g E E) /\
+%  (forall V, is_val V -> intv V V).
+%  induction on 1 1. split.
+%  intros. case H1.
+%    apply IH1 to H2. apply IH1 to H3. search.
+%    apply IH to H2. apply IH to H3. search.
+%    apply IH to H2. apply intg_intd to H3. search.
+%    apply IH to H2. search.
+%    apply IH1 to H2. search.
+%    apply IH to H2. search.
+%  intros. case H1.
+%    search.
+%    apply IH to H2. search.
+%
+%Split refls as int_refl, intv_refl.
+%
+%Define red : expr -> expr -> prop,
+%       redd : expr -> expr -> prop,
+%       redv : val -> val -> prop by
+%  redv (lam E) (lam E') := nabla x, red (E x) (E' x);
+%
+%  red (app (lam E) V) (E V);
+%  red (let (ret V) T) (T V);
+%  red (delim (shift0 E)) (E delim);
+%  red (let (shift0 E) T) (shift0 k\ E (o\ k (let o T)));
+%  red (let (let E T1) T2) (let E x\ let (T1 x) T2);
+%  nabla k, red (k (shift0 (E k))) (E k k);
+%  redd (shift0 E) (shift0 k\ (E delim));
+%  redd (shift0 k\ ret V) (ret V);
+%  redd (shift0 k\ delim E) E;
+%
+%  red (app V U) (app V' U) := redv V V';
+%  red (app V U) (app V U') := redv U U';
+%  red (let E T) (let E' T) := red E E';
+%  red (let E T) (let E T') := nabla x, red (T x) (T' x);
+%  red (shift0 E) (shift0 E') := nabla k, red (E k) (E' k);
+%  red (delim E) (delim E') := red E E';
+%  red (delim E) (delim E') := redd E E';
+%  red (ret V) (ret V') := redv V V';
+%  nabla k, red (k (E k)) (k (E' k)) := nabla k, red (E k) (E' k);
+%  redd (let E T) (let E T') := nabla x, redd (T x) (T' x).
+%
+%Theorem red_stans :
+%  (forall E E', is_expr E -> red E E' -> stan g E E') /\
+%  (forall V V', is_val V -> redv V V' -> intv V V') /\
+%  (forall E E', is_expr E -> redd E E' -> int d E E').
+%  induction on 1 1 1. split.
+%  intros. case H2.
+%    case H1. apply intv_refl to H3. apply intv_refl to H4. case H5. apply stan_subv to H7 H6. case H8. search.
+%    case H1. case H3. apply int_refl to H4. apply intv_refl to H5. apply int_subv to H6 H7. search.
+%    case H1. case H3. apply int_refl to H4. apply int_subdelim to H5. search.
+%    case H1. case H3. apply int_refl to H4. apply int_refl to H5. apply int_sublet to H7 _. search.
+%    case H1. case H3. apply int_refl to H4. apply int_refl to H5. apply int_refl to H6. search.
+%    case H1. case H3. apply int_refl to H4. apply int_subk to H5. search.
+%    case H1. apply IH1 to H4 H3. apply intv_refl to H5. search.
+%    case H1. apply IH1 to H5 H3. apply intv_refl to H4. search.
+%    case H1. apply IH to H4 H3. apply int_refl to H5. case H6. apply steps_cong_let to H8 with T = T. search.
+%    case H1. apply IH to H5 H3. apply int_refl to H4. search.
+%    case H1. apply IH to H4 H3. search.
+%    case H1. apply IH to H4 H3. case H5. apply steps_cong_delim to H6. apply intg_intd to H7. search.
+%    case H1. apply IH2 to H4 H3. search.
+%    case H1. apply IH1 to H4 H3. search.
+%    case H1. apply IH to H4 H3. case H5. apply steps_cong_k to H6. search.
+%  intros. case H2.
+%    case H1. apply IH to H4 H3. search.
+%  intros. case H2.
+%    case H1. apply int_refl to H3. search.
+%    case H1. case H3. apply intv_refl to H4. search.
+%    case H1. case H3. apply int_refl to H4. search.
+%    case H1. apply IH2 to H5 H3. apply int_refl to H4. search.
+%
+%Split red_stans as red_stang, redv_intv, redd_intd.
+%
+%Theorem red_size : (forall E E', is_expr E -> red E E' -> is_expr E'). skip.
+%
+%
+%Theorem stan : forall E E', many red E E' -> is_expr E -> exists E'', many step E E'' /\ many (int g) E'' E'.
+%  induction on 1.
+%  intros. case H1.
+%    search.
+%    apply red_stang to H2 H3. case H5. apply red_size to H2 H3. apply IH to H4 H8. apply post_many to H7 H9. case H11. apply steps_app to H6 H12. search.
