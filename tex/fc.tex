@@ -496,15 +496,39 @@ We need a successive $let.\S$ step to make the $let.let$ redexes whole, now afte
 \chapter{Adequacy}
 
 \begin{theorem}[Strong postponement]
-	${\Rrightarrow · ↦} ⊆ {↦^* · \Rrightarrow}$
+	$${\Rrightarrow · ↦} ⊆ {↦^* · \Rrightarrow}$$
 \end{theorem}
-
-\begin{theorem}[Quasi-subcommutation]
-	${\Lleftarrow · ↦ } ⊆ {↦^? · \Lleftarrow · \mapsfrom^*}$
-\end{theorem}
-\begin{corollary}[Subcommutation]
-	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^? \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\begin{proof}
+	By induction on $\Rrightarrow$ and cases.
+\end{proof}
+\begin{corollary}
+	${\Rrightarrow · ↦^*} ⊆ {↦^* · \Rrightarrow}$
 \end{corollary}
+\begin{proof}
+	Induction on the length of $↦^*$.
+\end{proof}
+
+\begin{theorem}[Quasi-subcommutation of internal reduction and evaluation step]
+ \label{quasisubcomm} 
+	$${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$$
+\end{theorem}
+\begin{proof}
+	By induction on $\Lleftarrow$ and cases.
+\end{proof}
+\begin{corollary}[Subcommutation of standard reduction and evaluation step] \item
+	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^= \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\end{corollary}
+\begin{proof}
+	From the theorem % ${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$
+	and
+	${(\Lleftarrow · \mapsfrom^+) · ↦} ⊆ {{{\Lleftarrow} · \mapsfrom^*}}$ (by determinism of $↦$)
+\end{proof}
+\begin{corollary}
+	${(\Lleftarrow · \mapsfrom^*) · ↦^*} ⊆ {↦^* \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\end{corollary}
+\begin{proof}
+	Induction on the length of $↦^*$.
+\end{proof}
 
 
 
