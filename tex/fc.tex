@@ -15,15 +15,13 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{mathpartir}
 \usepackage{biblatex}
-\usepackage{hyperref}
-\usepackage{cleveref}
+%\usepackage{cleveref}
 \usepackage{tikz}
 \usepackage{tikz-cd}
 \usepackage{listings}
-\lstset{basicstyle= \footnotesize \ttfamily}
-\lstset{language=ml}
+\lstset{basicstyle=\ttfamily}
 
-\usepackage[nodisplayskipstretch]{setspace}
+\usepackage[]{hyperref}
 \setlength{\parskip}{0pt}
 
 \addbibresource{refs.bib}
@@ -201,7 +199,7 @@ How to \textit{optimize} the program, so that we only perform one multiplication
 We can ask a similar question for \textit{effect handlers}.
 This generalization allows us to capture the \textit{continuation} of the \textit{operation} (a.k.a.\,\textit{generic effect}) we are handling
 and bind it as a variable.
-The conventional evaluation step rule is
+The conventional evaluation step rule is:
 $$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λy.\,\Handle E[y] \With x\;k.\,e} $$
 This is a form of \textit{static delimited control}: control because we capture continuations,
 delimited because the continuation is delimited by the handler, and static because the delimiter remains
@@ -221,22 +219,20 @@ But where to substitute? Certainly not in the handler's clause, because the clau
 and $x$ is not even in scope.
 
 Since we know the clause that will run for the specific operation,
-instead of performing it, we can \textit{abort} the handler and execute the clause specialized with the specific substitutions.
-That is, rewrite the $\Op (z*2)$ into
-$$\A\,(k\,(z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle y \With z\;k.\,k\,(z*3)},$$
-where $\A$ is the new \textit{abort} expression former.
-We get
-$$\Handle \Let{x}{e}{\A\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
-which simplifies to
-$$\Handle \Let{x}{e}{\A\,(x*6)} \With z\;k.\,k\,(z*3)$$
+instead of performing it, we can \abort{} the handler and execute the clause specialized with the specific substitutions.
+That is, rewrite the $\Op (z*2)$ into:
+$$\abort\,(k\,(z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle y \With z\;k.\,k\,(z*3)}$$
+The result of the substitution and the following simplification is:
+$$\Handle \Let{x}{e}{\abort\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
+$$\Handle \Let{x}{e}{\abort\,(x*6)} \With z\;k.\,k\,(z*3)$$
 
-Of course, this poses questions such as ``where does the abort come from?''.
-One can also imagine that the general rewrite rule for this would be rather complicated...
+Of course, this poses questions such as ``where does the abort come from?''
+and ``how monstrous will the general rewrite rule be?''...
 
 The issue with conventional syntax for operations and effect handlers is that
 the operations are \textit{passive}.
 In a real implementation, when we get to an operation, we immediately begin the search for a handler.
-The syntax does not reflect that, it doesn't say what happens next. It's just an operation name and a payload value.
+The syntax does not reflect that – it doesn't say what happens next. It's just an operation name and a payload value.
 
 We will therefore base our calculus for optimizations on the other static delimited control operator:
 $\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) is:
@@ -246,16 +242,18 @@ while the delimiter is passive -- it merely delimits.
 We can now express \textsf{abort} simply as a $\shiftz$ that ignores the continuation: $\textsf{abort}\,e ≡ \shiftz\,\_.\,e$.
 
 To express effect handlers, we will extend delimiters by letting them carry a value.
-The value will be a lambda abstraction $λz\;k.\,e$ representing the handler's clause.
+The value will be a lambda abstraction $λz\,k.\,e$ representing the handler's clause.
 An operation will be a $\shiftz$ that explicitly asks for it and applies the payload and continuation.
+So, the $\abort$ arises as a result of substitution for $k$ in the $\shiftz$'s body.
 
-Finally, to achieve fine-grained steps instead of complex rules that move entire contexts around,
+Finally, to achieve fine-grained steps instead of complex rules that shuffle entire contexts around,
 we will get rid of the irregularity that is the $λ$-abstraction wrapping the continuation.
 Delimited continuations will not be represented as call-by-value functions, but instead
 as their own sort with the ability to plug in any expression, not just a value.
 This lets us use structural substitution known from the $λμ$-calculus and all the benefits it brings \cite{benefit}.
 
 \chapter{Syntax}
+\label{Syntax}
 
 \begin{figure}
 \begin{align*}
@@ -268,7 +266,7 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 \label{syntax}
 \end{figure}
 
-The syntax of the calculus is in figure \ref{syntax}.
+The grammar of the calculus is in figure \ref{syntax}.
 We base it on a fine-grained call-by-value $λ$-calculus,
 meaning that the subterms of application $v\;u$ are values
 and computations have to be sequenced with $\KwLet$.
@@ -418,6 +416,148 @@ Verifying the evaluation rule is easy, here's the one for the effect handler:
 	\label{reduction}
 \end{figure}
 
+\chapter{Adequacy}
+
+Our examples in the previous chapter have demonstrated the usefulness
+of reduction for optimization.
+Now we have to show that the optimization doesn't change the result of a program.
+
+
+\section{Internal parallel reduction and standard reduction}
+In studying interplay of evaluation and reduction,
+it will be useful to isolate reductions that are \textit{not} evaluation steps – \textit{internal} reductions.
+Furthermore, in later inductive arguments it will be useful that internal reductions steps do not multiply.
+To this end, we will define \textit{internal parallel reduction}, which can perform internal reductions in many places of the term at once.
+This lets us define \textit{standard} reduction as the composition of many evaluation steps and
+an internal parallel reduction: $↦^* · \Rrightarrow$.
+
+\section{Postponement}
+
+\begin{theorem}[Strong postponement]
+	$${\Rrightarrow · ↦} ⊆ {↦^* · \Rrightarrow}$$
+\end{theorem}
+\begin{proof}
+	By induction on $\Rrightarrow$ and cases.
+\end{proof}
+\begin{corollary}
+	${\Rrightarrow · ↦^*} ⊆ {↦^* · \Rrightarrow}$
+\end{corollary}
+\begin{proof}
+	Induction on the length of $↦^*$.
+\end{proof}
+
+We don't need the full factorization (a.k.a.\,semi-standardization) property
+$$→^* = (↦ ∪ \Rrightarrow)^* ⊆ {↦^* · \Rrightarrow^*}$$
+
+\section{Commutation}
+
+\begin{theorem}
+ \label{quasisubcomm}
+	$${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$$
+\end{theorem}
+\begin{proof}
+	By induction on $\Lleftarrow$ and cases.
+\end{proof}
+
+\begin{corollary}[Subcommutation] \item
+	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^= \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\end{corollary}
+\begin{proof}
+	From the theorem % ${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$
+	and
+	${(\Lleftarrow · \mapsfrom^+) · ↦} ⊆ {{{\Lleftarrow} · \mapsfrom^*}}$ (by determinism of $↦$)
+\end{proof}
+\begin{corollary}
+	${(\Lleftarrow · \mapsfrom^*) · ↦^*} ⊆ {↦^* \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
+\end{corollary}
+\begin{proof}
+	Induction on the length of $↦^*$.
+\end{proof}
+
+We probably could have showed ${← · ↦} ⊆ {↦^= · ←^*}$ directly, but we haven't checked.
+Having the substitution lemmas already established probably helped.
+
+
+
+%\begin{theorem}[Standardization]
+%\end{theorem}
+%\begin{corollary} \label{stanv}%
+%	If $e →^* v$, then $e ↦^* v' →_i^* v$.
+%\end{corollary}
+%\begin{proof}
+%	By standardization and since $→_i$ can't turn a nonvalue into a value.
+%\end{proof}
+\begin{lemma}
+	${→} ⊆ {↦ ∪ \Rrightarrow}$
+\end{lemma}
+
+\begin{theorem}[Adequacy]
+	If $e → e'$, then $e$ evals to a value iff $e'$ evals to a value.
+\end{theorem}
+\begin{proof}
+
+%%	We take the proof from Crary.
+%	If $e' ↦^* v$, then $e →^* v$. By corollary \ref{stanv} we have $e ↦^* v' →_i^* v$.
+%
+%	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
+%	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
+	The case $e ↦ e'$ is easy, we consider $e \Rrightarrow e'$.
+
+	\begin{enumerate}
+		\item
+			Assume $e ↦ e_1 ↦ ... ↦ e_n = v$.
+			We prove $e'$ evals to a value by induction on $n$.
+
+			If $e=e_n=v$, then $e'$ is a value since $\Rrightarrow$ preserves valueness.
+
+			Otherwise, apply subcommutation for $e' \Lleftarrow e ↦ e_1$.
+			We obtain $e' ↦^? e'_1 \Lleftarrow · \mapsfrom^* e_1$ for some $e'_1$.
+			Since evaluation steps are deterministic and not possible beyond $e_n$,
+			we have $e_i \Rrightarrow e'_1$ for some $i$ s.t.\,$1 ≤ i ≤ n$.
+			By induction for $e'_1 \Lleftarrow e_i ↦^* v$ we get $e'_1 ↦^* v'$ for some value $v'$.
+			Therefore $e' ↦ e'_1 ↦^* v'$.
+
+		\item
+			Assume $e' ↦ e'_1 ↦ ... ↦ e'_n = v$.
+			We prove $e$ evals to a value by induction on $n$.
+
+			If $e'=e'_n=v$, then $e$ is a value since $\Rrightarrow$ can't make a nonvalue a value.
+
+			Otherwise, apply postponement for $e \Rrightarrow e' ↦ e'_1$.
+			We obtain $e ↦^* e'' \Rrightarrow e'_1$ for some $e''$.
+			By induction for $e'' \Rrightarrow e'_1 ↦^* v$ we know that $e''$ evals to a value,
+			so $e$ also does.
+
+	\end{enumerate}
+\end{proof}
+
+%In the above, instead of confluence ${←^* · →^*} ⊆ {→^* · ←^*}$ we could have used
+%commutation ${← · ↦^*} ⊆ {↦^* · ←^*}$.
+%This could be easier to prove, but we do not explore this approach in this work.
+
+\section{Contextual equivalence}
+
+\begin{corollary}[Contextual equivalence, observing termination to a value]
+	\label{ctxeqv1}
+	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.%
+\end{corollary}
+\begin{proof}
+	By congruence of reduction and adequacy.
+\end{proof}
+
+The above notion of contextual equivalence isn't the most common one.
+But we can deduce the usual notion from it using the argument of \cite{bisim}.
+
+\begin{prop}[Stuck terms]
+\end{prop}
+
+\begin{theorem}[Contextual equivalence, observing termination]
+	If $e → e'$, then for all closing contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
+\end{theorem}
+\begin{proof}
+	By \ref{ctxeqv1} it suffices to show that
+	$C[e]$ terminates to a nonvalue iff $C[e']$ terminates to a nonvalue.
+\end{proof}
 
 
 
@@ -493,132 +633,146 @@ We need a successive $let.\S$ step to make the $let.let$ redexes whole, now afte
 \section{Conditional result}
 
 
-\chapter{Adequacy}
-
-\begin{theorem}[Strong postponement]
-	$${\Rrightarrow · ↦} ⊆ {↦^* · \Rrightarrow}$$
-\end{theorem}
-\begin{proof}
-	By induction on $\Rrightarrow$ and cases.
-\end{proof}
-\begin{corollary}
-	${\Rrightarrow · ↦^*} ⊆ {↦^* · \Rrightarrow}$
-\end{corollary}
-\begin{proof}
-	Induction on the length of $↦^*$.
-\end{proof}
-
-\begin{theorem}[Quasi-subcommutation of internal reduction and evaluation step]
- \label{quasisubcomm} 
-	$${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$$
-\end{theorem}
-\begin{proof}
-	By induction on $\Lleftarrow$ and cases.
-\end{proof}
-\begin{corollary}[Subcommutation of standard reduction and evaluation step] \item
-	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^= \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
-\end{corollary}
-\begin{proof}
-	From the theorem % ${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$
-	and
-	${(\Lleftarrow · \mapsfrom^+) · ↦} ⊆ {{{\Lleftarrow} · \mapsfrom^*}}$ (by determinism of $↦$)
-\end{proof}
-\begin{corollary}
-	${(\Lleftarrow · \mapsfrom^*) · ↦^*} ⊆ {↦^* \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
-\end{corollary}
-\begin{proof}
-	Induction on the length of $↦^*$.
-\end{proof}
-
-
-
-%\begin{theorem}[Standardization]
-%\end{theorem}
-%\begin{corollary} \label{stanv}%
-%	If $e →^* v$, then $e ↦^* v' →_i^* v$.
-%\end{corollary}
-%\begin{proof}
-%	By standardization and since $→_i$ can't turn a nonvalue into a value.
-%\end{proof}
-\begin{lemma}
-	${→} ⊆ {↦ ∪ \Rrightarrow}$
-\end{lemma}
-
-\begin{theorem}[Adequacy]
-	If $e → e'$, then $e$ evals to a value iff $e'$ evals to a value.
-\end{theorem}
-\begin{proof}
-
-%%	We take the proof from Crary.
-%	If $e' ↦^* v$, then $e →^* v$. By corollary \ref{stanv} we have $e ↦^* v' →_i^* v$.
-%
-%	If $e ↦^* v$, then by confluence we have $v →^* v' ←^* e'$, where $v'$ must be a value
-%	because $→$ preserves valueness. By corollary \ref{stanv} we have $e' ↦^* v'' →_i^* v'$.
-	The case $e ↦ e'$ is easy, we consider $e \Rrightarrow e'$.
-
-	\begin{enumerate}
-		\item
-			Assume $e ↦ e_1 ↦ ... ↦ e_n = v$.
-			We prove $e'$ evals to a value by induction on $n$.
-
-			If $e=e_n=v$, then $e'$ is a value since $\Rrightarrow$ preserves valueness.
-
-			Otherwise, apply subcommutation for $e' \Lleftarrow e ↦ e_1$.
-			We obtain $e' ↦^? e'_1 \Lleftarrow · \mapsfrom^* e_1$ for some $e'_1$.
-			Since evaluation steps are deterministic and not possible beyond $e_n$,
-			we have $e_i \Rrightarrow e'_1$ for some $i$ s.t.\,$1 ≤ i ≤ n$.
-			By induction for $e'_1 \Lleftarrow e_i ↦^* v$ we get $e'_1 ↦^* v'$ for some value $v'$.
-			Therefore $e' ↦ e'_1 ↦^* v'$.
-
-		\item
-			Assume $e' ↦ e'_1 ↦ ... ↦ e'_n = v$.
-			We prove $e$ evals to a value by induction on $n$.
-
-			If $e'=e'_n=v$, then $e$ is a value since $\Rrightarrow$ can't make a nonvalue a value.
-
-			Otherwise, apply postponement for $e \Rrightarrow e' ↦ e'_1$.
-			We obtain $e ↦^* e'' \Rrightarrow e'_1$ for some $e''$.
-			By induction for $e'' \Rrightarrow e'_1 ↦^* v$ we know that $e''$ evals to a value,
-			so $e$ also does.
-
-	\end{enumerate}
-\end{proof}
-
-%In the above, instead of confluence ${←^* · →^*} ⊆ {→^* · ←^*}$ we could have used
-%commutation ${← · ↦^*} ⊆ {↦^* · ←^*}$.
-%This could be easier to prove, but we do not explore this approach in this work.
-
-\begin{corollary}[Contextual equivalence, observing termination to a value]
-	\label{ctxeqv1}
-	If $e → e'$, then for all general contexts $C$, $C[e]$ evals to a value iff $C[e']$ evals to a value.%
-\end{corollary}
-\begin{proof}
-	By congruence of reduction and adequacy.
-\end{proof}
-
-The above notion of contextual equivalence isn't the most common one.
-But we can deduce the usual notion from it using the argument of \cite{bisim}.
-
-\begin{prop}[Stuck terms]
-\end{prop}
-
-\begin{theorem}[Contextual equivalence, observing termination]
-	If $e → e'$, then for all closing contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
-\end{theorem}
-\begin{proof}
-	By \ref{ctxeqv1} it suffices to show that
-	$C[e]$ terminates to a nonvalue iff $C[e']$ terminates to a nonvalue.
-\end{proof}
-
 \chapter{Abella mechanization}
+
+We have formalized the adequacy and confluence theorems in the Abella proof assistant\footnote{
+	With the yet unreleased bugfix by the author \cite{abellafix}.
+}.
+Abella follows the tradition of Church's Simple Theory of Types
+in representing object-level variable binders as meta-language lambda-abstractions.
+This approach to variable binding (known as \textit{HOAS} or \textit{lambda-tree} syntax)
+allows reasoning closer to informal pen-and-paper arguments, as it eliminates
+much of the noise related to variables and substitution present in other approaches.
+
+\section{Higher-order abstract syntax}
+
+As an example, we represent expressions in the lambda-calculus in Abella by defining constants \lstinline{lam}, \lstinline{app} of the following types:
+\begin{lstlisting}
+Kind expr   type.
+Type lam    (expr -> expr) -> expr.
+Type app    expr -> expr -> expr.
+\end{lstlisting}
+The object-level expression $λx.\,x\,x$ is represented as \lstinline{lam (x\ app x x)},
+where \lstinline{x\ ...} is Abella's notation for lambda-abstractions.
+We can drop the parentheses and write \lstinline{lam x\ app x x}.
+Since the meta-language is typed, strong normalization holds and we can't have troublemakers such
+as self-application on the meta level.
+
+With the definition of reduction below, we obtain a \textit{higher-order rewriting system}:
+\begin{lstlisting}
+Define red : expr -> expr -> prop by
+  red (app (lam M) N) (M N);
+  red (app M N) (app M' N) := red M M';
+  red (app M N) (app M N') := red N N';
+  red (lam E) (lam E') := nabla x, red (E x) (E' x).
+\end{lstlisting}
+The first rule is the $β$-reduction, wherein substitution is realized as application in the meta-language.
+Congruence rules defined by Prolog-like clauses follow,
+the last of which introduces the \textit{nabla} ($\nabla$) quantifier.
+
+The meta-expression $\nabla x.\,…$ in Abella's logic introduces a fresh nominal constant $x$.
+The nabla quantifier has properties intermediate of the classic $∀$ and $∃$ quantifiers.
+In practice, nabla lets us operate on object-level terms with free variables:
+in the congruence rule for object-level $λ$-abstractions,
+we descend under the binder by substituting a fresh nominal constant for the bound variable.
+Unlike most formalizations of the $λ$-calculus, we don't have a constant like \lstinline{lam} or \lstinline{app} for variables.
+This embodies Perlis' epigram ``There is no such thing as a free variable'':
+namely, a variable is always bound
+either by the object-level \lstinline{lam x\}
+or by the meta-level \lstinline{nabla x}.
+
+Structural substitution poses no problem.
+As shown by Abel, continuations can be seen as terms of type \lstinline{expr -> expr} \cite{3rd}.
+Plugging an expression \lstinline{e} into a continuation \lstinline{k} (which we have denoted $κ[e]$) is again just
+meta-level application: \lstinline{k e}.
+Rules such as $let.\S$ transcribe rather directly:
+$$\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]}$$
+\begin{center}
+\lstinline{red (let (s k\ E k) T) (s k\ E (o\ k (let o T)))}
+\end{center}
+The main differences being we don't need to name the variable bound in $t$,
+but do need to explicitly bind the hole ($□$) as a variable \lstinline{o} in
+the substituted extended continuation.
+Because of $η$-equivalence in the meta-language,
+we can even write \lstinline{s E} instead of \lstinline{s k\ E k} on the left.
+The following $β$-equivalence shows that the substitution does the right thing:
+\begin{center}
+	\lstinline{(o\ k (let o T)) E = k (let E T)}
+\end{center}
+
+\section{The power of nabla}
+
+HOAS is doesn't need the $\nabla$ quantifier.
+Indeed, it's not available in Abella's \textit{specification logic} $λ$-Prolog.
+Abella takes a two-level approach, where the weaker specification logic
+embeds into the stronger \textit{reasoning logic}.
+The lack of $\nabla$ in the specification logic is a source of free theorems (e.g.\, about substitution)
+that can be used in the reasoning logic.
+
+Even though the lack of $\nabla$ precludes us from matching on free variables,
+there is a general workaround that lets us work with terms with binders:
+when we descend under a binder,
+we use a \textit{universal} quantifier \lstinline{pi} to represent the bound variable
+and add all consequences of it being a variable we will need to the local context of assumptions.
+For example, in the definition of parallel reduction for the lambda calculus,
+we add the local assumption $x \Rrightarrow x$ in the clause for $λx.\,M \Rrightarrow λx.\,M'$:
+\begin{lstlisting}
+par (lam M) (lam M') :- pi x\ par x x => par (M x) (M' x).
+\end{lstlisting}
+In Abella's reasoning logic, we can express the rule $x \Rrightarrow x$ directly:
+\begin{lstlisting}
+nabla x, par x x;
+par (lam M) (lam M') := nabla x, par (M x) (M' x);
+\end{lstlisting}
+
+Abel's work on the $λμ$-calculus is in Twelf, and the situation there
+is similar to Abella's specification logic: no $\nabla$ quantifier.
+Abel noted issues with defining parallel reduction for the $λμ$-calculus in Twelf.
+There are no issues when we take the nabla quantifier approach.
+Not only is parallel reduction definable,
+but as noted by Accatoli \cite{pearl},
+formalizations using only the reasoning logic
+can be significantly simpler than using $λ$-Prolog,
+and so this is the approach we take.
+In the end, we believe our work constitutes the first mechanized proof of confluence for a variant of the $λμ$-calculus.
+
+\section{The formalization}
+We have introduced the concept of HOAS using $λ$- and $λμ$-calculi as running examples.
+Our calculus differs from them in naming and in the separate syntactic category of values.
+Moreover, the Abella formalization differs from the definitions in Chapter \ref{Syntax}:
+\begin{enumerate}
+	\item
+		We have an expression $\Ask(K)$ instead of a value $\Ask(κ)$,
+		and instead of extending structural substitution we have a reduction rule:
+		$$\Ask(⟨K/v⟩) ↦ v$$
+		We believe that working with the grammar $\Ask(κ)$ on paper is more convenient,
+		but in Abella we wanted to avoid formalizing the normalization to that form.
+	\item
+		In the Abella formalization, we don't use at-a-distance rules involving contexts, such as:
+		$$κ[E[\S κ'.\,e]] ↦ e\subst{κ'}{κ[E]}$$
+		A direct transcription of this pattern would create hard unification problems
+		involving a unification variable applied to non-variables.
+		Furthermore, we would have to introduce a proposition that checks
+		that a context \lstinline{expr -> expr} is an evaluation context.
+		We instead introduce auxiliary relations that walk the relevant contexts:
+		\begin{lstlisting}
+nabla k, step (k (E k)) (E' k k) :=
+  nabla k, stepc (E k) (E' k);
+stepc (shift0 E) E;
+stepc (let E T) (k\ E' (o\ k (let o T))) :=
+  stepc E E';
+		\end{lstlisting}
+		That is, \lstinline{stepc} extracts the body of an $\S$ in evaluation position and substitutes the context, semi-formally:
+		$$\texttt{stepc}\;E[\S κ.\,e] \;(κ.\,e\subst{κ}{κ[E]})$$
+\end{enumerate}
 
 \chapter{Related work}
 
 
 \section{Distributing delimiters}
 There is a strand of work which tackles static delimited control from the opposite direction.
-Whereas we use structural reduction so that S moves closer to the delimiter, that strand's defining feature is
-the delimiter distributing over let expressions so that \textit{a} delimiter can meet the control operator:
+Whereas we use structural reduction so that $\S$ moves closer to the delimiter, that strand's defining feature is
+the delimiter distributing over \KwLet{} expressions so that \textit{a} delimiter can meet the control operator:
 
 There, the return clause is an integral part of the syntax. On a sequence of lets this becomes
 
