@@ -3,6 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{silence}
 \usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{bm}
 \usepackage{mathtools}
 \usepackage[inline]{enumitem}
 \usepackage{newunicodechar}
@@ -22,6 +23,7 @@
 \lstset{basicstyle=\ttfamily}
 
 \usepackage[]{hyperref}
+\usepackage[all]{hypcap}
 \setlength{\parskip}{0pt}
 
 \addbibresource{refs.bib}
@@ -56,6 +58,8 @@
 }
 
 
+\newcommand{\true}{\textsf{true}}
+\newcommand{\false}{\textsf{false}}
 \newcommand{\shiftz}{\textsf{shift0}}
 \newcommand{\abort}{\textsf{abort}}
 \newcommand{\keyword}[1]{\textsf{\textup{#1}}}
@@ -135,8 +139,8 @@
 \newunicodechar{⇔}{\iff} % Digr ==
 \newunicodechar{↦}{\mapsto} % Digr T> 8614 nonstandard
 \newunicodechar{≠}{\neq}
-\newunicodechar{⟦}{\llbracket} % Digr [[ 10214 nonstandard (needs pkg stmaryrd)
-\newunicodechar{⟧}{\rrbracket} % Digr ]] 10215 nonstandard
+\newunicodechar{⟦}{\bm{[}}
+\newunicodechar{⟧}{\bm{]}}
 \newunicodechar{≥}{\ge}
 \newunicodechar{≤}{\le}
 \newunicodechar{≡}{\equiv}
@@ -150,8 +154,8 @@
 \newunicodechar{→}{\ifmmode\rightarrow\else\textrightarrow\fi} % Digr ->
 \newunicodechar{←}{\ifmmode\leftarrow\else\textleftarrow\fi} % Digr <-
 \newunicodechar{…}{\ifmmode\dots\else\textellipsis\fi} % Digr .,
-\newunicodechar{⟨}{\langle}
-\newunicodechar{⟩}{\rangle}
+\newunicodechar{⟨}{\bm{\langle}}
+\newunicodechar{⟩}{\bm{\rangle}}
 
 \begin{document}
 
@@ -187,47 +191,65 @@
 Consider a program of the following form in a language with (unnamed) exceptions:
 \begin{align*}
 	&\Try \\
-	&\quad \Let{x}{e}{\Raise (x*2)} \\
-	&\KwWith\; z.\,z*3
+	&\quad \Let{y}{e}{\Raise (y*2)} \\
+	&\KwWith\; x.\,x*3
 \end{align*}
-If the execution gets to $\Raise (x*2)$, the handler will catch the exception and produce the result $x*2*3$.
+If the execution gets to $\Raise (y*2)$, the handler will catch the exception and produce the result $y*2*3$.
 %$$\Try \Let{x}{e}{\Raise (2*x)} \With z.\,3 * z$$
 %We know that \textit{the} $\KwRaise$ (if we get to it) is going to be handled by \textit{the} handler.
 %And in that case, $x*2$ is going to be multiplied by $3$.
-How to \textit{optimize} the program, so that we only perform one multiplication, $x*6$?
+How to \textit{optimize} the program, so that we only perform one multiplication, $y*6$?
 
-We can ask a similar question for \textit{effect handlers}.
+We can ask the same question for \textit{effect handlers}.
 This generalization allows us to capture the \textit{continuation} of the \textit{operation} (a.k.a.\,\textit{generic effect}) we are handling
 and bind it as a variable.
 The conventional evaluation step rule is:
-$$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λy.\,\Handle E[y] \With x\;k.\,e} $$
-This is a form of \textit{static delimited control}: control because we capture continuations,
+$$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λz.\,\Handle E[z] \With x\;k.\,e} $$
+This is a form of \textit{static delimited control}: control because we capture continuations (represented with the help of
+\textit{evaluation contexts} $E$),
 delimited because the continuation is delimited by the handler, and static because the delimiter remains
 in the captured continuation.
 %The last part is crucial.
 
-Let's consider a similar example:
-$$ \Handle \Let{x}{e}{\Op (x*2)} \With z\;k.\,k\,(z*3) $$
-Similarly to the example of exceptions, we know that $\Op (x*2)$ will be handled
-by the $z\;k.\,k\,(z*3)$ handler -- even if continuation capture occurs during the execution of $e$,
+Here's a similar example:
+$$ \Handle \Let{y}{e}{\Op (y*2)} \With x\;k.\,k\,(x*3) $$
+Just as in the example of exceptions, we know that $\Op (y*2)$ will be handled
+by the $x\;k.\,k\,(x*3)$ handler -- even if continuation capture occurs during the execution of $e$,
 the $\KwOp$ and the $\KwHandle$ will stay together.
 
 We therefore know the substitution that will be performed during the handling of the operation:
-$z:=x*2$. Exactly this substitution is needed to rewrite the two multiplications into one.
-We also can deduce the substitution $k:=λy.\,\Handle y \With z\;k.\,k\,(z*3)$.
-But where to substitute? Certainly not in the handler's clause, because the clause is shared for all operations inside,
-and $x$ is not even in scope.
+$x:=y*2$.
+Exactly this substitution is needed to rewrite the two multiplications into one.
+We also can deduce the substitution $k:=λz.\,\Handle z \With x\;k.\,k\,(x*3)$.
+But where to substitute?
+Certainly not in the handler's clause,
+because the clause could be used for different operations inside $e$,
+and $y$ is not even in scope.
 
 Since we know the clause that will run for the specific operation,
-instead of performing it, we can \abort{} the handler and execute the clause specialized with the specific substitutions.
-That is, rewrite the $\Op (z*2)$ into:
-$$\abort\,(k\,(z*3))\subst{z}{x*2}\subst{k}{λy.\,\Handle y \With z\;k.\,k\,(z*3)}$$
-The result of the substitution and the following simplification is:
-$$\Handle \Let{x}{e}{\abort\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
-$$\Handle \Let{x}{e}{\abort\,(x*6)} \With z\;k.\,k\,(z*3)$$
+instead of performing the operation
+we could \textit{abort} the handler and execute the clause specialized with the specific substitutions.
+That is, rewrite the $\Op (y*2)$ into:
+$$\abort\,(k\,(x*3))\subst{x}{y*2}\subst{k}{λz.\,\Handle z \With x\;k.\,k\,(x*3)}$$
+%The result of the substitution and the following simplification are:
+%$$\Handle \Let{x}{e}{\abort\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
+After some simplification we obtain:
+$$\Handle \Let{y}{e}{\abort\,(y*6)} \With x\;k.\,k\,(x*3)$$
 
-Of course, this poses questions such as ``where does the abort come from?''
-and ``how monstrous will the general rewrite rule be?''...
+\noindent{}
+\hrulefill
+
+\noindent{}
+The preceding whirlwind development may raise some questions.
+\begin{enumerate}
+	\item Is it even correct?
+	\item Where does the $\abort$ come from?
+	\item Will the optimization rule fit on the page, if the evaluation one almost didn't?
+\end{enumerate}
+We will try to address them.
+
+%Of course, this poses questions such as ``where does the abort come from?''
+%and ``how monstrous will the general rewrite rule be?''...
 
 The issue with conventional syntax for operations and effect handlers is that
 the operations are \textit{passive}.
@@ -239,10 +261,10 @@ $\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} 
 $$⟨E[\shiftz\,k.\,e]⟩ ↦ e\subst{k}{λy.\,⟨E[y]⟩}$$
 Here, the $\shiftz$ assumes the active role by initiating capture of continuation $k$ and carrying the expression $e$ that says what to do with it,
 while the delimiter is passive -- it merely delimits.
-We can now express \textsf{abort} simply as a $\shiftz$ that ignores the continuation: $\textsf{abort}\,e ≡ \shiftz\,\_.\,e$.
+We now express \abort{} simply as a $\shiftz$ that ignores the continuation: $\textsf{abort}\,e ≡ \shiftz\,\_.\,e$.
 
 To express effect handlers, we will extend delimiters by letting them carry a value.
-The value will be a lambda abstraction $λz\,k.\,e$ representing the handler's clause.
+The value will be a lambda abstraction $λx\,k.\,e$ representing the handler's clause.
 An operation will be a $\shiftz$ that explicitly asks for it and applies the payload and continuation.
 So, the $\abort$ arises as a result of substitution for $k$ in the $\shiftz$'s body.
 
@@ -257,156 +279,53 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 
 \begin{figure}
 \begin{align*}
+	\text{(value) variables} &&x,y,... \\
+	\text{continuation variables} && κ \\
 	\text{values} &&v,u &::= x │ λx.\,e \\
-	\text{expressions} &&e,t &::= v │ v\;v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e / v⟩ │ κ[e] │ \Ask(κ) \\
+	\text{expressions} &&e,t &::= v │ v\;v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e / v⟩ │ κ⟦e⟧ │ \Ask(κ) \\
 	\text{evaluation contexts}&&E   &::= □ │ \Let{x}{E}{t} \\
-	\text{metacontinuations}&&K   &::= □ │ \Let{x}{K}{t} │ κ[K] │ ⟨K/v⟩
+	\text{tail contexts}&&L &::= □ │ \Let{x}{e}{L} \\
+	\text{metacontinuations}&&K   &::= □ │ \Let{x}{K}{t} │ κ⟦K⟧ │ ⟨K/v⟩
 \end{align*}
 \caption{Syntax.}
 \label{syntax}
 \end{figure}
-
-The grammar of the calculus is in figure \ref{syntax}.
-We base it on a fine-grained call-by-value $λ$-calculus,
-meaning that the subterms of application $v\;u$ are values
-and computations have to be sequenced with $\KwLet$.
-We use the notation $\S κ.\,e$ for the generalization of $\shiftz$ to continuation parameters.
-It is analogous to the $μ$ operator from the $λμ$-calculus.
-We will use the shorthand $\A\,e ≡ \S\_.\,e$ for an abort, i.e. an $\S$ that ignores the captured continuation.
-The construct $⟨e/v⟩$ delimits continuations captured in $e$ and carries a value $v$.
-We use the notation $κ[e]$ for plugging the expression $e$ into a continuation $κ$.
-The $λμ$-calculus conventionally uses the notation $[κ]e$, but we abandon it
-as it's inconsistent with the metanotation of plugging an expression into a context.
-The value $\Ask (κ)$ refers to the value carried by the delimiter which delimited $κ$.
-
-Contexts are terms with a hole ($□$), with $C[e]$ denoting substituting (or plugging)
-the expression $e$ for the hole in $C$. We can also plug a context into a context, as in $C[C']$,
-to form another context.
-
-The operational semantics are in figure \ref{step}.
-The last two rules make use of substitution for continuation variables.
-We extend the notion of structural substitution of the $λμ$-calculus to the new $\Ask(κ)$ construct.
-
-Formally, we can consider \textit{preterms}, where we generalize $κ[e]$ and $\Ask(κ)$ into $K[e]$ and $\Ask(K)$.
-There, the substitution for continuation variables is defined in the natural way:
-$κ[K]\subst{κ}{K'} ≡ K'[K\subst{κ}{K'}]$.
-
-Now, we normalize preterms into terms according to the following rules:
-\begin{align*}
-	(□)[e] &→ e \\
-	(\Let{x}{K}{t})[e] &→ \Let{x}{K[e]}{t} \\
-	(κ[K])[e] &→ κ[K[e]] \\
-	(⟨K/v⟩)[e] &→ ⟨K[e]/v⟩ \\
-	\\
-	\Ask(⟨K/v⟩) &→ v \\
-	\Ask(κ[K]) &→ \Ask(κ)
-\end{align*}
-
-To give some examples for terms:
-\begin{align*}
-	κ[e]\subst{κ}{κ'} &≡ κ'[e] &
-	\Ask(κ)\subst{κ}{κ'} &≡ \Ask(κ') \\
-		κ[e]\subst{κ}{κ[\Let{x}{□}{t}]} &≡ κ[\Let{x}{e}{t}] &
-	\Ask(κ)\subst{κ}{κ[\Let{x}{□}{t}]} &≡ \Ask(κ) \\
-	κ[e]\subst{κ}{⟨□/v⟩} &≡ ⟨e/v⟩ &
-	\Ask(κ)\subst{κ}{⟨□/v⟩} &≡ v
-\end{align*}
-
-These examples are in fact sufficient as definitions, since the coarse-grained
-evaluation steps could be simulated through the smaller reduction steps in \ref{reduction}.
-We have taken the coarse-grained steps as the operational semantics because
-this simplifies adequacy and it's closer in spirit to actual implementations.
-
-We will be using a few shorthands:
-\begin{enumerate}
-	\item $\A\,e ≡ \S\_.\,e$, i.e. an abort: an $\S$ that ignores the captured continuation
-	\item $f\;x\;y ≡ \Let{g}{f\;x}{g\;y}$
-	\item $λx\,y.\,e ≡ λx.\,λy.\,e$
-\end{enumerate}
-
-
-We will use $\A\,e$ as a shorthand for $\S\_.\,e$, i.e.\, an $\S$ that ignores the captured continuation.
-We have shifted away from the $\shiftz$/$\abort$ naming to differentiate from the variant that binds the continuation as a function and for brevity.
-
-The operational semantics is in figure \ref{step}.
-Let's use it verify the correctness of the macro-encodings we will be using:
-$$\shiftz\,k.\,e ≡ \S κ.\,\Let{k}{λx.\,κ[x]}{e}$$
-\begin{align*}
-	⟨E[\shiftz\,k.\,e]⟩
-	&≡ ⟨E[\S κ.\,\Let{k}{λx.\,κ[x]}{e}]⟩ \\
-	&↦ \Let{k}{λx.\,⟨E[x]⟩}{e} ↦ e\subst{κ}{λx.\,⟨E[x]⟩}
-\end{align*}
-
-$$\Handle e \With x\,k.\,t ≡ ⟨e/λx\,k.\,t⟩$$
-$$\Op v ≡ \S κ.\,{\Ask(κ)\;v\;(λx.\,κ[x])}$$
-
-\begin{align*}
-	\Handle E[\Op v] \With x\,k.\,t
-	&≡ ⟨E[\S κ.\,\Ask(κ)\;v\;(λx.\,κ[x])]/λx\,k.\,t⟩] \\
-	&↦ (λx\,k.\,t)\;v\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
-	&↦ (λk.\,t\subst{x}{v})\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
-	&↦ t\subst{x}{v}\subst{k}{λx.\,⟨E[x]/λx\,k.\,t⟩} \\
-	&≡ t\subst{x}{v}\subst{k}{λx.\,\Handle E[x] \With x\,k.\,t}
-\end{align*}
-
-Many calculi take a \textit{return clause} to be an integral part of the delimiter.
-We will denote it by tacking on $│ x.\,t_r$.
-The defining evaluation rule is
-$$\Handle v \With x\,k.\,t_h │ x.\,t_r ↦  t_r\subst{x}{v}$$
-and similarly for the reset (with the return clause often called \textit{dollar}):
-$$⟨v│x.\,t_r⟩ ↦ t_r\subst{x}{v}$$
-In words, the $t_r$ is a part of the captured continuation,
-but the delimiter is dropped when we execute it.
-
-We encode it thus:
-$$⟨e│x.\,t_r⟩ ≡ ⟨\Let{x}{e}{\A\,t_r}⟩$$
-$$\Handle e \With x\,k.\,t_h │ x.\,t_r ≡ ⟨\Let{x}{e}{\A\,t_r}/λx\,k.\,t_h⟩$$
-Verifying the evaluation rule is easy, here's the one for the effect handler:
-\begin{align*}
-	\Handle v \With x\,k.\,t_h │ x.\,t_r
-	&≡ ⟨\Let{x}{v}{\A\,t_r}/λx\,k.\,t_h⟩ \\
-	&↦ ⟨\A\,t_r\subst{x}{v}/λx\,k.\,t_h⟩ ↦ t_r\subst{x}{v}
-\end{align*}
-
-
-
-
 \begin{figure}
-\begin{mathpar}
-	\inferrule
-		{}
-		{(λx.\,e)\;v ↦ e\subst{x}{v}}
-
-	\inferrule
-		{}
-		{\Let{x}{v}{t} ↦ t\subst{x}{v}}
-
-	\inferrule
-		{}
-		{⟨v/u⟩ ↦ v}
-
-	\inferrule
-		{}
-		{⟨E[\S κ.\,e]/v⟩ ↦ e\subst{κ}{⟨E/v⟩}}
-
-	\inferrule
-		{}
-		{κ[E[\S κ'.\,e]] ↦ e\subst{κ'}{κ[E]}}
-
-\end{mathpar}
+\begin{align*}
+	(λx.\,e)\;v &↦ e\subst{x}{v} \\
+	\Let{x}{v}{t} &↦ t\subst{x}{v} \\
+	⟨v/u⟩ &↦ v \\
+	⟨E[\S κ.\,e]/v⟩ &↦ e\subst{κ}{⟨E/v⟩} \\
+	κ⟦E[\S κ'.\,e]⟧ &↦ e\subst{κ'}{κ⟦E⟧}
+\end{align*}
 \caption{Evaluation step.}
 	\label{step}
 \end{figure}
-
 \begin{figure}
-	$$L ::= □ │ \Let{x}{e}{L}$$
+	\begin{align*}
+		λx\,y.\,e &≡ λx.\,λy.\,e & \text{multi-param lambda} \\
+%		e\;v &≡ \Let{x}{e}{x\;v} & \text{application to expr}\\
+		e_1\;e_2 &≡ \Let{x}{e_1}{\Let{y}{e_2}{x\,y}} & \text{left-to-right application}\\
+		\A\,e ≡ \abort\,e&≡ \S \_.\,e & \text{abort}\\
+		⟨e⟩ &≡ ⟨e/λx.\,x⟩ & \text{reset with dummy value}\\
+		\shiftz\,k.\,e &≡ \S κ.\,\Let{k}{λx.\,κ⟦x⟧}{e} & \text{value-binding shift0}\\
+		⟨e│y.\,t_r⟩ &≡ ⟨\Let{y}{e}{\A\,t_r}⟩ & \text{reset with return clause} \\
+		\Op v &≡ \S κ.\,\Ask(κ)\;v\;(λx.\,κ⟦x⟧) & \text{operation/generic effect}\\
+		\Handle e \With x\,k.\,t &≡ ⟨e/λx\,k.\,t⟩ & \text{effect handler}\\
+		\Handle e \With x\,k.\,t │ y.\,t_r &≡ ⟨\Let{y}{e}{\A\,t_r}/λx\,k.\,t⟩ & \text{handler w/ return clause}\\
+	\end{align*}
+	\caption{Shorthands (macro-expressions).}
+	\label{shorthands}
+\end{figure}
+\begin{figure}
+%	$$L ::= □ │ \Let{x}{e}{L}$$
 	\begin{align*}
 		(λx.\,e)\,v &→ e\subst{x}{v} & λ.v \\
 		\Let{x}{v}{t} &→ t\subst{x}{v} & let.v \\
 		⟨v/u⟩ &→ v & d.v \\
-		κ[\S κ'.\,e] &→ e\subst{κ'}{κ} & k.\S \\
-		⟨\S κ.\,e / v⟩ &→ e\subst{κ}{⟨□/v⟩} & d.\S \\
 		\Let{x}{\S κ.\,e}{t} &→ \S κ.\,e\subst{κ}{κ[\Let{x}{□}{t}]} & let.\S \\
+		⟨\S κ.\,e / v⟩ &→ e\subst{κ}{⟨□/v⟩} & d.\S \\
+		κ⟦\S κ'.\,e⟧ &→ e\subst{κ'}{κ} & k.\S \\
 		⟨L[\S κ.\,e]/v⟩ &→ ⟨L[A\,e\subst{κ}{⟨□/v⟩}]/v⟩ & dL.\S \\
 		⟨L[\A\,⟨e/v⟩]/v⟩ &→ ⟨L[e]/v⟩ & \A.d \\
 		⟨L[\A\,u]/v⟩ &→ ⟨L[u]/v⟩ & \A.v \\
@@ -415,6 +334,289 @@ Verifying the evaluation rule is easy, here's the one for the effect handler:
 	\caption{Reduction.}
 	\label{reduction}
 \end{figure}
+
+
+The grammar of the calculus is in figure \ref{syntax}.
+We base it on a fine-grained call-by-value $λ$-calculus,
+meaning that the subterms of application $v\;u$ are values
+and computations have to be sequenced with $\KwLet$.
+The expression $\S κ.\,e$ captures the continuation as $κ$,
+a generalization of $\shiftz$.\footnote{
+$\S$ is $μ$ in the $λμ$-calculus.
+}
+The \textit{reset} or \textit{delimiter} $⟨e/v⟩$ delimits continuations captured in $e$ and carries a value $v$.
+The \textit{plug} construct $κ⟦e⟧$ installs continuation $κ$ and resumes with execution of $e$.%
+%We use the notation $κ[e]$ for plugging the expression $e$ into a continuation $κ$.%
+\footnote{
+The $λμ$-calculus conventionally uses the notation $⟦κ⟧e$, but we abandon it
+as it's inconsistent with the common metanotation of plugging an expression into a context.
+}
+The value $\Ask (κ)$ refers to the value carried by the delimiter which delimited $κ$.
+
+Contexts are terms with a hole ($□$), with $C[e]$ denoting substituting (or plugging)
+the expression $e$ for the hole in $C$.
+In general, this is variable-capturing substitution,
+but not for $E$ and $K$ since they don't bind variables.
+We can also plug a context into a context, as in $C[C']$,
+to form another context.
+Evaluation contexts $E$ and metacontinuations $K$ use the $□$ to mark the \textit{evaluation position},
+whereas tail contexts $L$ mark the \textit{tail position}.
+Intuitively, they are the first and the last places where execution occurs.
+
+\section{Structural substitution}
+
+We will be using the notions of
+substitution for variables ($e\subst{x}{v}$)
+and substitution for continuation variables ($e\subst{κ}{K}$),
+the latter of which requires some explaining.
+It suffices to consider the two expression formers that use $κ$:
+\begin{enumerate}
+	\item
+		$κ⟦e⟧\subst{κ}{K} ≡ K[e\subst{κ}{K}]$ \\
+		On the left, the brackets are on the object level, while on the right they
+		denote plugging the expression $e$ into context $K$ on the meta level.
+%		This justifies the punning – one can see the $κ⟦e⟧$ as the point where
+%		the meta-operation of plugging gets stuck, a normal form.
+	\item
+		$\Ask(κ)\subst{κ}{⟨K/v⟩} ≡ v$ \\
+		$\Ask(κ)\subst{κ}{κ'⟦K⟧} ≡ \Ask(κ')$ \\
+		The two cases above cover all substitutions we will be considering.
+\end{enumerate}
+As further illustration, 
+here are the three forms of structural substitution used in reduction (figure \ref{reduction}):
+%Reduction (figure \ref{reduction}) uses only three specific forms of structural substitution:
+%We also show all the forms of substitution used in reduction (figure \ref{reduction}):
+\begin{align*}
+	κ⟦e⟧\subst{κ}{κ'} &≡ κ'⟦e\subst{κ}{κ'}⟧ \\
+	\Ask(κ)\subst{κ}{κ'} &≡ \Ask(κ') \\
+	κ⟦e⟧\subst{κ}{κ⟦\Let{x}{□}{t}⟧} &≡ κ⟦\Let{x}{e\subst{κ}{κ⟦\Let{x}{□}{t}⟧}}{t}⟧ \\
+	\Ask(κ)\subst{κ}{κ⟦\Let{x}{□}{t}⟧} &≡ \Ask(κ) \\
+	κ⟦e⟧\subst{κ}{⟨□/v⟩} &≡ ⟨e\subst{κ}{⟨□/v⟩}/v⟩ \\
+	\Ask(κ)\subst{κ}{⟨□/v⟩} &≡ v
+\end{align*}
+
+\section{Evaluation steps}
+
+The evaluation step relation $↦$ is taken to be the closure of rules in figure \ref{step}
+under metacontinuations.
+The third rule pops the delimiter once computation inside is finished
+and the next two rules are responsible for capturing the delimited continuation
+when an $\S$ is in evaluation position.
+To an extent we allow open evaluation,
+namely evaluating under continuation variables and capturing of continuation variables.
+
+We could have opted for fine-grained evaluation steps,
+those would be exactly the first six reduction rules (figure \ref{reduction}).
+We have taken the coarse-grained steps as the operational semantics because
+this greatly simplifies adequacy and it's closer in spirit to machine implementations.
+
+We haven't formalized an abstract machine, but we will be referring to the intuitions that
+metacontinuations correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.
+
+\section{Shorthands}
+We will be using the shorthands in figure \ref{shorthands}.
+The first two of them are commonly used for convenience.
+%The first few shorthands (figure \ref{shorthands}) are rather common and just for convenience.
+The third one introduces the notation $\A$ for $\abort$.
+The fourth one lets us omit the data in delimiters ($/v$) when irrelevant.
+%Later, we have macro-expressions that formally justify that the calculus 
+Then we have macros that formally justify that the calculus can express the relevant
+control operators in their standard form. % TODO style
+It is easy to check that evaluation steps simulate the standard evaluation rules for the simulated constructs,
+%This is done by checking that evaluation steps simulate the standard evaluation rule for the simulated construct.
+%The calculations are easy,
+we write out some examples for $\shiftz$ and effect handlers.
+\begin{align*}
+	⟨E[\shiftz\,k.\,e]⟩
+	&≡ ⟨E[\S κ.\,\Let{k}{λx.\,κ⟦x⟧}{e}]⟩ \\
+	&↦ \Let{k}{λx.\,⟨E[x]⟩}{e} ↦ e\subst{κ}{λx.\,⟨E[x]⟩}
+\end{align*}
+\begin{align*}
+	\Handle E[\Op v] \With x\,k.\,t
+	&≡ ⟨E[\S κ.\,\Ask(κ)\;v\;(λx.\,κ⟦x⟧)]/λx\,k.\,t⟩ \\
+	&↦ (λx\,k.\,t)\;v\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
+	&↦ (λk.\,t\subst{x}{v})\;(λx.\,⟨E[x]/λx\,k.\,t⟩) \\
+	&↦ t\subst{x}{v}\subst{k}{λx.\,⟨E[x]/λx\,k.\,t⟩} \\
+	&≡ t\subst{x}{v}\subst{k}{λx.\,\Handle E[x] \With x\,k.\,t}
+\end{align*}
+\begin{align*}
+	\Handle v \With x\,k.\,t_h │ x.\,t_r
+	&≡ ⟨\Let{x}{v}{\A\,t_r}/λx\,k.\,t_h⟩ \\
+	&↦ ⟨\A\,t_r\subst{x}{v}/λx\,k.\,t_h⟩ ↦ t_r\subst{x}{v}
+\end{align*}
+
+The last calculation above features a handler with a \textit{return clause}.
+The return clause extends the delimited continuation
+with a fragment that doesn't run inside the delimiter.
+The same extension is possible for reset, there often called \textit{dollar}.
+In previous work it has always been an integral part of syntax,
+we notice that it can be easily expressed as a $\KwLet$ frame that aborts the delimiter.
+
+\section{Reduction}
+We define reduction $→$ to be the closure of rules in figure \ref{reduction}
+under general contexts.
+We will now demonstrate their applications to optimization,
+we may assume common features such as arithmetic for presentation purposes.
+
+%The first few rules are shared with evaluation, now we can use them for simplifications anywhere in the expression.
+
+\subsection{Structural reduction}
+
+The rule $let.\S$ has utility beyond simulating the coarse-grained evaluation steps.
+Consider the following as a function body:
+$$ \Let{x}{\S κ.\,κ⟦40⟧}{x+2} → \S κ.\,κ⟦\Let{x}{40}{x+2}⟧ → \S κ.\,κ⟦40+2⟧ → \S κ.\,κ⟦42⟧$$
+There is no delimiter to find for the $\S$, but we do know a prefix of the continuation
+that $\S$ may capture, and we can put this knowledge to good use.
+
+The above example also shows the power of the $κ[e]$ expression former.
+We can consider a similar example with the value-capturing $\shiftz$ syntax:
+$$\Let{x}{\shiftz\,k.\,k\,40}{f\,x}$$
+If $\shiftz$ captures the continuation, $f$ will be applied to $40$, but there is nothing we can do with that knowledge in this syntax.
+We could try the following:
+$$\shiftz\,k.\, k\,(f\,40)$$
+But this is incorrect: $f\,40$ won't run inside the captured continuation, it will be evaluated separately and
+then the result will be applied to $k$.
+This changes the behavior if $f$ also uses $\shiftz$.
+
+The rule $d.\S$ deals with the easy case where an $\S$ is in direct contact with a delimiter.
+The rule $k.\S$, \textit{renaming} in $λμ$-parlance, is more interesting,
+since it doesn't have a counterpart within the conventional
+continuation-as-lambda syntax.
+Consider the following code fragment with consecutive uses of effects:
+\begin{align*}
+	\Let{\_}{\Op 0}{\Op 1}
+	&≡ \Let{\_}{\S κ.\,\Ask(κ)\,0\,(λy.\,κ[y])}{\S κ.\,\Ask(κ)\,1\,(λz.\,κ[z])} & \\
+	&→ \S κ.\,\Ask(κ)\,0\,\big(λy.\,κ[\Let{\_}{y}{\S κ.\,\Ask(κ)\,1\,(λz.\,κ[z])}]\big) & let.\S \\
+	&→ \S κ.\,\Ask(κ)\,0\,\big(λ\_.\,κ[\S κ.\,\Ask(κ)\,1\,(λz.\,κ[z])]\big) & let.v \\
+	&→ \S κ.\,\Ask(κ)\,0\,\big(λ\_.\,\Ask(κ)\,1\,(λz.\,κ[z])\big) & k.\S
+\end{align*}
+We have completely eliminated the second control operation,
+drawing on the fact that both of them will reach the same handler.
+
+There are other natural uses of the plug construct $κ[e]$.
+For example, in OCaml 5, delimited continuations are clearly not functions, since
+we can not only \textit{continue} them (apply to a value), but also \textit{discontinue} them: raise an exception inside.
+This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} ≡ κ⟦\textsf{raise}\,\textit{exn}⟧$,
+whereas previous formalizations have used workarounds with lambda abstractions.
+
+\subsection{Tail-of-reset reductions}
+%By the $let.let$ and $let.\S$ rules, every $\S$
+%directly inside a delimiter can be moved into its tail position.
+%There, we can apply the $dL.\S$ rule that says this is the delimiter
+%that the $\S$ may capture.
+
+The rule $dL.\S$ says that an $\S$ in the tail position of a delimiter
+will capture that delimiter (if we get to it).
+This is thanks to being in the setting of \textit{static} delimited control.
+The rule is obviously infinitely-looping,
+but we can prevent that with a side condition that $κ$ actually occurs in $e$.
+The rewrite is \textit{at a distance}, as the pattern involves a context $L$.
+The change is however local as the outer $⟨L/v⟩$ context remains intact,
+so we believe the rule still deserves to be called fine-grained.
+
+We will try to convey the intuition why it's correct by considering the case
+where $L$ is just one $\KwLet$ expression: $L ≡ \Let{x}{e}{□}$.
+If $e$ evaluates to a value, then the $\S$ will capture the delimiter:
+\begin{align*}
+	⟨\Let{x}{v}{\S κ.\,t}⟩ ↦ ⟨\S κ.\,t\subst{x}{v}⟩ ↦ t\subst{x}{v}\subst{κ}{⟨□⟩}
+\end{align*}
+If continuation capture occurs inside $e$,
+then the focused $\S$ will still be in the tail position
+of the delimiter, now captured. Loosely speaking, we can reason recursively.%
+\footnote{
+	Perhaps this idea could be formalized as (co)induction on some form of interaction tree,
+	with $e$ evaluating to a value as leaves and continuation capture
+	resulting in a branch for every expression plugged.
+}
+\begin{align*}
+	⟨\Let{x}{E[\S κ'.\,e']}{\S κ.\,t}⟩ ↦ e'\subst{κ'}{⟨\Let{x}{E}{\S κ.\,t}⟩}
+\end{align*}
+If the $e$ never evaluates to a value, then the rule rewrites dead code, which is fine.
+
+%The rule is more useful when the delimiter carries useful data,
+%as in the case of effect handlers.
+%Consider this program that checks satisfiability of Boolean function $f$:
+%\begin{align*}
+%	\Handle \Let{x}{\Op()}{\Let{y}{\Op()}{f(x,y)}} \With x\,k.\,k\,\true ││ k\,\false \\
+%≡ ⟨ \Let{x}{\S κ.\,\Ask(κ)\,()\,(λz.\,κ[z])}{\Let{y}{\Op()}{f(x,y)}} / λx\,k.\,k\,\true ││ k\,\false⟩ \\
+%≡ ⟨ \S κ.\,\Ask(κ)\,()\,(λz.\,κ[\Let{x}{z}{\Let{y}{\Op()}{f(x,y)}}]) / λx\,k.\,k\,\true ││ k\,\false⟩
+%\end{align*}
+
+With $let.\S$ and $dL.\S$ we can derive the coarse-grained rewrites that started it all:
+$$⟨L[E[\shiftz\,k.\,e]]⟩ →^* ⟨L[\abort\,e\subst{k}{λz.\,⟨E[z]⟩}]⟩$$
+The one for statically handling effects indeed won't fit on one line:
+\begin{alignat*}{2}
+	&\Handle L[E[\Op\,v]{}&] \With x\,k.\,t \\
+	→^* \quad &\Handle L[\abort\,t\subst{x}{v}\subst{k}{λz.\,\Handle E[z] \With x\,k.\,t}{}&] \With x\,k.\,t
+\end{alignat*}
+
+
+\subsection{Eta-like reductions}
+
+Inspired by the $λμ$-calculus, we could consider an $η$-reduction of the following form:
+$$\S κ.\,κ[e] → e$$
+In words, capturing a continuation and then immediately installing it
+amounts to doing nothing.
+However, the rewrite changes program behavior if the program originally got stuck on searching for a delimiter.
+We therefore perform the reduction in tail-of-reset contexts to ensure this doesn't happen.
+The resulting rule $\A.d$ can be of a slightly simplified form,
+since the $dL.\S$ reduction always applies:
+$$⟨L[\S κ.\,κ⟦e⟧]⟩ → ⟨L[\A\,⟨e\subst{κ}{⟨□⟩}⟩]⟩$$
+
+The $\A.v$ rule is explained thus: in the tail position of a delimiter,
+aborting and returning a value amounts to the same as simply returning a value,
+since a delimiter is popped if the inside computation finished with a value.
+It is necessary for confluence, specifically to complete this peak:
+$$⟨L[\A\,v]⟩ \xleftarrow{d.v} ⟨L[\A\,⟨v⟩]⟩ \xrightarrow{\A.d} ⟨L[v]⟩$$
+
+A common pattern where a captured continuation is immediately resumed is
+the \textit{reader} effect,
+where an operation (with no payload) asks for a value and the handler provides it:
+\begin{align*}
+	\Handle e \With \_\,k.\,k\,v
+\end{align*}
+The reader effect simulates dynamic binding,
+with the operation taking the role of reference to a variable and the handler taking the role of the binder.
+
+In general, we don't need to adhere to the protocol that the value carried in the delimiter
+is the clause of an effect handler.
+We can accomplish the same in a simpler way by putting the dynamically bound value directly
+as the data in the delimiter.
+To obtain the value in the delimiter we simply do $\textsf{ask} ≡ \S κ.\,κ⟦\Ask(κ)⟧$.
+The reduction rules let us replace the $\textsf{ask}$ with the correct value
+if it can be statically determined:
+\begin{align*}
+	⟨\Let{x}{e}{\Let{y}{\textsf{ask}}{t}}/v⟩
+	&≡ ⟨\Let{x}{e}{\Let{y}{\S κ.\,κ⟦\Ask(κ)⟧}{t}}/v⟩ \\
+	&→ ⟨\Let{x}{e}{\S κ.\,κ⟦\Let{y}{\Ask(κ)}{t}⟧}/v⟩ & let.\S \\
+	&→ ⟨\Let{x}{e}{\A\,⟨\Let{y}{v}{t}/v⟩}/v⟩ & dL.\S \\
+	&→ ⟨\Let{x}{e}{\Let{y}{v}{t}}/v⟩ & \A.d
+\end{align*}
+Naturally, the same applies to the effect handler approach.
+
+\subsection{Let reassociation}
+
+The purpose of let reassociation ($let.let$) is to unblock other reductions.
+It is one of the ways to obtain a richer theory of open call-by-value \cite{open}.
+%Preventing premature $β$-normal forms is one of the ways to obtain a richer theory of open call-by-value \cite{open}:
+\begin{align*}
+\Let{x}{\Let{y}{e}{v}}{t}
+&→ \Let{y}{e}{\Let{x}{v}{t}} & let.let \\
+&→ \Let{y}{e}{t\subst{x}{v}} & let.v
+\end{align*}
+For this work, it's especially useful to unblock the $let.\S$ and tail-of-reset reductions:
+\begin{align*}
+⟨\Let{x}{\Let{y}{e}{\S κ.\,e}}{t}⟩
+&→ ⟨\Let{y}{e}{\Let{x}{\S κ.\,e}{t}}⟩ & let.let \\
+&→ ⟨\Let{y}{e}{\S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧}}⟩ & let.\S \\
+&→ ⟨\Let{y}{e}{\A \,e\subst{κ}{⟨\Let{x}{□}{t}⟩}}⟩ & dL.\S
+\end{align*}
+More abstractly, it commutes evaluation frames and tail frames:
+$$E[L] →^* L[E]$$
+%In this way, it improves applicability of the ``monstrous'' coarse-grained reduction.
+In this way, it improves applicability of the coarse-grained reductions derived previously:
+we can statically handle any effect separated from the handler only by $\KwLet$ expressions.
+
 
 \chapter{Adequacy}
 
@@ -426,7 +628,7 @@ Now we have to show that the optimization doesn't change the result of a program
 \section{Internal parallel reduction and standard reduction}
 In studying interplay of evaluation and reduction,
 it will be useful to isolate reductions that are \textit{not} evaluation steps – \textit{internal} reductions.
-Furthermore, in later inductive arguments it will be useful that internal reductions steps do not multiply.
+Furthermore, in later inductive arguments it will be useful that rewrite steps do not multiply.
 To this end, we will define \textit{internal parallel reduction}, which can perform internal reductions in many places of the term at once.
 This lets us define \textit{standard} reduction as the composition of many evaluation steps and
 an internal parallel reduction: $↦^* · \Rrightarrow$.
@@ -458,6 +660,8 @@ $$→^* = (↦ ∪ \Rrightarrow)^* ⊆ {↦^* · \Rrightarrow^*}$$
 \begin{proof}
 	By induction on $\Lleftarrow$ and cases.
 \end{proof}
+The reflexive closure of $↦$ ($↦^=$, or $≤1$ step of $↦$) appears because of the case
+where $\A.d$ and $↦$ do the same thing: $⟨\A\,⟨e⟩⟩$.
 
 \begin{corollary}[Subcommutation] \item
 	${(\Lleftarrow · \mapsfrom^*) · ↦} ⊆ {↦^= \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
@@ -465,7 +669,7 @@ $$→^* = (↦ ∪ \Rrightarrow)^* ⊆ {↦^* · \Rrightarrow^*}$$
 \begin{proof}
 	From the theorem % ${\Lleftarrow · ↦ } ⊆ {↦^= · \Lleftarrow · \mapsfrom^*}$
 	and
-	${(\Lleftarrow · \mapsfrom^+) · ↦} ⊆ {{{\Lleftarrow} · \mapsfrom^*}}$ (by determinism of $↦$)
+	${(\Lleftarrow · \mapsfrom^+) · ↦} ⊆ {{{\Lleftarrow} · \mapsfrom^*}}$ (by determinism of $↦$).
 \end{proof}
 \begin{corollary}
 	${(\Lleftarrow · \mapsfrom^*) · ↦^*} ⊆ {↦^* \mathbin{·} ({{\Lleftarrow} · \mapsfrom^*})}$
@@ -562,6 +766,12 @@ But we can deduce the usual notion from it using the argument of \cite{bisim}.
 
 
 \chapter{Confluence}
+Confluence is the property
+that diverging reduction sequences can meet.
+$$←^* · →^* ⊆ →^* · ←^*$$
+Equivalently, it's commutation of $→$ with itself.
+In practical terms, it lets us perform reductions in any order
+and normal forms are unique.
 
 We haven't managed to prove confluence for
 the entire calculus.
@@ -699,6 +909,7 @@ The following $β$-equivalence shows that the substitution does the right thing:
 \begin{center}
 	\lstinline{(o\ k (let o T)) E = k (let E T)}
 \end{center}
+%This suggests the view of the $κ⟦e⟧$ syntax as the point where the plug meta-operation $K[e]$ gets stuck.
 
 \section{The power of nabla}
 
@@ -727,12 +938,12 @@ par (lam M) (lam M') := nabla x, par (M x) (M' x);
 
 Abel's work on the $λμ$-calculus is in Twelf, and the situation there
 is similar to Abella's specification logic: no $\nabla$ quantifier.
-Abel noted issues with defining parallel reduction for the $λμ$-calculus in Twelf.
-There are no issues when we take the nabla quantifier approach.
+Abel noted issues with defining parallel reduction for the $λμ$-calculus in Twelf \cite{3rd}.
+There are no issues when we take the $\nabla$ quantifier approach.
 Not only is parallel reduction definable,
-but as noted by Accatoli \cite{pearl},
+but, as noted by Accatoli \cite{pearl},
 formalizations using only the reasoning logic
-can be significantly simpler than using $λ$-Prolog,
+can be significantly simpler than using $λ$-Prolog with the above trick,
 and so this is the approach we take.
 In the end, we believe our work constitutes the first mechanized proof of confluence for a variant of the $λμ$-calculus.
 
@@ -754,7 +965,7 @@ Moreover, the Abella formalization differs from the definitions in Chapter \ref{
 		involving a unification variable applied to non-variables.
 		Furthermore, we would have to introduce a proposition that checks
 		that a context \lstinline{expr -> expr} is an evaluation context.
-		We instead introduce auxiliary relations that walk the relevant contexts:
+		We instead introduce auxiliary relations that walk the relevant contexts, for example:
 		\begin{lstlisting}
 nabla k, step (k (E k)) (E' k k) :=
   nabla k, stepc (E k) (E' k);
@@ -834,29 +1045,28 @@ which is not a valid argument (take $\Rightarrow=→$ for a counterexample, it i
 
 
 \section{Tail reductions and letcc}
-The central idea in our paper is the reduction
+The central idea in our paper is embodied by the reduction
 $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
 It is tempting to decompose $\S$ into its constituent parts:
 a $\keyword{letcc}$ which binds the continuation without aborting, and an abort $\A$:
 $$\S κ.\,e ≡ \keyword{letcc}\;κ.\,\A\,e$$
 Then we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
 $$\Let{x}{e}{\keyword{letcc}\;κ.\,t} → \keyword{letcc}\;κ.\,\Let{x}{e}{t}$$
-Analogous reductions have been considered for undelimited continuations.
+Analogous reductions have been considered for undelimited continuations \cite{sabry}.
 
 There are issues with this approach, though:
 \begin{enumerate}
+	\item
+		The above reduction isn't semantics-preserving. If $e$ above is the nonterminating $Ω$,
+		then the left side diverges, while the right side gets stuck on searching for a delimiter.
+		We could ensure a delimiter is found by performing the reduction only in $⟨L⟩$,
+		but then it is unclear if there are serious benefits to this approach.
 
 	\item
-Because $\keyword{letcc}$ binds the continuation and keeps running in it
-$$⟨E[\keyword{letcc}\;κ.\,e]⟩ ↦ ⟨E[e\subst{κ}{⟨E⟩}]⟩$$
-it seems inherently incompatible with one-shot (linear) continuations.
-This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5.
-\item
-
-The above reduction isn't semantics-preserving. If $e$ above is the nonterminating $Ω$,
-then the left side diverges, while the right side gets stuck on searching for a delimiter.
-We could ensure a delimiter is found by performing the reduction only in $⟨L⟩$,
-but then it is unclear if there are serious benefits to this approach.
+		Because $\keyword{letcc}$ binds the continuation and keeps running in it
+		$$⟨E[\keyword{letcc}\;κ.\,e]⟩ ↦ ⟨E[e\subst{κ}{⟨E⟩}]⟩$$
+		it seems inherently incompatible with one-shot (linear) continuations.
+		This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5.
 \end{enumerate}
 
 
@@ -866,11 +1076,14 @@ $$⟨e│x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\;e_r}⟩$$
 $$\Handle e \With x,k.\,e_h │ x.\,e_r ≡ ⟨\Let{x}{e}{\A\;e_r}│λx,k.\,e_h⟩$$
 An equivalence reminiscent of it has been proven for typed algebraic effects \cite{hwc}:
 $$\Handle e \With x,k.\,e_h │ x.\,e_r ≈\Handle \Let{x}{e}{\Lift{e_r}} \With x,k.\,e_h$$
+Our encoding is clearly the natural one, since its correctness
+is proven just by calculation of a few evaluation steps.
+
+The idea in both is that we want $e_r$ to be unable to reach the handler.
 After $e$ has finished evaluating and we start evaluating the rhs of $\KwLet$,
 we know that the frame at the top of the stack will be the handler.
-So instead of adding a $\KwLift$ stack frame that makes effects skip the $\KwLift$-handler pair \cite[Appendix A]{hwc},
-we can just pop the handler with an $\A$ for an equivalent result.
-Our approach is therefore slightly more space- and time-efficient.
+Our solution is popping the handler with $\abort$,
+theirs is pushing a $\KwLift$ stack frame that makes effects skip the $\KwLift$-handler pair \cite[Appendix A]{hwc}.
 
 \chapter{Discussion and future work}
 
