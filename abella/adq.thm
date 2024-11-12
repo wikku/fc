@@ -8,14 +8,15 @@ Type app        val -> val -> expr.
 Type let        expr -> (val -> expr) -> expr.
 Type shift0     ((expr -> expr) -> expr) -> expr.
 Type delim      val -> expr -> expr.
-Type ask        (expr -> expr) -> expr.
+Type ask        expr -> expr.
+Type hole       expr.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 Define is_expr : expr -> prop,
        is_val : val -> prop,
-       is_evctx : (expr -> expr) -> prop by
+       is_evctx : expr -> prop by
   nabla x, is_val x;
   is_val (lam E) := nabla x, is_expr (E x);
 
@@ -24,12 +25,12 @@ Define is_expr : expr -> prop,
   is_expr (delim U E) := is_val U /\ is_expr E;
   is_expr (shift0 E) := nabla k, is_expr (E k);
   is_expr (ret V) := is_val V;
-  is_expr (ask o\ delim U (E o)) := is_evctx E;
-  nabla k, is_expr (ask o\ k (E k o)) := nabla k, is_evctx (E k);
+  is_expr (ask (delim U E)) := is_val U /\ is_evctx E;
+  nabla k, is_expr (ask (k (E k))) := nabla k, is_evctx (E k);
   nabla k, is_expr (k (E k)) := nabla k, is_expr (E k);
 
-  is_evctx (o\ o);
-  is_evctx (o\ let (E o) T) := is_evctx E /\ nabla x, is_expr (T x).
+  is_evctx hole;
+  is_evctx (let E T) := is_evctx E /\ nabla x, is_expr (T x).
 
 
 Define step : expr -> expr -> prop,
@@ -37,7 +38,7 @@ Define step : expr -> expr -> prop,
   step (let (ret V) T) (T V);
   step (app (lam E) V) (E V);
   step (delim U (ret V)) (ret V);
-  step (ask o\ (delim V (K o))) (ret V);
+  step (ask (delim V K)) (ret V);
   step (delim U E) (E' (delim U)) := stepc E E';
   nabla k, step (k (E k)) (E' k k) := nabla k, stepc (E k) (E' k);
 
@@ -179,16 +180,13 @@ Define int : mode -> expr -> expr -> prop,
   nabla x, intv x x;
   intv (lam E) (lam E') := nabla x, stan g (E x) (E' x);
 
-%  nabla o, int (M o) o o;
   int M (ret V) (ret V') := intv V V';
   int M (app V U) (app V' U') := intv V V' /\ intv U U';
   int M (let E T) (let E' T') := int g E E' /\ nabla x, stan M (T x) (T' x);
   int M (shift0 E) (shift0 E') := nabla k, stan g (E k) (E' k);
   int M (delim U E) (delim U' E') := intv U U' /\ int (d U) E E';
-%  int M (ask K) (ask K') := nabla o, stan g (K o) (K' o) /\ is_expr (ask K);
-  int M (ask K) (ask K') := nabla o, intk (K o) (K' o);
+  int M (ask K) (ask K') := intk K K';
   int M (let (shift0 E) T) (shift0 k\ E' (o\ k (let o T'))) := nabla x k, stan g (E k) (E' k) /\ stan M (T x) (T' x);
-  %int M (let (let E T1) T2) (let E' T') := int g E E' /\ nabla x, int M (let (T1 x) T2) (T' x);
   int M (let (let E T1) T2) (let E' x\ let (T1' x) T2') := int g E E' /\ nabla x, stan g (T1 x) (T1' x) /\ stan M (T2 x) (T2' x);
   nabla k, int (M k) (k (E k)) (k (E' k)) := nabla k, int g (E k) (E' k);
   int (d U) (shift0 E) (shift0 k\ E' (delim U')) := nabla k, stan g (E k) (E' k) /\ intv U U';
@@ -197,57 +195,12 @@ Define int : mode -> expr -> expr -> prop,
 
   nabla k, intk (k (E k)) (k (E' k)) := nabla k, inte g (E k) (E' k);
   intk (delim U E) (delim U' E') := intv U U' /\ inte (d U) E E';
-%  nabla o, intk (delim (U o) o) (delim (U' o) o) := nabla o, intv (U o) (U' o);
-%  intk (delim U (let E T)) (delim U' (let E' T')) := intv U U' /\ inte E E' /\ nabla x, stan (d U) (T x) (T' x);
-%
-  nabla o, inte (M o) o o;
+
+  inte M hole hole;
   inte M (let E T) (let E' T') := inte g E E' /\ nabla x, stan M (T x) (T' x);
   inte M (let (let E T1) T2) (let E' x\ let (T1' x) T2') := inte g E E' /\ nabla x, stan g (T1 x) (T1' x) /\ stan M (T2 x) (T2' x);
 
   stan M E E' := exists E'', many step E E'' /\ int M E'' E'.
-
-%Theorem steps_nohole : forall E E', nabla (o : expr), many step (E o) E' -> exists E', E = x\ E'.
-%skip.
-%
-Theorem nohole :
-  (forall M E E', nabla (o : expr), int M (E o) E' -> exists E', E = x\ E') /\
-  (forall E E', nabla (o : expr), intv (E o) E' -> exists E', E = x\ E') /\
-  (forall M E E', nabla (o : expr), stan M (E o) E' -> exists E', E = x\ E') /\
-  (forall E E', nabla (o : expr), intk (E o) E' -> exists E', E = x\ E') /\
-  (forall M E E', nabla (o : expr), inte M (E o) E' -> exists E', E = x\ E').
-  induction on 1 1 1 1 1. split.
-  intros. Set instantiations on. case H1 (keep).
-    apply IH1 to H2. search.
-    apply IH1 to H2. apply IH1 to H3. search.
-    apply IH to H2. apply IH2 to H3. search.
-    apply IH2 to H2. search.
-    apply IH1 to H2. apply IH to H3. search.
-    apply IH3 to H2. search.
-    case H2.
-    Quit.
-    Quit.
-    apply IH2 to H2. apply IH2 to H3. search.
-    apply IH to H2. apply IH2 to H3. apply IH2 to H4. search.
-    apply IH to H2. search.
-    apply IH2 to H2. apply IH1 to H3. search.
-    apply IH1 to H2. search.
-    apply IH2 to H2. search.
-  intros. case H1.
-    search.
-    apply IH2 to H2. search.
-  intros. case H1.
-    apply IH to H3.
-    apply steps_nohole to H2. search.
-  intros. case H1.
-  Quit.
-    apply IH4 to H2. search.
-    apply IH1 to H2. apply IH4 to H3. search.
-  intros. case H1.
-    search.
-
-    
-  Quit.
-
 
 Theorem intg_intds :
   (forall E E' U, int g E E' -> int (d U) E E') /\
@@ -610,8 +563,7 @@ Theorem posts :
             apply IH1 to H11 H7. apply stan_sublet to _ H14. apply stan_subdelim to H4 H15. case H16. apply steps_cong_delim to H9 with U = U. assert many step (delim U (let E4 T1)) (E''' (o\ delim U (let o T1))). apply steps_app to H19 H20. apply steps_app to H21 H17. search.
             apply IH1 to H11 H7. assert nabla x, stan g (T1 x) (T1' x) /\ stan g (T2 x) (T2' x). apply stan_subllet to H16 H15. apply stan_subdelim to H4 H17. case H18. apply steps_cong_delim to H9 with U = U. assert many step (delim U (let (let E4 T1) T2)) (E''' (o\ delim U (let (let o T1) T2))). apply steps_app to H21 H22. apply steps_app to H23 H19. search.
       apply IH to H5 H6 _. case H7. apply steps_cong_delim to H8 with U = U. search.
-    case H2 (keep). case H4.
-    Quit.
+    case H2. case H4. search.
     case H2.
     case H2.
       case H4. apply stan_subv to H5 H7. case H8. apply steps_cong_let to H9 with T = T2. search.
@@ -624,10 +576,11 @@ Theorem posts :
   intros. case H1.
     case H2.
     case H2.
-    case H2. apply IH1 to H3 H5. apply stan_sublet to H4 H7. search.
+    case H2. apply IH1 to H3 H5. assert nabla x, stan g (T x) (T' x). apply stan_sublet to H8 H7. search.
     case H2. search.
     case H2.
-    case H2. apply stan_sublet to H4 H3. search.
+    case H2.
+    case H2. assert nabla x, stan g (T x) (T' x). apply stan_sublet to H5 H3. search.
     case H2. apply IH1 to H3 H6. assert nabla x, stan g (T1 x) (T1' x) /\ stan g (T2 x) (T2' x). apply stan_subllet to H9 H8. search.
     case H2.
 
@@ -662,7 +615,7 @@ Theorem qscomms :
     case H1. case H4. apply stan_subv to H5 H6. search.
     case H1. case H4. apply stan_subv to H6 H5. apply stang_stanM to H7 _. search.
     case H1. case H5. search.
-    case H1.
+    case H1. case H4. search.
     case H1. case H4.
       case H6.
         apply stan_subdelim to H5 H7. apply stang_stanM to H8 _. search.
@@ -686,7 +639,7 @@ Theorem qscomms :
     case H1. search.
     case H1.
       apply IH1 to H4 H3. apply stan_sublet to _ H7. search.
-      case H3. apply stan_sublet to H5 _. search.
+      case H3. assert nabla x, stan g (T x) (T' x). apply stan_sublet to H6 H4. search.
       case H3. apply IH1 to H4 H7. assert nabla x, stan g (T1 x) (T1' x) /\ stan g (T x) (T2' x). apply stan_subllet to H10 H9. search.
 
 Split qscomms as qscomm, qscommc.
@@ -750,18 +703,24 @@ Theorem subcomm : forall E1 E2 E3, stan g E1 E2 -> step E1 E3 -> exists E4, mayb
 
 Theorem refls :
   (forall E, is_expr E -> int g E E) /\
-  (forall V, is_val V -> intv V V).
-  induction on 1 1. split.
+  (forall V, is_val V -> intv V V) /\
+  (forall E, is_evctx E -> inte g E E).
+  induction on 1 1 1. split.
   intros. case H1.
     apply IH1 to H2. apply IH1 to H3. search.
     apply IH to H2. apply IH to H3. search.
     apply IH1 to H2. apply IH to H3. apply intg_intd to H5 with U = U. search.
     apply IH to H2. search.
     apply IH1 to H2. search.
+    apply IH1 to H2. apply IH2 to H3. apply integ_inted to H5 with U = U. search.
+    apply IH2 to H2. search.
     apply IH to H2. search.
   intros. case H1.
     search.
     apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H2. apply IH to H3. search.
 
 Split refls as int_refl, intv_refl.
 
