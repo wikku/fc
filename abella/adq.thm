@@ -722,11 +722,12 @@ Theorem refls :
     search.
     apply IH2 to H2. apply IH to H3. search.
 
-Split refls as int_refl, intv_refl.
+Split refls as int_refl, intv_refl, inte_refl.
 
 Define red : expr -> expr -> prop,
        redd : val -> expr -> expr -> prop,
-       redv : val -> val -> prop by
+       redv : val -> val -> prop,
+       rede : expr -> expr -> prop by
   redv (lam E) (lam E') := nabla x, red (E x) (E' x);
 
   red (app (lam E) V) (E V) := nabla x, is_expr (E x) /\ is_val V;
@@ -734,6 +735,8 @@ Define red : expr -> expr -> prop,
   red (delim U (shift0 E)) (E (delim U)) := nabla x, is_expr (E x) /\ is_val U;
   red (let (shift0 E) T) (shift0 k\ E (o\ k (let o T))) := nabla x k, is_expr (E k) /\ is_expr (T x);
   red (let (let E T1) T2) (let E x\ let (T1 x) T2) := nabla x, is_expr E /\ is_expr (T1 x) /\ is_expr (T2 x);
+  red (ask (delim V K)) (ret V) := is_val V /\ is_evctx K;
+  red (delim U (ret V)) (ret V) := is_val U /\ is_val V;
   nabla k, red (k (shift0 (E k))) (E k k) := nabla k, is_expr (E k k);
   redd U (shift0 E) (shift0 k\ (E (delim U))) := nabla k, is_expr (E k) /\ is_val U;
   redd U (shift0 k\ ret V) (ret V) := is_val V /\ is_val U;
@@ -749,19 +752,29 @@ Define red : expr -> expr -> prop,
   red (delim U E) (delim U' E) := redv U U' /\ is_expr E;
   red (ret V) (ret V') := redv V V';
   nabla k, red (k (E k)) (k (E' k)) := nabla k, red (E k) (E' k);
-  redd U (let E T) (let E T') := nabla x, is_expr E /\ redd U (T x) (T' x).
+  redd U (let E T) (let E T') := nabla x, is_expr E /\ redd U (T x) (T' x);
+
+  nabla k, red (ask (k (E k))) (ask (k (E' k))) := nabla k, rede (E k) (E' k);
+  red (ask (delim U E)) (ask (delim U' E)) := redv U U' /\ is_evctx E;
+  red (ask (delim U E)) (ask (delim U E')) := is_val U /\ rede E E';
+
+  rede (let E T) (let E' T) := rede E E' /\ nabla x, is_expr (T x);
+  rede (let E T) (let E T') := is_evctx E /\ nabla x, red (T x) (T' x).
 
 Theorem red_stans :
   (forall E E', red E E' -> stan g E E') /\
   (forall V V', redv V V' -> intv V V') /\
-  (forall U E E', redd U E E' -> int (d U) E E').
-  induction on 1 1 1. split.
+  (forall U E E', redd U E E' -> int (d U) E E') /\
+  (forall E E', rede E E' -> inte g E E').
+  induction on 1 1 1 1. split.
   intros. case H1.
     apply int_refl to H2. apply intv_refl to H3. apply int_subv to H4 H5. search.
     apply int_refl to H2. apply intv_refl to H3. apply int_subv to H4 H5. search.
     apply int_refl to H2. apply intv_refl to H3. apply int_subdelim to H5 H4. search.
     apply int_refl to H3. apply int_refl to H2. apply int_sublet to _ H5. search.
     apply int_refl to H2. apply int_refl to H3. apply int_refl to H4. search.
+    apply intv_refl to H2. apply inte_refl to H3. search.
+    apply intv_refl to H2. apply intv_refl to H3. search.
     apply int_refl to H2. search.
     apply IH1 to H2. apply intv_refl to H3. search.
     apply IH1 to H2. apply intv_refl to H3. search.
@@ -773,6 +786,9 @@ Theorem red_stans :
     apply IH1 to H2. apply int_refl to H3. apply intg_intd to H5 with U = U. search.
     apply IH1 to H2. search.
     apply IH to H2. case H3. apply steps_cong_k to H4. search.
+    apply IH3 to H2. search.
+    apply IH1 to H2. apply inte_refl to H3. apply integ_inted to H5 with U = U. search.
+    apply intv_refl to H2. apply IH3 to H3. apply integ_inted to H5 with U = U. search.
   intros. case H1.
     apply IH to H2. search.
   intros. case H1.
@@ -780,6 +796,9 @@ Theorem red_stans :
     apply intv_refl to H2. search.
     apply int_refl to H2. search.
     apply int_refl to H2. apply IH2 to H3. search.
+  intros. case H1.
+    apply IH3 to H2. apply int_refl to H3. search.
+    apply inte_refl to H2. apply IH to H3. search.
 
 Split red_stans as red_stang, redv_intv, redd_intd.
 
