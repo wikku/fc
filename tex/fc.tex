@@ -242,8 +242,6 @@ instead of performing the operation
 we could \textit{abort} the handler and execute the clause specialized with the specific substitutions.
 That is, rewrite the $\Op (y*2)$ into:
 $$\abort\,(k\,(x*3))\subst{x}{y*2}\subst{k}{λz.\,\Handle z \With x\;k.\,k\,(x*3)}$$
-%The result of the substituE and the following simplification are:
-%$$\Handle \Let{x}{e}{\abort\,\big((λy.\,\Handle y \With z\;k.\,k\,(z*3)) (x*2*3)\big)} \With z\;k.\,k\,(z*3)$$
 After some simplification we obtain:
 $$\Handle \Let{y}{e}{\abort\,(y*6)} \With x\;k.\,k\,(x*3)$$
 
@@ -258,9 +256,6 @@ The preceding whirlwind development may raise some questions.
 	\item Will the optimization rule fit on the page, if the evaluation one almost didn't?
 \end{enumerate}
 We will try to address them.
-
-%Of course, this poses questions such as ``where does the abort come from?''
-%and ``how monstrous will the general rewrite rule be?''...
 
 The issue with conventional syntax for operations and effect handlers is that
 the operations are \textit{passive}.
@@ -307,8 +302,6 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 	(λx.\,e)\:v &↦ e\subst{x}{v} \\
 	\Let{x}{v}{t} &↦ t\subst{x}{v} \\
 	⟨v╱u⟩ &↦ v \\
-%	⟨E[\S κ.\,e]╱v⟩ &↦ e\subst{κ}{⟨E╱v⟩} \\
-%	κ⟦E[\S κ'.\,e]⟧ &↦ e\subst{κ'}{κ⟦E⟧}
 	D[\S κ'.\,e] &↦ e\subst{κ'}{D}
 \end{align*}
 \caption{Evaluation step.}
@@ -317,7 +310,6 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 \begin{figure}
 	\begin{align*}
 		λx\,y.\,e &≡ λx.\,λy.\,e \tag{multi-param lambda} \\
-%		e\;v &≡ \Let{x}{e}{x\;v} \tag{application to expr}\\
 		e_1\:e_2 &≡ \Let{x}{e_1}{\Let{y}{e_2}{x\,y}} \tag{left-to-right application}\\
 		\A\,e ≡ \abort\,e&≡ \S \_.\,e \tag{abort}\\
 		⟨e⟩ &≡ ⟨e╱λx.\,x⟩ \tag{reset with dummy value}\\
@@ -331,7 +323,6 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 	\label{shorthands}
 \end{figure}
 \begin{figure}
-%	$$L ::= □ │ \Let{x}{e}{L}$$
 	\begin{align*}
 		(λx.\,e)\,v &→ e\subst{x}{v} \tagmath{λ.v} \\
 		\Let{x}{v}{t} &→ t\subst{x}{v} \tagmath{\KwLet{}.v} \\
@@ -359,7 +350,6 @@ $\S$ is similar to $μ$ in the $λμ$-calculus.
 }
 The \textit{reset} or \textit{delimiter} $⟨e╱v⟩$ delimits continuations captured in $e$ and carries a value $v$.
 The \textit{plug} construct $κ⟦e⟧$ installs continuation $κ$ and resumes with execution of $e$.%
-%We use the notation $κ⟦e⟧$ for plugging the expression $e$ into a continuation $κ$.%
 \footnote{
 The $λμ$-calculus conventionally uses the notation $⟦κ⟧e$, but we abandon it
 as it's inconsistent with the common metanotation of plugging an expression into a context.
@@ -394,12 +384,10 @@ It suffices to consider the two expression formers that use $κ$:
 %		the meta-operation of plugging gets stuck, a normal form.
 	\item
 		$\Ask(κ)\subst{κ}{⟨E╱v⟩} ≡ v$ \\
-		$\Ask(κ)\subst{κ}{κ'⟦E⟧} ≡ \Ask(κ')$ \\
+		$\Ask(κ)\subst{κ}{κ'⟦E⟧} ≡ \Ask(κ')$
 \end{enumerate}
 As further illustration, 
 here are the three forms of structural substitution used in reduction (figure \ref{reduction}):
-%Reduction (figure \ref{reduction}) uses only three specific forms of structural substitution:
-%We also show all the forms of substitution used in reduction (figure \ref{reduction}):
 \begin{align*}
 	κ⟦e⟧\subst{κ}{κ'} &≡ κ'⟦e\subst{κ}{κ'}⟧ \\
 	\Ask(κ)\subst{κ}{κ'} &≡ \Ask(κ') \\
@@ -431,37 +419,29 @@ metacontinuations correspond to machine stacks and $\S$ captures the stack up to
 \section{Shorthands}
 We will be using the shorthands in figure \ref{shorthands}.
 The first two of them are commonly used for convenience.
-%The first few shorthands (figure \ref{shorthands}) are rather common and just for convenience.
 The third one introduces the notation $\A$ for $\abort$.
-The fourth one lets us omit the data in delimiters ($╱v$) when irrelevant.
-%Later, we have macro-expressions that formally justify that the calculus 
-Then we have macros that formally justify that the calculus can express the relevant
-control operators in their standard form. % TODO style
+The fourth one lets us omit data in delimiters ($╱v$) when irrelevant.
+Then, we have macros that formally justify that the calculus can express the relevant
+control operators in their standard form.
 It is easy to check that evaluation steps simulate the standard evaluation rules for the simulated constructs,
-%This is done by checking that evaluation steps simulate the standard evaluation rule for the simulated construct.
-%The calculations are easy,
 we write out some examples for $\shiftz$ and effect handlers.
 \begin{align*}
 	⟨E[\shiftz\,k.\,e]⟩
 	&≡ ⟨E[\S κ.\,\Let{k}{λx.\,κ⟦x⟧}{e}]⟩ \\
 	&↦ \Let{k}{λx.\,⟨E[x]⟩}{e} \\
-	&↦ e\subst{k}{λx.\,⟨E[x]⟩}
-\\ \\
-%\end{align*}
-%\begin{align*}
+	&↦ e\subst{k}{λx.\,⟨E[x]⟩} \\
+\\
 	\Handle E[\Op v] \With x\,k.\,t
 	&≡ ⟨E[\S κ.\,\Ask(κ)\:v\:(λx.\,κ⟦x⟧)]╱λx\,k.\,t⟩ \\
 	&↦ (λx\,k.\,t)\:v\:(λx.\,⟨E[x]╱λx\,k.\,t⟩) \\
 %	&↦ (λk.\,t\subst{x}{v})\:(λx.\,⟨E[x]╱λx\,k.\,t⟩) \\
 	&↦^* t\subst{x}{v}\subst{k}{λx.\,⟨E[x]╱λx\,k.\,t⟩} \\
-	&≡ t\subst{x}{v}\subst{k}{λx.\,\Handle E[x] \With x\,k.\,t}
-\\ \\
-%\end{align*}
-%\begin{align*}
-	\Handle v \With x\,k.\,t_h ¦ x.\,t_r
-	&≡ ⟨\Let{x}{v}{\A\,t_r}╱λx\,k.\,t_h⟩ \\
-	&↦ ⟨\A\,t_r\subst{x}{v}╱λx\,k.\,t_h⟩ \\
-	&↦ t_r\subst{x}{v}
+	&≡ t\subst{x}{v}\subst{k}{λx.\,\Handle E[x] \With x\,k.\,t} \\
+\\
+	\Handle v \With x\,k.\,t_h ¦ y.\,t_r
+	&≡ ⟨\Let{y}{v}{\A\,t_r}╱λx\,k.\,t_h⟩ \\
+	&↦ ⟨\A\,t_r\subst{y}{v}╱λx\,k.\,t_h⟩ \\
+	&↦ t_r\subst{y}{v}
 \end{align*}
 
 The last calculation above features a handler with a \textit{return clause}.
@@ -496,7 +476,6 @@ We can consider a similar example with the value-capturing $\shiftz$ syntax:
 $$\Let{x}{\shiftz\,k.\,k\,40}{f\,x}$$
 If $\shiftz$ captures the continuation, $f$ will be applied to $40$, but there is nothing we can do with that knowledge in this syntax.
 A naïve attempt would be:
-%We could try the following:
 $$\shiftz\,k.\, k\,(f\,40)$$
 But this is incorrect: $f\,40$ won't run inside the captured continuation, it will be evaluated separately and
 then the result will be passed to $k$.
@@ -524,10 +503,6 @@ This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} �
 %whereas previous formalizations have used workarounds with lambda abstractions.
 
 \subsection{Capturing the static delimiter out of order}
-%By the $\KwLet{}.\KwLet{}$ and $\KwLet{}.\S$ rules, every $\S$
-%directly inside a delimiter can be moved into its tail position.
-%There, we can apply the $dL.\S$ rule that says this is the delimiter
-%that the $\S$ may capture.
 
 The rule $dL.\S$ says that an $\S$ in the tail position of a delimiter
 will capture that delimiter (if we get to it).
@@ -659,7 +634,6 @@ For this work, it's especially useful to unblock the $\KwLet{}.\S$ and tail-of-r
 \end{align*}
 More abstractly, it commutes evaluation and tail contexts:
 $$E[L] →^* L[E]$$
-%In this way, it improves applicability of the ``monstrous'' coarse-grained reduction.
 In this way, it improves applicability of the coarse-grained reductions derived previously:
 we can statically handle any effect separated from the handler only by $\KwLet$ expressions.
 
@@ -713,13 +687,13 @@ an internal parallel reduction: $↦^* · \Int$.
 	\inferrule{e \Int e' \\ t_1 \Stan t_1' \\ t_2 \Stan t_2'}
 	{\Let{x}{\Let{y}{e}{t_1}}{t_2} \Int \Let{y}{e'}{\Let{x}{t_1'}{t_2'}}}
 
-	\inferrule{L \Int L' \\ e \Int e' \\ v \Int v' }
+	\inferrule{L \Int L' \\ e \Stan e' \\ v \Int v' }
 	{⟨L[\S κ.\,e]╱v⟩ \Int ⟨L'[\A\,e'\subst{κ}{⟨□╱v'⟩}]╱v'⟩}
 
-	\inferrule{L \Int L' \\ e \Int e' \\ v \Int v' }
+	\inferrule{L \Int L' \\ e \Stan e' \\ v \Int v' }
 	{⟨L[\A\,⟨e╱v⟩]╱v⟩ \Int ⟨L'[e']╱v'⟩}
 
-	\inferrule{L \Int L' \\ e \Int e' \\ v \Int v' \\ u \Int u' }
+	\inferrule{L \Int L' \\ v \Int v' \\ u \Int u' }
 	{⟨L[\A\,u]╱v⟩ \Int ⟨L'[u']╱v'⟩}
 \end{mathpar}
 \caption{Internal parallel reduction.}
@@ -851,7 +825,8 @@ These two features might look like the most benign of the bunch,
 but they pose great technical difficulties.
 
 \section{Parallel reduction}
-The parallel reduction has two modes (ranged over by $M$): \textit{g}eneral and tail of \textit{d}elimiter.
+The parallel reduction (figure \ref{parallel}) has two modes (ranged over by $M$):
+\textit{g}eneral and tail of \textit{d}elimiter.
 
 \begin{figure}
 	\begin{mathpar}
@@ -980,7 +955,76 @@ $$
 $$
 We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes whole, now after structural substitution.
 
-\section{Conditional result}
+\section{Towards a proof for the full calculus}
+The difficulties lead us to search for another approach to proving confluence.
+
+There is a way of defining
+parallel reduction indirectly, by first establishing a theory of residuals.
+This involves contracting previously marked sets of redexes in a term.
+Because of the situations where redexes are torn apart, this might be impossible.
+
+A more promising approach relies on proving termination of reductions.
+De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}
+should be rather easily adaptable to include $k.\S$ and $d.\S$.
+The tail-of-reset reductions would involve more work.
+The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
+Then, the standard argument by Newman's lemma and Hindley-Rosen's lemma should work.
+
+The method of decreasing diagrams \cite{dd} reduces the problem to a well-ordered
+labeling of reductions and a form of local confluence, viz.
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm, auto, scale=1, every node/.style={scale=1}]
+\useasboundingbox (-0.5, -0.5) rectangle (5.5, 3.5);
+
+\node (a) at (0, 3) {};
+\node (b) at (5, 3) {};
+\node (c) at (0, 0) {};
+\node (d) at (5, 0) {};
+
+\node (c1) at (2, 0) {}; % First split for c->d
+\node (c2) at (3, 0) {}; % Second split for c->d
+\node (b1) at (5, 2) {}; % First split for b->d
+\node (b2) at (5, 1) {}; % Second split for b->d
+
+\draw[->] (a) -- node[above] {$β$} (b); % a to b
+\draw[->] (a) -- node[left] {$α$} (c); % a to c
+
+\draw[->, dashed] (c) -- node[below] {$<α$} (c1); % c to c1
+\draw[->, dashed] (c1) -- node[below] {$β$} (c2); % c1 to c2
+\draw[->, dashed] (c2) -- node[below] {${<α} ∪ {<β}$} (d); % c2 to d
+
+\draw[->, dashed] (b) -- node[right] {$<β$} (b1); % b to b1
+\draw[->, dashed] (b1) -- node[right] {$α$} (b2); % b1 to b2
+\draw[->, dashed] (b2) -- node[right] {${<α} ∪ {<β}$} (d); % b2 to d
+
+\node at (c1) [above=0.2cm, left=0.1cm] {$*$};
+\node at (c2) [above=0.2cm, left=0.1cm] {$=$};
+\node at (d) [above=0.4cm, left] {$*$};
+
+\node at (b1) [above=0.2cm, left] {$*$};
+\node at (b2) [above=0.2cm, left] {$=$};
+\node at (d) [above=0.2cm, left=0.2cm] {$*$};
+\end{tikzpicture}
+\end{center}
+
+It is not easily applied in our case.
+Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
+We can try labeling reductions with their names at first.
+\begin{enumerate}
+	\item
+If $\KwLet{}.\S < \KwLet{}.\KwLet{}$, then
+we would need to parallelize the $\KwLet{}.\KwLet{}$ reduction,
+because it is used many times on the left.
+	\item
+	If $\KwLet{}.\S > \KwLet{}.\KwLet{}$, then
+the diagram is not decreasing because of the follow-up $\KwLet{}.\S$ reduction on the left.
+We could refine the order on $\KwLet{}.\S$ labels by introducing
+self-labeling ordered by structural reductions
+($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{Str}^+ e'$),
+but then we would have to prove them strongly normalizing.
+\end{enumerate}
+An idea to try is ordering by the depth at which reduction occurs.
 
 
 \chapter{Abella mechanization}
@@ -1141,7 +1185,6 @@ the delimiter distributing over \KwLet{} expressions so that \textit{a} delimite
 There, the return clause is an integral part of the syntax.
 
 We note that the equational theory (equivalence closure of reduction) of our calculus
-%since its equational theory (equivalence closure of reduction)
 contains the relevant reductions (after macro-translation to our calculus).\footnote{
 	In \cite{agen,ppdp21} values (meant to be $λ$-abstractions) are used where we have binder syntax,
 	so some applications of the $η$-rule might also be needed.
@@ -1195,17 +1238,8 @@ This is enough to simulate the rule for lift-handler interaction \cite[\textbf{D
 Our equational theory is in fact strictly more powerful:
 the delimiter-oriented reductions cannot do anything when there
 is no delimiter, but we can (subsection \ref{strred}).
-%We also consider turning $\KwLet{}$s into delimiters unsatisfactory,
-%as delimiters typically have a much higher runtime cost than $\KwLet{}$ bindings.
 
-
-%\begin{align*}
-%&\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
-%&→ \Handle e \With y\,k.\,t_h ¦ x.\,\Handle t \With y\,k.\,t_h ¦ z.\,t_r
-%\end{align*}
-
-
-\section{$\shiftz$ axiomatization}
+\section{shift0 axiomatization}
 It might be interesting to compare the axiomatization of $\shiftz$ by Materzok \cite{materzok}.
 We pick the most interesting rules and restate them into more familiar notations.
 
@@ -1258,10 +1292,7 @@ with the equivalences $arb\,() = or(λ\_.\,\true, λ\_.\,\false)$ and
 $or(k_1,k_2) = \mathsf{if}\;arb\,()\;\mathsf{then}\; k_1 () \;\mathsf{else}\;k_2 ()$ \cite{alggen}
 \footnote{$2 ≅ \mathsf{bool}$}.
 
-The equality for handling \cite{handlers} shouldn't be surprising%
-%(operation with no payload)
-:
-%Handling of algebraic operations can be characterized by equalities \cite{handlers}, viz.
+The equality for handling \cite{handlers} shouldn't be surprising:
 $$\Handle \Op(\overline{v_i}) \With \Op(\overline{k_i}).\,t = t\overline{\subst{k_i}{λx.\,\Handle v_i\:x \With \Op(\overline{k_i}).\,t}}$$
 The connection of algebraic operations and control wasn't explicitly noted at first,
 but can be seen in the naturality condition for algebraic operations,
@@ -1285,7 +1316,7 @@ clause as an evaluation frame \textit{below} the delimiter \cite{effmondel, fscd
 In the most popular version,
 an operation captures the continuation and returns a $λ$-abstraction
 which is waiting to be applied to the handler clause.
-$$\Op v ≡ \shiftz\,k.\,λh.\,h\:v\:(λy.\,k:;y\:h) \quad\quad \Handle e \With x\,k.\,t ≡ ⟨e¦x.\,λh.\,x⟩\,(λx\,k.\,t)$$
+$$\Op v ≡ \shiftz\,k.\,λh.\,h\:v\:(λy.\,k\:y\:h) \quad\quad \Handle e \With x\,k.\,t ≡ ⟨e¦x.\,λh.\,x⟩\,(λx\,k.\,t)$$
 Here, we cannot use general optimizations for $\shiftz$ to statically handle effects,
 because it is not guaranteed that the application will be waiting under the delimiter.
 The invariant could be broken by $\shiftz$s that are not of the $\Op v$ form.
@@ -1294,16 +1325,16 @@ This encoding is very similar to the encoding of dynamic binding as delimited co
 by Kiselyov et al.
 It's not hard to come up with encodings that directly express the handler clause $h$ as a dynamically bound parameter,
 either with the binder below the delimiter (on the machine stack):
-$$\Op v ≡ \shiftz\,k.\,h\:v\:k \quad\quad \Handle e \With x\,k.\,t ≡ d\Let{h}{λx\,k.\,t}{⟨e⟩}$$
+$$\Op v ≡ \shiftz\,k.\,h\:v\:k \quad\quad \Handle e \With x\,k.\,t ≡ \Dlet{h}{λx\,k.\,t}{⟨e⟩}$$
 or above:
-$$\Op v ≡ \Let{h'}{h}{\shiftz\,k.\,h'\:v\:k} \quad\quad \Handle e \With x\,k.\,t ≡ ⟨d\Let{h}{λx\,k.\,t}{e}⟩$$
+$$\Op v ≡ \Let{h'}{h}{\shiftz\,k.\,h'\:v\:k} \quad\quad \Handle e \With x\,k.\,t ≡ ⟨\Dlet{h}{λx\,k.\,t}{e}⟩$$
 The latter option seems preferable, since the d$\KwLet$ cannot be separated from the delimiter by a $\shiftz$
 and therefore general optimizations should apply.
 
-We have chosen to merge the two constructs which enhance execution contexts into one.
-In the end we believe 
-The problem with dynamic parameters $p$ and their binders $d\Let{p}{e}{t}$ is
-the same as with conventional syntax for operations and handlers:
+We have chosen to merge the two constructs which enhance execution contexts into one:
+reset binds the dynamic parameter and we can refer to it through the continuation variable.
+The problem with conventional syntax dynamic parameters $p$ and their binders $\Dlet{p}{e}{t}$ is
+the same as with for operations and handlers:
 they don't allow a fine-grained reduction,
 except for dynamic binders distributing over lexical binders.
 
@@ -1466,13 +1497,18 @@ where the delimiter is static,
 but the dynamically bound interpretation of the effect can be used at most once
 and has to be manually reinstated every time a continuation is installed.
 
-
+\section{Downgrading delimiters}
+In the process of optimization,
+a delimiter might become only needed for the dynamically bound value
+and not for general control.
+Such a delimiter could be implemented more efficiently,
+just as exception handlers are less costly than effect handlers.
 
 \section{Tail aborts}
-In general, delimited control operators search for the delimiter using a loop,
-but we know than an $\abort$ in the tail position of a delimiter
-will pop exactly one stack frame.
-This is a low-level optimization that can't be expressed in our calculus.
+An $\abort$ in the tail position of a delimiter
+doesn't have to search for it,
+it only has to pop exactly one stack frame.
+This is a potential low-level optimization that can't be expressed in our calculus.
 Perhaps when control is fully statically determined,
 it can be turned into jumps to join points \cite{cwc}.
 
