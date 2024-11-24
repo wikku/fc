@@ -1,5 +1,8 @@
 % vim: et
 
+
+%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 Kind val, expr  type.
 
 Type lam        (val -> expr) -> val.
@@ -10,9 +13,6 @@ Type shift0     ((expr -> expr) -> expr) -> expr.
 Type delim      val -> expr -> expr.
 Type ask        expr -> expr.
 Type hole       expr.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 Define is_expr : expr -> prop,
        is_val : val -> prop,
@@ -32,6 +32,8 @@ Define is_expr : expr -> prop,
   is_evctx hole;
   is_evctx (let E T) := is_evctx E /\ nabla x, is_expr (T x).
 
+
+%%% STEP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Define step : expr -> expr -> prop,
        stepc : expr -> ((expr -> expr) -> expr) -> prop by
@@ -163,7 +165,86 @@ Split step_subks as step_subk, stepc_subk.
 Theorem steps_subk : forall E E', nabla (k l : expr -> expr), many step (E k l) (E' k l) -> many step (E k k) (E' k k).
   induction on 1. intros. case H1. search. apply step_subk to H2. apply IH to H3. search.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Theorem steps_cong_let :
+  forall E E' T, many step E E' -> many step (let E T) (let E' T).
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3 with T = T. search.
+
+Theorem steps_cong_delim :
+  forall U E E', many step E E' -> many step (delim U E) (delim U E').
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3 with U = U. search.
+
+Theorem steps_cong_k :
+  forall E E', nabla k, many step (E k) (E' k) -> many step (k (E k)) (k (E' k)).
+  induction on 1.
+  intros. case H1.
+    search.
+    apply IH to H3. search.
+
+Theorem step?_cong_let :
+  forall E E' T, maybe step E E' -> maybe step (let E T) (let E' T).
+  intros. case H1. search. search.
+
+Theorem step?_cong_delim :
+  forall U E E', maybe step E E' -> maybe step (delim U E) (delim U E').
+  intros. case H1. search. search.
+
+Theorem step?_cong_k :
+  forall E E', nabla k, maybe step (E k) (E' k) -> maybe step (k (E k)) (k (E' k)).
+  intros. case H1. search. search.
+
+Theorem stepc_step : forall E E' E'', stepc E E' -> step E E'' -> false.
+  induction on 1.
+  intros. case H1.
+    case H2.
+    case H2.
+      case H3.
+      apply IH to H3 H4.
+
+Theorem step_dets :
+  (forall E E' E'', step E E' -> step E E'' -> E' = E'') /\
+  (forall E E' E'', stepc E E' -> stepc E E'' -> E' = E'').
+  induction on 1 1. split.
+  intros. case H1.
+    case H2.
+      search.
+      case H3.
+    case H2. search.
+    case H2.
+      search.
+      case H3.
+      case H3.
+    case H2. search.
+    case H2.
+      case H3.
+      apply IH1 to H3 H4. search.
+      apply stepc_step to H3 H4.
+    case H2.
+      apply IH1 to H3 H4. search.
+      apply stepc_step to H3 H4.
+    case H2.
+      case H3.
+      apply stepc_step to H4 H3.
+      apply IH to H3 H4. search.
+    case H2.
+      case H3.
+      apply IH to H3 H4. search.
+    case H2.
+      apply stepc_step to H4 H3.
+      apply IH to H3 H4. search.
+  intros. case H1.
+    case H2. search.
+    case H2. apply IH1 to H3 H4. search.
+
+Split step_dets as step_det, stepc_det.
+
+
+%%% INTERNAL PARALLEL REDUCTION AND STANDARD REDUCTION %%%%%%%%%%%%%%%%%%%%%%%%%
 
 Kind mode type.
 Type g mode.
@@ -380,7 +461,6 @@ Theorem subdlets :
     apply IH4 to H3. apply IH2 to H4. search.
     apply IH4 to H3. apply IH2 to H4. apply IH2 to H5. search.
 
-
 Split subdlets as int_subdlet, intv_subdlet, stan_subdlet.
 
 Theorem subllets :
@@ -418,7 +498,6 @@ Theorem subllets :
     search.
     apply IH4 to H3. apply IH2 to H4. search.
     apply IH4 to H3. apply IH2 to H4. apply IH2 to H5. search.
-
 
 Split subllets as int_subllet, intv_subllet, stan_subllet.
 
@@ -460,7 +539,6 @@ Theorem subdllets :
 
 Split subdllets as int_subdllet, intv_subdllet, stan_subdllet.
 
-
 Theorem subks :
   (forall M E E', nabla (k l : expr -> expr), int (M k l) (E k l) (E' k l) -> int (M k k) (E k k) (E' k k)) /\
   (forall E E', nabla (k l : expr -> expr), intv (E k l) (E' k l) -> intv (E k k) (E' k k)) /\
@@ -500,29 +578,6 @@ Theorem subks :
 
 Split subks as int_subk, intv_subk, stan_subk.
 
-
-Theorem steps_cong_let :
-  forall E E' T, many step E E' -> many step (let E T) (let E' T).
-  induction on 1.
-  intros. case H1.
-    search.
-    apply IH to H3 with T = T. search.
-
-Theorem steps_cong_delim :
-  forall U E E', many step E E' -> many step (delim U E) (delim U E').
-  induction on 1.
-  intros. case H1.
-    search.
-    apply IH to H3 with U = U. search.
-
-Theorem steps_cong_k :
-  forall E E', nabla k, many step (E k) (E' k) -> many step (k (E k)) (k (E' k)).
-  induction on 1.
-  intros. case H1.
-    search.
-    apply IH to H3. search.
-
-
 Theorem stang_stanM : forall M E E', stan g E E' -> md M -> stan M E E'.
   intros. case H2.
     search.
@@ -530,6 +585,32 @@ Theorem stang_stanM : forall M E E', stan g E E' -> md M -> stan M E E'.
 
 Theorem wrap[X] : forall T T', nabla (x:X), stan g (T x) (T' x) -> (nabla x, stan g (T x) (T' x)).
   intros. search.
+
+Theorem refls :
+  (forall E, is_expr E -> int g E E) /\
+  (forall V, is_val V -> intv V V) /\
+  (forall E, is_evctx E -> inte g E E).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H2. apply IH1 to H3. search.
+    apply IH to H2. apply IH to H3. search.
+    apply IH1 to H2. apply IH to H3. apply intg_intd to H5 with U = U. search.
+    apply IH to H2. search.
+    apply IH1 to H2. search.
+    apply IH1 to H2. apply IH2 to H3. apply integ_inted to H5 with U = U. search.
+    apply IH2 to H2. search.
+    apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH to H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H2. apply IH to H3. search.
+
+Split refls as int_refl, intv_refl, inte_refl.
+
+
+%%% POSTPONEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Theorem posts :
   (forall M E E'' E', int M E E'' -> step E'' E' -> md M -> stan M E E') /\
@@ -593,19 +674,7 @@ Theorem post_many : forall E E'' E', int g E E'' -> many step E'' E' -> stan g E
     apply post to H1 H3 _. case H5. apply IH to H7 H4. case H8. apply steps_app to H6 H9. search.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Theorem step?_cong_let :
-  forall E E' T, maybe step E E' -> maybe step (let E T) (let E' T).
-  intros. case H1. search. search.
-
-Theorem step?_cong_delim :
-  forall U E E', maybe step E E' -> maybe step (delim U E) (delim U E').
-  intros. case H1. search. search.
-
-Theorem step?_cong_k :
-  forall E E', nabla k, maybe step (E k) (E' k) -> maybe step (k (E k)) (k (E' k)).
-  intros. case H1. search. search.
+%%% COMMUTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Theorem qscomms :
   (forall M E1 E2 E3, int M E1 E2 -> step E1 E3 -> md M -> exists E4, maybe step E2 E4 /\ stan M E3 E4) /\
@@ -644,51 +713,6 @@ Theorem qscomms :
 
 Split qscomms as qscomm, qscommc.
 
-Theorem stepc_step : forall E E' E'', stepc E E' -> step E E'' -> false.
-  induction on 1.
-  intros. case H1.
-    case H2.
-    case H2.
-      case H3.
-      apply IH to H3 H4.
-
-Theorem step_dets :
-  (forall E E' E'', step E E' -> step E E'' -> E' = E'') /\
-  (forall E E' E'', stepc E E' -> stepc E E'' -> E' = E'').
-  induction on 1 1. split.
-  intros. case H1.
-    case H2.
-      search.
-      case H3.
-    case H2. search.
-    case H2.
-      search.
-      case H3.
-      case H3.
-    case H2. search.
-    case H2.
-      case H3.
-      apply IH1 to H3 H4. search.
-      apply stepc_step to H3 H4.
-    case H2.
-      apply IH1 to H3 H4. search.
-      apply stepc_step to H3 H4.
-    case H2.
-      case H3.
-      apply stepc_step to H4 H3.
-      apply IH to H3 H4. search.
-    case H2.
-      case H3.
-      apply IH to H3 H4. search.
-    case H2.
-      apply stepc_step to H4 H3.
-      apply IH to H3 H4. search.
-  intros. case H1.
-    case H2. search.
-    case H2. apply IH1 to H3 H4. search.
-
-Split step_dets as step_det, stepc_det.
-
 Theorem subcomm_ : forall E1 E12 E2 E3, many step E1 E12 -> int g E12 E2 -> step E1 E3 -> exists E4, maybe step E2 E4 /\ stan g E3 E4.
   induction on 1.
   intros. case H1.
@@ -698,31 +722,16 @@ Theorem subcomm_ : forall E1 E12 E2 E3, many step E1 E12 -> int g E12 E2 -> step
 Theorem subcomm : forall E1 E2 E3, stan g E1 E2 -> step E1 E3 -> exists E4, maybe step E2 E4 /\ stan g E3 E4.
   intros. case H1. backchain subcomm_.
 
-
-
-
-Theorem refls :
-  (forall E, is_expr E -> int g E E) /\
-  (forall V, is_val V -> intv V V) /\
-  (forall E, is_evctx E -> inte g E E).
-  induction on 1 1 1. split.
-  intros. case H1.
-    apply IH1 to H2. apply IH1 to H3. search.
-    apply IH to H2. apply IH to H3. search.
-    apply IH1 to H2. apply IH to H3. apply intg_intd to H5 with U = U. search.
-    apply IH to H2. search.
-    apply IH1 to H2. search.
-    apply IH1 to H2. apply IH2 to H3. apply integ_inted to H5 with U = U. search.
-    apply IH2 to H2. search.
-    apply IH to H2. search.
-  intros. case H1.
+Theorem strong_comm : forall E1 E2 E3, stan g E1 E2 -> many step E1 E3 -> exists E4, many step E2 E4 /\ stan g E3 E4.
+  induction on 2.
+  intros. case H2.
     search.
-    apply IH to H2. search.
-  intros. case H1.
-    search.
-    apply IH2 to H2. apply IH to H3. search.
+    apply subcomm to H1 H3. apply IH to H6 H4. case H5.
+      search.
+      search.
 
-Split refls as int_refl, intv_refl, inte_refl.
+
+%%% REDUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Define red : expr -> expr -> prop,
        redd : val -> expr -> expr -> prop,
@@ -802,13 +811,8 @@ Theorem red_stans :
 
 Split red_stans as red_stang, redv_intv, redd_intd.
 
-Theorem strong_comm : forall E1 E2 E3, stan g E1 E2 -> many step E1 E3 -> exists E4, many step E2 E4 /\ stan g E3 E4.
-  induction on 2.
-  intros. case H2.
-    search.
-    apply subcomm to H1 H3. apply IH to H6 H4. case H5.
-      search.
-      search.
+
+%%% ADEQUACY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Theorem stan : forall E E', many red E E' -> exists E'', many step E E'' /\ many (int g) E'' E'.
   induction on 1.
@@ -825,3 +829,82 @@ Theorem adq2 : forall E E' V, red E E' -> many step E (ret V) -> exists V', many
   apply red_stang to H1. apply strong_comm to H3 H2. case H5. case H6.
     case H7. search.
     case H8.
+
+
+%%% GENERAL TERMINATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Define is_value : expr -> prop by is_value (ret V).
+
+Define is_call_stuck : expr -> prop by
+  nabla x, is_call_stuck (app x (E x));
+  is_call_stuck (let E T) := is_call_stuck E;
+  is_call_stuck (delim U E) := is_call_stuck E;
+  nabla k, is_call_stuck (k (E k)) := nabla k, is_call_stuck (E k).
+
+%Define is_control_stuck : expr -> prop by
+%  is_control_stuck (shift0 E);
+%  is_control_stuck (let E T) := is_control_stuck E.
+
+Define is_control_stuck : expr -> prop by
+  is_control_stuck E := exists E', stepc E E'.
+
+Define is_ask_stuck : expr -> prop by
+  nabla (k : expr -> expr), is_ask_stuck (ask (k (E k)));
+  is_ask_stuck (let E T) := is_ask_stuck E;
+  is_ask_stuck (delim U E) := is_ask_stuck E;
+  nabla k, is_ask_stuck (k (E k)) := nabla k, is_ask_stuck (E k).
+
+Define is_plug_stuck : expr -> prop by
+  nabla (k : expr -> expr), is_plug_stuck (k (ret (V k)));
+  is_plug_stuck (let E T) := is_plug_stuck E;
+  is_plug_stuck (delim U E) := is_plug_stuck E;
+  nabla k, is_plug_stuck (k (E k)) := nabla k, is_plug_stuck (E k).
+
+Theorem nostep : forall E, is_expr E -> (forall E', step E E' -> false)
+    -> is_value E \/ is_call_stuck E \/ is_control_stuck E \/ is_ask_stuck E \/ is_plug_stuck E.
+  induction on 1.
+  intros. case H1.
+    case H3.
+      search.
+      apply H2 to _.
+    apply IH to H3 _. intros. apply H2 to _. case H5.
+      case H6. apply H2 to _.
+      search.
+      case H6. search.
+      search.
+      search.
+    apply IH to H4 _. intros. apply H2 to _. case H5.
+      case H6. apply H2 to _.
+      search.
+      case H6. apply H2 to _.
+      search.
+      search.
+    search.
+    search.
+    apply H2 to _.
+    search.
+    apply IH to H3 _. intros. apply H2 to _. case H4.
+      case H5. search.
+      search.
+      case H5. apply H2 to _.
+      search.
+      search.
+
+Define terminates : expr -> prop by
+  terminates E := exists E', many step E E' /\ forall E'', (step E' E'' -> false).
+
+Theorem int_nostep : forall E E', int g E E' -> (forall E'', step E' E'' -> false) -> (forall E''', step E E''' -> false).
+skip.
+
+Theorem nostep_int : forall E E', int g E E' -> (forall E''', step E E''' -> false) -> (forall E''', step E' E''' -> false).
+skip.
+
+Theorem adq3 : forall E E', red E E' -> terminates E' -> terminates E.
+  intros.
+  apply red_stang to *H1. case H3. case H2. apply post_many to H5 H6. case H8. apply int_nostep to H10 H7. apply steps_app to H4 H9. search.
+
+Theorem adq4 : forall E E', red E E' -> terminates E -> terminates E'.
+  intros.
+  apply red_stang to *H1. case H2. apply strong_comm to H3 H4. case H7. case H8.
+    apply nostep_int to H9 H5. search.
+    apply H5 to _.
