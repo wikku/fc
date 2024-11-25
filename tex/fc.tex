@@ -179,18 +179,29 @@
 \cleardoublepage
 \begin{abstract}
 	We consider a variant of the call-by-value $λμ$-calculus extended with control delimiters,
-	in which $μ$ becomes the static delimited control operator shift0.
+	in which $μ$ becomes the static delimited control operator $\shiftz$.
 	We propose new reduction rules for cases where the captured continuation can be determined statically.
-	We prove the calculus confluent and adequate wrt.\,operational semantics.
-	We then let delimiters carry data (resulting in a form of dynamic binding), which lets us express deep effect handlers.
-	The new reductions cooperate with the encoding to let us statically handle effects.
-	We also propose natural encodings of return clauses for delimiters.
-%	We propose purity assertions for lightweight purity-based reasoning.
-%	We prove the reduction is confluent and adequate wrt.\ operational semantics.
+	We let delimiters carry data (resulting in a form of dynamic binding), which lets us express deep effect handlers.
+	We prove the reductions semantics-preserving and partially confluent,
+	verified in the Abella proof assistant.
 	We argue that the calculus is stronger than previous results in the literature and could form basis for
 	reasoning and optimizations for the aforementioned forms of control.
+%
 	\begin{center} \rule[3pt]{300pt}{1pt} \end{center}
-	polski
+%
+	Rozważamy wariant rachunku $λμ$ z wołaniem przez wartość rozszerzony
+	o ograniczniki,
+	tworząc z $μ$ statycznie ograniczony operator sterowania $\shiftz$.
+	Proponujemy nowe reguły redukcji dla sytuacji,
+	w których przechwycona kontynuacja może być statycznie wyznaczona.
+	Rozszerzamy ograniczniki pozwalając im trzymać dane
+	(dając swego rodzaju wiązanie dynamiczne),
+	co pozwala nam wyrazić obsługę efektów.
+	Dowodzimy, że redukcje zachowują semantykę i są częściowo konfluentne,
+	co też zweryfikowaliśmy w asystencie dowodzenia Abella.
+	Argumentujemy, że powstały rachunek jest mocniejszy niż poprzednie wyniki w literaturze
+	i mógłby stanowić podstawę dla wnioskowania i optymalizacji dla wspomnianych operatorów sterowania.
+
 \end{abstract}
 
 
@@ -825,8 +836,36 @@ These two features might look like the most benign of the bunch,
 but they pose great technical difficulties.
 
 \section{Parallel reduction}
-The parallel reduction (figure \ref{parallel}) has two modes (ranged over by $M$):
+Parallel reduction (figure \ref{parallel}) allows us to perform reductions (figure \ref{reduction})
+in many places of the term at once.
+The tail-of-delimiter reductions are implemented by parameterizing
+by two modes (ranged over by metavariable $M$):
 \textit{g}eneral and tail of \textit{d}elimiter.
+Moreover, we need to perform consecutive reduction steps in some situations:
+\begin{enumerate}
+\item
+	Consider a peak involving $\KwLet{}.\S$ and some tail-of-reset reduction:
+	$$\S κ.\,e\subst{κ}{\Let{x}{□}{t}} \Rap{d} \Let{x}{\S κ.\,e}{t} \Par{d} \Let{x}{\S κ.\,e}{t'}$$
+	To perform tail-of-reset reductions in the $t$ substituted on the left,
+	we need to perform the substitution $κ{:=}⟨□⟩$ first and then reduce.
+	So we are forced to perform a $dL.\S$ step on the left,
+	and so $\KwLet{}.\S$ followed by $dL.\S$ on the right.
+
+	Substituting the delimiter first and then reducing works only because
+	$κ⟦e⟧$ and $⟨e⟩$ are terms of the same size
+	and we can induct on size in the proof of diamond property.
+	This no longer holds if we add data to delimiters.
+\item
+	The redex $κ⟦\S κ'.\,e⟧$ has to be generalized to $κ⟦E[\S κ'.\,e]⟧$ for the substitution lemma to hold
+	(consider $κ:=κ⟦\Let{x}{□}{t}⟧)$.
+	Likewise for $⟨·⟩$ instead of $κ⟦·⟧$.
+
+\item
+	The addition of $\A.d$ forces us to combine the generalizations described in the previous two points,
+	resulting in the very last rule in the figure.
+	% TODO motivating peak
+
+\end{enumerate}
 
 \begin{figure}
 	\begin{mathpar}
@@ -855,17 +894,39 @@ The parallel reduction (figure \ref{parallel}) has two modes (ranged over by $M$
 	\inferrule{e \Par{g} e'}
 	{κ⟦e⟧ \Par{M} κ⟦e'⟧}
 
+	\inferrule{e \Par{g} e' \\ v \Par{g} v'}
+	{(λx.\,e)\:v \Par{M} e'\subst{x}{v'}}
+
+	\inferrule{t \Par{g} t' \\ v \Par{g} v'}
+	{\Let{x}{v}{t} \Par{M} t'\subst{x}{v'}}
+
+	\inferrule{v \Par{g} v'}
+	{⟨v⟩ \Par{M} v'}
+
 	\inferrule{e \Par{g} e' \\ t \Par{M} t'}
 	{\Let{x}{\S κ.\,e}{t} \Par{M} \S κ.\,e'\subst{κ}{κ⟦\Let{x}{□}{t'}⟧}}
 
-	\inferrule{e \Par{g} e'}
-	{\S κ.\,e \Par{d} \A\,e'\subst{κ}{⟨□⟩}}
+	\inferrule{e\subst{κ}{⟨□⟩} \Par{g} e'}
+	{⟨\S κ.\,e⟩ \Par{M} e'}
+
+	\inferrule{e \Par{g} e' \\ E \Par{d} E'}
+	{⟨E[\S κ'.\,e]⟩ \Par{M} e'\subst{κ'}{⟨E'⟩}}
+
+	\inferrule{e \Par{g} e' \\ E \Par{g} E'}
+	{κ⟦E[\S κ'.\,e]⟧ \Par{M} e'\subst{κ'}{κ⟦E'⟧}}
+	\\
+
+	\inferrule{e\subst{κ}{⟨□⟩} \Par{g} e'}
+	{\S κ.\,e \Par{d} \A\,e'}
 
 	\inferrule{e \Par{d} e'}
 	{\A⟨e⟩ \Par{d} e'}
 
 	\inferrule{v \Par{g} v' }
 	{\A\,v \Par{d} v'}
+
+	\inferrule{e \Par{g} e' \\ E \Par{g} E'}
+	{\Let{x}{E[\S κ.\,e]}{t} \Par{d} \A e'\subst{κ}{⟨E'⟩}}
 
 	\end{mathpar}
 	\caption{Parallel reduction.}
@@ -1067,7 +1128,6 @@ Congruence rules defined by Prolog-like clauses follow,
 the last of which introduces the \textit{nabla} ($\nabla$) quantifier.
 
 The meta-expression $\nabla x.\,…$ in Abella's logic introduces a fresh nominal constant $x$.
-The nabla quantifier has properties intermediate of the classic $∀$ and $∃$ quantifiers.
 In practice, nabla lets us operate on object-level terms with free variables:
 in the congruence rule for object-level $λ$-abstractions,
 we descend under the binder by substituting a fresh nominal constant for the bound variable.
