@@ -796,13 +796,13 @@ where evaluation can't proceed.
 
 \begin{lemma}[Stuck terms]
 	Stuck terms have this form:
-	$$s ::= K[x\:v] │ E[\S κ.\,e]$$
+	$$s ::= K[x\:v] │ E[\S κ.\,e] │ K[κ⟦v⟧]$$
 \end{lemma}
 \begin{lemma} Assume $e \Int e'$. Then $e$ is stuck iff $e'$ is stuck.
 \end{lemma}
 
 \begin{theorem}[Contextual equivalence, observing termination]
-	If $e → e'$, then for all closing contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
+	If $e → e'$, then for all contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
 \end{theorem}
 
 These two notions of contextual equivalence do differ:
@@ -876,6 +876,10 @@ The parallel reduction (figure \ref{parallel}) has two modes (ranged over by $M$
 	${→} ⊆ {\Par{g}} ⊆ {→^*}$
 \end{lemma}
 
+\begin{lemma}
+	${\Par{g}} ⊆ {\Par{d}}$
+\end{lemma}
+
 \begin{lemma}[Substitution]
 	\item
 	\begin{enumerate}
@@ -889,14 +893,14 @@ The parallel reduction (figure \ref{parallel}) has two modes (ranged over by $M$
 \end{theorem}
 
 \begin{corollary}[Confluence]
-	$${←^* · →^*} ⊆ {→^* · ←^*}$$
+	${←^* · →^*} ⊆ {→^* · ←^*}$
 \end{corollary}
 
 
 \section{The challenges of \textsf{let} reassociation}
 \label{problet}
 
-The $\KwLet$ reassociation reduction
+The $\KwLet$ reassociation reduction (a.k.a.\  $\KwLet{}$ floating, $\KwLet{}$ associativity)
 $$\RLet{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$$
 flattens the structure of the term by getting rid of $\KwLet$s nested on the left
 (here raised).
@@ -972,7 +976,6 @@ Then, the standard argument by Newman's lemma and Hindley-Rosen's lemma should w
 
 The method of decreasing diagrams \cite{dd} reduces the problem to a well-ordered
 labeling of reductions and a form of local confluence, viz.
-
 \begin{center}
 \begin{tikzpicture}[node distance=2cm, auto, scale=1, every node/.style={scale=1}]
 \useasboundingbox (-0.5, -0.5) rectangle (5.5, 3.5);
@@ -990,13 +993,13 @@ labeling of reductions and a form of local confluence, viz.
 \draw[->] (a) -- node[above] {$β$} (b); % a to b
 \draw[->] (a) -- node[left] {$α$} (c); % a to c
 
-\draw[->, dashed] (c) -- node[below] {$<α$} (c1); % c to c1
+\draw[->, dashed] (c) -- node[below] {${<}α$} (c1); % c to c1
 \draw[->, dashed] (c1) -- node[below] {$β$} (c2); % c1 to c2
-\draw[->, dashed] (c2) -- node[below] {${<α} ∪ {<β}$} (d); % c2 to d
+\draw[->, dashed] (c2) -- node[below] {${{<}α} ∪ {{<}β}$} (d); % c2 to d
 
-\draw[->, dashed] (b) -- node[right] {$<β$} (b1); % b to b1
+\draw[->, dashed] (b) -- node[right] {${<}β$} (b1); % b to b1
 \draw[->, dashed] (b1) -- node[right] {$α$} (b2); % b1 to b2
-\draw[->, dashed] (b2) -- node[right] {${<α} ∪ {<β}$} (d); % b2 to d
+\draw[->, dashed] (b2) -- node[right] {${{<}α} ∪ {{<}β}$} (d); % b2 to d
 
 \node at (c1) [above=0.2cm, left=0.1cm] {$*$};
 \node at (c2) [above=0.2cm, left=0.1cm] {$=$};
@@ -1007,15 +1010,14 @@ labeling of reductions and a form of local confluence, viz.
 \node at (d) [above=0.2cm, left=0.2cm] {$*$};
 \end{tikzpicture}
 \end{center}
-
 It is not easily applied in our case.
 Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
 We can try labeling reductions with their names at first.
 \begin{enumerate}
 	\item
 If $\KwLet{}.\S < \KwLet{}.\KwLet{}$, then
-we would need to parallelize the $\KwLet{}.\KwLet{}$ reduction,
-because it is used many times on the left.
+the diagram is not decreasing because $\KwLet{}.\KwLet{}$ is used many times on the left.
+Either $\KwLet{}.\KwLet{}$ has to be parallelized, or the order on $\KwLet{}.\KwLet{}$ has to be refined.
 	\item
 	If $\KwLet{}.\S > \KwLet{}.\KwLet{}$, then
 the diagram is not decreasing because of the follow-up $\KwLet{}.\S$ reduction on the left.
