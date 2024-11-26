@@ -1402,9 +1402,9 @@ except for dynamic binders distributing over lexical binders.
 
 
 \section{Expressing return clauses}
-Recall our encoding of return clauses (figure \ref{shorthands}):
-$$⟨e¦x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\,e_r}⟩$$
-$$\Handle e \With x,k.\,e_h ¦ x.\,e_r ≡ ⟨\Let{x}{e}{\A\,e_r}¦λx,k.\,e_h⟩$$
+Let's restate our encoding of return clauses for effect handlers (figure \ref{shorthands}):
+%$$⟨e¦x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\,e_r}⟩$$
+$$\Handle e \With x,k.\,e_h ¦ x.\,e_r ≡ \Handle\Let{x}{e}{\A\,e_r} \With x,k.\,e_h$$
 A similar equivalence has been proven for typed algebraic effects \cite{hwc}:
 $$\foreign{\Handle e \With x,k.\,e_h ¦ x.\,e_r ≈\Handle \Let{x}{e}{\Lift{e_r}} \With x,k.\,e_h}$$
 Our encoding is clearly the natural one, since its correctness
