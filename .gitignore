@@ -1,1 +1,15 @@
+*.html
+*.html
+*.tar.gz
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.pdf
+*.run.xml
+*.toc
 *.thc
