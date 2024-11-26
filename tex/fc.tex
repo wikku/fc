@@ -509,7 +509,7 @@ drawing on the fact that both of them will reach the same handler.
 
 There are other natural uses of the plug construct $κ⟦e⟧$.
 For example, in OCaml 5, delimited continuations are clearly not functions, since
-we can not only \textit{continue} them (apply to a value), but also \textit{discontinue} them: raise an exception inside.
+we can not only \textit{continue} them (apply to a value), but also \textit{discontinue} them: raise an exception inside \cite{retro}.
 This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} ≡ κ⟦\textsf{raise}\,\textit{exn}⟧$.
 %whereas previous formalizations have used workarounds with lambda abstractions.
 
@@ -1438,7 +1438,7 @@ There are issues with this approach, though:
 		Because $\keyword{letcc}$ binds the continuation and keeps running in it,
 		$$⟨E[\keyword{letcc}\,κ.\,e]⟩ ↦ ⟨E[e\subst{κ}{⟨E⟩}]⟩$$
 		it seems inherently incompatible with one-shot (linear) continuations.
-		This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5.
+		This is a design choice or a limitation of some implementations of control, e.g.\,OCaml 5 \cite{retro}.
 \end{enumerate}
 
 
