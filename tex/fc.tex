@@ -1385,13 +1385,15 @@ The invariant could be broken by $\shiftz$s that are not of the $\Op v$ form.
 
 This encoding is very similar to the encoding of dynamic binding as delimited control \cite{delimdyn}
 by Kiselyov et al.
-It's not hard to come up with encodings that directly express the handler clause $h$ as a dynamically bound parameter,
-either with the binder below the delimiter (on the machine stack):
-$$\Op v ≡ \shiftz\,k.\,h\:v\:k \quad\quad \Handle e \With x\,k.\,t ≡ \Dlet{h}{λx\,k.\,t}{⟨e⟩}$$
-or above:
+%It's not hard to come up with encodings that directly express the handler clause $h$ as a dynamically bound parameter,
+%either with the binder below the delimiter (on the machine stack):
+%% FIXME
+%$$\Op v ≡ \shiftz\,k.\,h\:v\:k \quad\quad \Handle e \With x\,k.\,t ≡ \Dlet{h}{λx\,k.\,t}{⟨e⟩}$$
+%or above:
+It's not hard to come up with an encoding that directly expresses the handler clause $h$ as a dynamically bound parameter:
 $$\Op v ≡ \Let{h'}{h}{\shiftz\,k.\,h'\:v\:k} \quad\quad \Handle e \With x\,k.\,t ≡ ⟨\Dlet{h}{λx\,k.\,t}{e}⟩$$
-The latter option seems preferable, since the d$\KwLet$ cannot be separated from the delimiter by a $\shiftz$
-and therefore general optimizations should apply.
+%The latter option seems preferable, since the d$\KwLet$ cannot be separated from the delimiter by a $\shiftz$
+%and therefore general optimizations should apply.
 
 We have chosen to merge the two constructs which enhance execution contexts into one:
 reset binds the dynamic parameter and we can refer to it through the continuation variable.
