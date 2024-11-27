@@ -925,8 +925,8 @@ Moreover, we need to perform consecutive reduction steps in some situations:
 	\inferrule{v \Par{g} v' }
 	{\A\,v \Par{d} v'}
 
-	\inferrule{e \Par{g} e' \\ E \Par{g} E'}
-	{\Let{x}{E[\S κ.\,e]}{t} \Par{d} \A e'\subst{κ}{⟨E'⟩}}
+	\inferrule{e \Par{g} e' \\ E \Par{g} E' \\ t \Par{d} t'}
+	{\Let{x}{E[\S κ.\,e]}{t} \Par{d} \A\,e'\subst{κ}{⟨\Let{x}{E'}{t'}⟩}}
 
 	\end{mathpar}
 	\caption{Parallel reduction.}
