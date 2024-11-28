@@ -1015,7 +1015,7 @@ $$
 	\path[->] (E1) edge node[above right, pos=0.6, text=gray] {$\KwLet{}.\KwLet{}$} (E2);
 	\path[->] (E1) edge node[above left, pos=0.8, text=gray] {$\KwLet{}.\S$} (E3);
 	\path[->,dashed] (E3) edge node[left, text=gray] {$\KwLet{}.\S$} (E3') (E2) edge node[below right, pos=0.3, text=gray] {$\KwLet{}.\S$} (E4);
-	\path[->>,dashed] (E3') edge node[left, xshift=-10pt, text=gray] {$\KwLet{}.\KwLet{}$} (E4);
+	\path[->>,dashed] (E3') edge node[left, xshift=-10pt, text=gray] {$\KwLet{}.\KwLet{}$} (E4); % FIXME
 \end{tikzpicture}
 $$
 We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes whole, now after structural substitution.
@@ -1502,7 +1502,7 @@ Such an extension would probably need at least a mild form of typing
 in the renaming reduction we need to know that the continuation variable $κ$ comes
 from an $\S$ with the matching label:
 $$κ^\ell⟦\S^\ell κ'.\,e⟧ → e\subst{κ'}{κ}$$
-
+% FIXME abrupt
 One could wonder why we don't have tail-of-plug reductions, such as:
 $$κ⟦L[\S κ'.\,e]⟧ → κ⟦L[A\,e\subst{κ'}{κ}]⟧$$
 The reason is they won't work in the multi-prompt setting where
