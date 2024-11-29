@@ -621,7 +621,7 @@ if it can be statically determined:
 	⟨\Let{x}{e}{\Let{y}{\textsf{ask}}{t}}╱v⟩
 	&≡ ⟨\Let{x}{e}{\Let{y}{\S κ.\,κ⟦\Ask(κ)⟧}{t}}╱v⟩ \\
 	&→ ⟨\Let{x}{e}{\S κ.\,κ⟦\Let{y}{\Ask(κ)}{t}⟧}╱v⟩ \tagmath{\KwLet{}.\S} \\
-	&→ ⟨\Let{x}{e}{\A\,⟨\Let{y}{v}{t}╱v⟩}╱v⟩ \tagmath{dL.\S} \\
+	&→ ⟨\Let{x}{e}{\A⟨\Let{y}{v}{t}╱v⟩}╱v⟩ \tagmath{dL.\S} \\
 	&→ ⟨\Let{x}{e}{\Let{y}{v}{t}}╱v⟩ \tagmath{\A.d}
 \end{align*}
 Naturally, the same applies to the effect handler approach.
@@ -702,7 +702,7 @@ an internal parallel reduction: $↦^* · \Int$.
 	{⟨L[\S κ.\,e]╱v⟩ \Int ⟨L'[\A\,e'\subst{κ}{⟨□╱v'⟩}]╱v'⟩}
 
 	\inferrule{L \Int L' \\ e \Stan e' \\ v \Int v' }
-	{⟨L[\A\,⟨e╱v⟩]╱v⟩ \Int ⟨L'[e']╱v'⟩}
+	{⟨L[\A⟨e╱v⟩]╱v⟩ \Int ⟨L'[e']╱v'⟩}
 
 	\inferrule{L \Int L' \\ v \Int v' \\ u \Int u' }
 	{⟨L[\A\,u]╱v⟩ \Int ⟨L'[u']╱v'⟩}
@@ -1258,7 +1258,7 @@ contains the relevant reductions (after macro-translation to our calculus).\foot
 ⟨\Let{x}{e}{t} ¦ y.\,t_r⟩
 &≡ ⟨\Let{y}{\Let{x}{e}{t}}{\A\,t_r}⟩ \\
 &→ ⟨\Let{x}{e}{\Let{y}{t}{\A\,t_r}}⟩ \tagmath{\KwLet{}.\KwLet{}} \\
-&← ⟨\Let{x}{e}{\A\,⟨\Let{y}{t}{\A\,t_r}⟩}⟩ \tagmath{\A.d} \\
+&← ⟨\Let{x}{e}{\A⟨\Let{y}{t}{\A\,t_r}⟩}⟩ \tagmath{\A.d} \\
 &≡ ⟨e ¦ x.\, ⟨t ¦ y.\,t_r⟩⟩
 \end{align*}
 While both this and our approach can statically handle any effect separated
@@ -1284,7 +1284,7 @@ Similar calculations apply for the rules for effect handlers \cite{saleh, karach
 &\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
 &≡ ⟨\Let{z}{\Let{x}{e}{t}}{\A\,t_r} ╱ λy\,k.\,t_h⟩ \\
 &→ ⟨\Let{x}{e}{\Let{z}{t}{\A\,t_r}} ╱ λy\,k.\,t_h⟩  \tagit{\KwLet{}.\KwLet{}} \\
-&← ⟨ \Let{x}{e}{\A\,⟨\Let{z}{t}{\A\,t_r}}╱ λy\,k.\,t_h⟩ ╱ λy\,k.\,t_h⟩  \tagit{$\A$.d} \\
+&← ⟨ \Let{x}{e}{\A⟨\Let{z}{t}{\A\,t_r}}╱ λy\,k.\,t_h⟩ ╱ λy\,k.\,t_h⟩  \tagit{$\A$.d} \\
 &≡ \Handle e \With y\,k.\,t_h ¦ x.\,\Handle t \With y\,k.\,t_h ¦ z.\,t_r
 \end{align*}
 The calculus in \cite{agen} also includes the \KwLift{} construct.
