@@ -517,14 +517,13 @@ This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} �
 
 The rule $dL.\S$ says that an $\S$ in the tail position of a delimiter
 will capture that delimiter (if we get to it).
-This is thanks to being in the setting of \textit{static} delimited control.
-The rule is obviously infinitely-looping,
-but we can prevent that with a side condition that $κ$ actually occurs in $e$.
 The rewrite is \textit{at a distance}, as the pattern involves a context $L$.
-We believe the rule still deserves to be called fine-grained,
-as the outer context $⟨L╱v⟩$ remains intact.
+We still deem it fine-grained,
+as the outer context $⟨L╱v⟩$ remains intact and the rewrite occurs inside.
+Because an $\A$ is also an $\S$, we can apply the rewrite indefinitely,
+but we could prevent that with a side condition of $κ$ being actually used.
 
-We will try to convey the intuition why it's correct by considering the case
+To expand on why it's correct, consider the case
 where $L$ is just one $\KwLet$ expression: $L ≡ \Let{x}{e}{□}$.
 If $e$ evaluates to a value, then the $\S$ will capture the delimiter:
 \begin{align*}
