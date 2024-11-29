@@ -608,13 +608,12 @@ where an operation (with no payload) asks for a value and the handler provides i
 	\Handle e \With \_\,k.\,k\,v
 \end{align*}
 The reader effect simulates dynamic binding,
-with the operation taking the role of reference to a (nameless) parameter and the handler taking the role of the binder.
+with the operation acting as a reference to a (nameless) parameter and the handler acting as a binder.
 
 In general, we don't need to adhere to the protocol that the value carried in the delimiter
 is the clause of an effect handler.
-We can accomplish the same in a simpler way by putting the dynamically bound value directly
-as the data in the delimiter.
-To obtain the value in the delimiter we simply do $\textsf{ask} ≡ \S κ.\,κ⟦\Ask(κ)⟧$.
+A simpler approach is to store the dynamically bound value in the delimiter \textit{as is}.
+To retrieve the value, we just do $\textsf{ask} ≡ \S κ.\,κ⟦\Ask(κ)⟧$.
 The reduction rules let us replace the $\textsf{ask}$ with the correct value
 if it can be statically determined:
 \begin{align*}
@@ -624,7 +623,7 @@ if it can be statically determined:
 	&→ ⟨\Let{x}{e}{\A⟨\Let{y}{v}{t}╱v⟩}╱v⟩ \tagmath{dL.\S} \\
 	&→ ⟨\Let{x}{e}{\Let{y}{v}{t}}╱v⟩ \tagmath{\A.d}
 \end{align*}
-Naturally, the same applies to the effect handler approach.
+Naturally, this simplification can also be applied in the effect handler approach.
 
 \subsection{Let reassociation}
 
