@@ -1268,7 +1268,7 @@ reveals that in our view this is not purely a simplification.
 Indeed, turning $\KwLet$s into delimiters is rather wasteful,
 since the latter typically have a much higher run-time cost.
 
-The same calculation can be done in the setting of effect handlers \cite{saleh, karachalias, agen}:
+The same calculation can be performed in the setting of effect handlers:
 \begin{align*}
 &\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
 &≡ ⟨\Let{z}{\Let{x}{e}{t}}{\A\,t_r} ╱ λy\,k.\,t_h⟩ \\
