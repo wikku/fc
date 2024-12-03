@@ -1268,7 +1268,7 @@ reveals that in our view this is not purely a simplification.
 Indeed, turning $\KwLet$s into delimiters is rather wasteful,
 since the latter typically have a much higher run-time cost.
 
-Similar calculations apply for the rules for effect handlers \cite{saleh, karachalias, agen}:
+The same calculation can be done in the setting of effect handlers \cite{saleh, karachalias, agen}:
 \begin{align*}
 &\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
 &≡ ⟨\Let{z}{\Let{x}{e}{t}}{\A\,t_r} ╱ λy\,k.\,t_h⟩ \\
@@ -1307,8 +1307,7 @@ the delimiter-oriented reductions cannot do anything when there
 is no delimiter, but we can (subsection \ref{strred}).
 
 \section{shift0 axiomatization}
-It might be interesting to compare the axiomatization of $\shiftz$ by Materzok \cite{materzok}.
-We pick the most interesting rules and restate them into more familiar notations.
+Here we compare some of the equational axioms of $\shiftz$ by Materzok \cite{materzok}.
 
 \subsection*{shift0/reset}
 
@@ -1326,7 +1325,7 @@ Clearly an instance of $\A.d$.
 \begin{equation*}
 	\foreign{\Let{x}{e}{E[x]} = E[e]} \tag{\foreign{$β_Ω$}}
 \end{equation*}
-Expressible with $\KwLet{}.\KwLet{}$ and $let.id$: $\Let{x}{e}{E[x]} ←^* E[\Let{x}{e}{x}] → E[e]$.
+Expressible with $\KwLet{}.\KwLet{}$ and $\KwLet{}$ identity: $\Let{x}{e}{E[x]} ←^* E[\Let{x}{e}{x}] → E[e]$.
 
 \subsection*{shift0/dollar}
 \begin{equation*}
@@ -1378,8 +1377,7 @@ However, we don't see a way to express our optimizations without introducing $\a
 
 \section{Expressing handlers using shift0}
 Previous encodings of handlers using $\shiftz$ worked by representing the handler
-clause as an evaluation frame \textit{below} the delimiter \cite{effmondel, fscd19}.
-
+clause as an evaluation frame \textit{below} the delimiter on the stack \cite{effmondel, fscd19}.
 In the most popular version,
 an operation captures the continuation and returns a $λ$-abstraction
 which is waiting to be applied to the handler clause.
