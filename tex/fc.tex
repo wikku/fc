@@ -609,7 +609,7 @@ where an operation (with no payload) asks for a value and the handler provides i
 The reader effect simulates dynamic binding,
 with the operation acting as a reference to a (nameless) parameter and the handler acting as a binder.
 
-In general, we don't need to adhere to the protocol that the value carried in the delimiter
+In general, we don't need to adhere to the protocol that the value carried in a delimiter
 is the clause of an effect handler.
 A simpler approach is to store the dynamically bound value in the delimiter \textit{as is}.
 To retrieve the value, we just do $\textsf{ask} ≡ \S κ.\,κ⟦\Ask(κ)⟧$.
