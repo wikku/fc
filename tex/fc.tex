@@ -1241,12 +1241,13 @@ and as interactive web pages that allow stepping through proofs \texttt{adq.html
 \section{Distributing delimiters}
 There is a strand of work which tackles static delimited control from the opposite direction.
 Whereas we use structural reduction so that $\S$ moves closer to the delimiter, that strand's defining feature is
-the delimiter distributing over \KwLet{} expressions so that \textit{a} delimiter can meet the control operator:
-\cite{saleh, karachalias, ppdp21, agen}
+the delimiter distributing over \KwLet{} expressions so that \textit{a} delimiter can meet the control operator
+\cite{saleh, karachalias, ppdp21, agen}%
+:
 \begin{align*}
 	\foreign{⟨\Let{x}{e}{t} ¦ y.\,t_r⟩ → ⟨e ¦ x.\, ⟨t ¦ y.\,t_r⟩⟩}
 \end{align*}
-There, the return clause is an integral part of the syntax.
+There, the return clause is an integral part of syntax.
 
 We note that the equational theory (equivalence closure of reduction) of our calculus
 contains the relevant reductions (after macro-translation to our calculus).\footnote{
