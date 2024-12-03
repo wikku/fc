@@ -1249,10 +1249,10 @@ the delimiter distributing over \KwLet{} expressions so that \textit{a} delimite
 \end{align*}
 There, the return clause is an integral part of syntax.
 
-We note that the equational theory (equivalence closure of reduction) of our calculus
-contains the relevant reductions (after macro-translation to our calculus).\footnote{
-	In \cite{agen,ppdp21} values (meant to be $λ$-abstractions) are used where we have binder syntax,
-	so some applications of the $η$-rule might also be needed.
+We note that this is contained in the equational theory (equivalence closure of reduction) of our calculus:%
+\footnote{
+	In \cite{agen,ppdp21}, values (meant to be $λ$-abstractions) are used where we have binder syntax,
+	so formally some adjustments to macro-translations and some applications of the $λη$-rule might also be needed.
 }
 \begin{align*}
 ⟨\Let{x}{e}{t} ¦ y.\,t_r⟩
@@ -1268,7 +1268,17 @@ reveals that in our view this is not purely a simplification.
 Indeed, turning $\KwLet$s into delimiters is rather wasteful,
 since the latter typically have a much higher run-time cost.
 
-The base case of the operator directly within the delimiter:
+Similar calculations apply for the rules for effect handlers \cite{saleh, karachalias, agen}:
+\begin{align*}
+&\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
+&≡ ⟨\Let{z}{\Let{x}{e}{t}}{\A\,t_r} ╱ λy\,k.\,t_h⟩ \\
+&→ ⟨\Let{x}{e}{\Let{z}{t}{\A\,t_r}} ╱ λy\,k.\,t_h⟩  \tagit{\KwLet{}.\KwLet{}} \\
+&← ⟨ \Let{x}{e}{\A⟨\Let{z}{t}{\A\,t_r}}╱ λy\,k.\,t_h⟩ ╱ λy\,k.\,t_h⟩  \tagit{$\A$.d} \\
+&≡ \Handle e \With y\,k.\,t_h ¦ x.\,\Handle t \With y\,k.\,t_h ¦ z.\,t_r
+\end{align*}
+
+The other reductions are straightforwardly simulated by our reductions,
+here is the base case of the control operator directly within the delimiter:
 \begin{align*}
 ⟨\shiftz\,k.\,e ¦ y.\,t_r⟩
 &≡ ⟨\Let{y}{\S κ.\,\Let{k}{λx.\,κ⟦x⟧}{e}}{\A\,t_r}⟩ \\
@@ -1279,14 +1289,6 @@ The base case of the operator directly within the delimiter:
 &→ e\subst{k}{λy.\,t_r}
 \end{align*}
 
-Similar calculations apply for the rules for effect handlers \cite{saleh, karachalias, agen}.
-\begin{align*}
-&\Handle \Let{x}{e}{t} \With y\,k.\,t_h¦ z.\,t_r \\
-&≡ ⟨\Let{z}{\Let{x}{e}{t}}{\A\,t_r} ╱ λy\,k.\,t_h⟩ \\
-&→ ⟨\Let{x}{e}{\Let{z}{t}{\A\,t_r}} ╱ λy\,k.\,t_h⟩  \tagit{\KwLet{}.\KwLet{}} \\
-&← ⟨ \Let{x}{e}{\A⟨\Let{z}{t}{\A\,t_r}}╱ λy\,k.\,t_h⟩ ╱ λy\,k.\,t_h⟩  \tagit{$\A$.d} \\
-&≡ \Handle e \With y\,k.\,t_h ¦ x.\,\Handle t \With y\,k.\,t_h ¦ z.\,t_r
-\end{align*}
 The calculus in \cite{agen} also includes the \KwLift{} construct.
 This expression former makes operations inside skip the nearest effect handler.
 In the single-effect (single-label) setting, it can be easily macro-expressed \cite[Section 3.2]{fscd19}:
