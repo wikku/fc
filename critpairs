@@ -20,6 +20,7 @@ d.S ← → dL.S ⊆ ← d.S
 
 d.S ← → dL.Ad ⊆ d.S → ← d.S ∪ id
 ⇒ need d.S < dl.Ad
+2024-12-04: what? maybe meant d.S ← → dL.Ad ⊆ ← dL.S ∪ id
 
 d.S ← → dL.Av ⊆ ← d.v
 ⇒ need d.v < d.S ∪ dl.Av
