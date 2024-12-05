@@ -1071,21 +1071,22 @@ labeling of reductions and a form of local confluence, viz.
 \end{center}
 It is not easily applied in our case.
 Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
-We can try labeling reductions with their names at first.
+%We can try labeling reductions with their names at first.
 \begin{enumerate}
 	\item
-If $\KwLet{}.\S < \KwLet{}.\KwLet{}$, then
-the diagram is not decreasing because $\KwLet{}.\KwLet{}$ is used many times on the left.
-Either $\KwLet{}.\KwLet{}$ has to be parallelized, or the order on $\KwLet{}.\KwLet{}$ has to be refined.
+		We can try to make the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ sequence on the left
+		smaller than the initial $\KwLet{}.\KwLet{}$.
+		One approach is to parallelize the $\KwLet{}.\KwLet{}$ reduction (not easy),
+		refine the order on $\KwLet{}.\KwLet{}$ by self-labeling
+		ordered by $\KwLet{}.\S$
+		($\KwLet{}.\KwLet{}^e > \KwLet{}.\KwLet{}^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
+		and set $\KwLet{}.\S < \KwLet{}.\KwLet{}^e$.
 	\item
-	If $\KwLet{}.\S > \KwLet{}.\KwLet{}$, then
-the diagram is not decreasing because of the follow-up $\KwLet{}.\S$ reduction on the left.
-We could refine the order on $\KwLet{}.\S$ labels by introducing
-self-labeling ordered by structural reductions
-($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{Str}^+ e'$),
-but then we would have to prove them strongly normalizing.
+		We can order $\KwLet{}.\S$ reductions by themselves
+		($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
+		and set $\KwLet{}.\KwLet{} < \KwLet{}.\S^e$.
 \end{enumerate}
-An idea to try is ordering by the depth at which reduction occurs.
+%An idea to try is ordering by the depth at which reduction occurs.
 
 
 \chapter{Abella mechanization}

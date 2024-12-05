@@ -94,25 +94,39 @@ Type g, nll mode.
 
 Define md : mode -> prop by md g; md nll.
 
+Define attach : expr -> (val -> expr) -> expr -> prop by
+  attach E T (let E T);
+  attach (let E T1) T2 (let E T) := nabla x, attach (T1 x) T2 (T x).
+
 Define par : mode -> expr -> expr -> prop,
+%       parl : (val -> expr) -> expr -> expr -> prop,
+       part : expr -> (val -> expr) -> expr -> prop,
        parv : val -> val -> prop by
 
   nabla x, parv x x;
   parv (lam E) (lam E') := nabla x, par g (E x) (E' x);
 
-  par g (let (let E T1) T2) (let E' T') := par nll E E' /\ nabla x, par g (let (T1 x) T2) (T' x);
+%  par g (let (let E T1) T2) (let E' T') := par nll E E' /\ nabla x, par g (let (T1 x) T2) (T' x);
+   par g (let (let E T1) T2) (let E' T') := par nll E E' /\ nabla x, part (T1 x) T2 (T' x);
+%  par M (let E T) E' := exists T', nabla x, par g (T x) (T' x) /\ parl T' E E';
+%  parl L E (let E' L) := par g E E';
+%  parl L (let E T) (let E' T') := nabla x, par nll E E' /\ parl L (T x) (T' x);
+  part E L (let E' L') := nabla x, par nll E E' /\ par g (L x) (L' x);
+  part (let E T) L (let E' TL') := nabla x, par nll E E' /\ part (T x) L (TL' x);
 
   par M (app V U) (app V' U') := parv V V' /\ parv U U';
   par M (let E T) (let E' T') := par M E E' /\ nabla x, par g (T x) (T' x);
   par M (ret V) (ret V') := parv V V'.
 
+
 Theorem par_subvs :
   forall U U', parv U U' ->
   (forall M E E', nabla x, par M (E x) (E' x) -> par M (E U) (E' U')) /\
-  (forall E E', nabla x, parv (E x) (E' x) -> parv (E U) (E' U')).
-  intros. induction on 1 1. split.
+  (forall E E', nabla x, parv (E x) (E' x) -> parv (E U) (E' U')) /\
+  (forall L E E', nabla x, part (E x) (L x) (E' x) -> part (E U) (L U) (E' U')).
+  intros. induction on 1 1 1. split.
   intros. case H2.
-    apply IH to H3. apply IH to H4. search.
+    apply IH to H3. apply IH2 to H4. search.
     apply IH1 to H3. apply IH1 to H4. search.
     apply IH to H3. apply IH to H4. search.
     apply IH1 to H3. search.
@@ -120,6 +134,9 @@ Theorem par_subvs :
     search.
     search.
     apply IH to H3. search.
+  intros. case H2.
+    apply IH to H3. apply IH to H4. search.
+    apply IH to H3. apply IH2 to H4. search.
 
 Theorem nll_g : forall E E', par nll E E' -> par g E E'.
   induction on 1.
@@ -136,13 +153,20 @@ Theorem diam_md :
     case H2. apply nll_g to H3. apply nll_g to H4. search.
     search.
 
+%    par g E E' -> part E T1 ET1 -> part T1 T2 T1T2' -> par T2 T2' -> part (let )
+
+Theorem assoc :
+  forall E E' T1 ET1' T2 T1T2' T2', nabla x, par g E E' -> part E T1 ET1' -> part (T1 x) T2 (T1T2' x) -> par g (T2 x) (T2' x) ->
+  exists V, part E' T1T2' V /\ part ET1' T2' V.
+  Quit.
+
 Theorem par_diams :
   (forall M E E1 E2, par M E E1 -> par M E E2 -> md M -> exists E3, par M E1 E3 /\ par M E2 E3) /\
-  (forall E E1 E2, parv E E1 -> parv E E2 -> exists E3, parv E1 E3 /\ parv E2 E3).
-  induction on 1 1. split.
+  (forall E E1 E2, parv E E1 -> parv E E2 -> exists E3, parv E1 E3 /\ parv E2 E3) /\
+  (forall L E E1 E2, part L E E1 -> part L E E2 -> exists E3, par g E1 E3 /\ par g E2 E3).
+  induction on 1 1 1. split.
   intros. case H1.
     case H2.
-      apply IH to H4 H6 _. apply IH to H5 H7 _. backchain diam_md.
+      apply IH to H4 H6 _. apply IH2 to H5 H7. backchain diam_md.
       case H6.
-        case H4. apply IH to *H10 *H8 _. case H9.
-          
+        case H4. apply IH to *H10 *H8 _. % want part (T'3 x) T' E3, part (T'2 x) T'1 E3
