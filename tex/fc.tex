@@ -1304,7 +1304,7 @@ This is enough to simulate the rule for lift-handler interaction \cite[\textbf{D
 \begin{align*}
 	\Handle \Lift e \With x\,k.\,t_h ¦ y.\,t_r
 	&≡ ⟨\Let{y}{\S κ.\,\Let{x}{e}{κ⟦x⟧}}{\A\,t_r}╱λx\,k.\,t_h⟩ \\
-	&→^2 \Let{x}{e}{⟨\Let{y}{x}{\A\,t_r}╱λx\,k.\,t_h⟩} \\
+	&→^* \Let{x}{e}{⟨\Let{y}{x}{\A\,t_r}╱λx\,k.\,t_h⟩} \\
 	&→ \Let{y}{e}{⟨\A\,t_r╱λx\,k.\,t_h⟩} \\
 	&→ \Let{y}{e}{t_r}
 \end{align*}
