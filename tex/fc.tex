@@ -1070,21 +1070,28 @@ labeling of reductions and a form of local confluence, viz.
 \end{tikzpicture}
 \end{center}
 It is not easily applied in our case.
+At first, let's label reductions by their names,
+we can refine later.
 Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
 %We can try labeling reductions with their names at first.
 \begin{enumerate}
 	\item
-		We can try to make the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ sequence on the left
-		smaller than the initial $\KwLet{}.\KwLet{}$.
-		One approach is to parallelize the $\KwLet{}.\KwLet{}$ reduction (not easy),
-		refine the order on $\KwLet{}.\KwLet{}$ by self-labeling
-		ordered by $\KwLet{}.\S$
-		($\KwLet{}.\KwLet{}^e > \KwLet{}.\KwLet{}^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
-		and set $\KwLet{}.\S < \KwLet{}.\KwLet{}^e$.
+		The most natural approach
+		is to have the follow-up $\KwLet{}.\S$ on the left smaller than the preceding one.
+		For that, we could apply self-labeling
+		($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$).
+		But now the $\KwLet{}.\S$ on the right has no relation to the initial one on the left.
+		We can set $\KwLet{}.\KwLet{} > \KwLet{}.\S$ to fix that and make the right side decreasing.
+		We still have the issue of many $\KwLet{}.\KwLet{}$ steps on the left,
+		which could be solved by parallelizing it (not easy).
 	\item
-		We can order $\KwLet{}.\S$ reductions by themselves
-		($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
-		and set $\KwLet{}.\KwLet{} < \KwLet{}.\S^e$.
+		Alternatively, we could try $\KwLet{}.\S > \KwLet{}.\KwLet{}$.
+		We would also have to make the $\KwLet{}.\KwLet{}$s on the left smaller than the initial one,
+		with no easy solution.
+%		One approach is to again parallelize the $\KwLet{}.\KwLet{}$ reduction and
+%		refine the order on $\KwLet{}.\KwLet{}$ by self-labeling
+%		ordered by $\KwLet{}.\S$
+%		($\KwLet{}.\KwLet{}^e > \KwLet{}.\KwLet{}^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
 \end{enumerate}
 %An idea to try is ordering by the depth at which reduction occurs.
 
@@ -1203,9 +1210,8 @@ Moreover, the Abella formalization differs from the definitions in Chapter \ref{
 		We have an expression $\Ask(D)$ instead of a value $\Ask(κ)$,
 		and instead of extending structural substitution we have the following evaluation (and reduction) rule:
 		$$\Ask(⟨E╱v⟩) ↦ v$$
-		% FIXME
-		Working with the grammar $\Ask(κ)$ on paper is more convenient,
-		but in Abella we wanted to avoid formalizing the normalization to that form.%
+		Working with the form $\Ask(κ)$ on paper is more convenient,
+		but it would be harder to maintain in Abella.
 		\footnote{
 			Having $e ::= \Ask(D) │ ...$ with the explicit evaluation step feels spiritually close
 			to having $e ::= D⟦e⟧ │ ...$ with explicit evaluation steps for plugging evaluation frames
@@ -1503,17 +1509,17 @@ Such an extension would probably need at least a mild form of typing
 in the renaming reduction we need to know that the continuation variable $κ$ comes
 from an $\S$ with the matching label:
 $$κ^\ell⟦\S^\ell κ'.\,e⟧ → e\subst{κ'}{κ}$$
-% FIXME abrupt
-One could wonder why we don't have tail-of-plug reductions, such as:
-$$κ⟦L[\S κ'.\,e]⟧ → κ⟦L[A\,e\subst{κ'}{κ}]⟧$$
-The reason is they won't work in the multi-prompt setting where
-$κ$ is allowed to have delimiters of different labels in the middle.
 
 With labeled operators,
 the case of an $\S$ in the tail position of a mismatched delimiter is interesting.
 We believe the correct rewrite is:
 $$⟨L[\S^{\ell}κ.\,e]⟩^{\ell'} → ⟨L[\A^{\ell'} \S^\ell κ.\,e\subst{κ}{κ⟦⟨□⟩^{\ell'}⟧}]⟩^{\ell'}$$
 It can be understood as an unrolling of the loop that searches for the correct delimiter.
+
+Finally, one could wonder why we don't have tail-of-plug reductions, such as:
+$$κ⟦L[\S κ'.\,e]⟧ → κ⟦L[A\,e\subst{κ'}{κ}]⟧$$
+The reason is they won't work in the multi-prompt setting where
+$κ$ is allowed to have delimiters of different labels in the middle.
 
 
 
