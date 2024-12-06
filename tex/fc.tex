@@ -843,7 +843,7 @@ Moreover, we need to perform consecutive reduction steps in some situations:
 \begin{enumerate}
 \item
 	Consider a peak involving $\KwLet{}.\S$ and some tail-of-reset reduction:
-	$$\S κ.\,e\subst{κ}{\Let{x}{□}{t}} \Rap{d} \Let{x}{\S κ.\,e}{t} \Par{d} \Let{x}{\S κ.\,e}{t'}$$
+	$$\S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧} \Rap{d} \Let{x}{\S κ.\,e}{t} \Par{d} \Let{x}{\S κ.\,e}{t'}$$
 	To perform tail-of-reset reductions in the $t$ substituted on the left,
 	we need to perform the substitution $κ{:=}⟨□⟩$ first and then reduce.
 	So we are forced to perform a $dL.\S$ step on the left,
