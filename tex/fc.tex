@@ -1077,7 +1077,7 @@ Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previou
 \begin{enumerate}
 	\item
 		The most natural approach
-		is to have the follow-up $\KwLet{}.\S$ on the left smaller than the preceding one.
+		is to make the follow-up $\KwLet{}.\S$ on the left smaller than the preceding one.
 		For that, we could apply self-labeling
 		($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$).
 		But now the $\KwLet{}.\S$ on the right has no relation to the initial one on the left.
@@ -1409,8 +1409,8 @@ $$\Op v ≡ \Let{h'}{h}{\shiftz\,k.\,h'\:v\:k} \quad\quad \Handle e \With x\,k.\
 
 We have chosen to merge the two constructs which enhance execution contexts into one:
 reset binds the dynamic parameter and we can refer to it through the continuation variable.
-The problem with conventional syntax dynamic parameters $p$ and their binders $\Dlet{p}{e}{t}$ is
-the same as with for operations and handlers:
+The problem with conventional syntax for dynamic parameters $p$ and their binders $\Dlet{p}{e}{t}$ is
+the same as with operations and handlers:
 they don't allow a fine-grained reduction,
 except for dynamic binders distributing over lexical binders.
 
