@@ -184,8 +184,8 @@
 	We let delimiters carry data (resulting in a form of dynamic binding), which lets us express deep effect handlers.
 	We propose an encoding of return clauses,
 	letting us omit them to simplify syntax.
-	We prove the reductions are semantics-preserving using a novel and much simpler approach that uses commutation instead of confluence.
-	We prove confluence only in a subcalculus and describe the problems we encountered.
+	We prove that the reductions preserve semantics.
+	We describe the problems with proving confluence and prove it only for a subcalculus.
 	The proofs are verified in the Abella proof assistant.
 	We argue that the calculus is stronger than previous results in the literature and could form basis for
 	reasoning and optimizations for the aforementioned forms of control.
@@ -791,8 +791,9 @@ where $\A.d$ and $↦$ do the same thing: $⟨\A⟨e⟩⟩$.
 
 We can derive (but don't need) the full property of commutation of $→$ and $↦$:
 $${←^* · ↦^*} ⊆ {↦^* · ←^*}$$
-Usually, proofs of adequacy 2 use confluence (commutation of $→$ with itself) and standardization \cite{Plotkin75, crary2009}.
-But confluence is harder to prove.
+Usually, proofs of adequacy 2 use confluence (commutation of $→$ with itself) and standardization \cite{Plotkin75, crary2009},
+but confluence of our calculus is harder to prove.
+The approach using commutation was previously discovered by Machkasova \cite{machka}.
 
 We perhaps could have shown ${← · ↦} ⊆ {↦^= · ←^*}$ directly, without mentioning $\Int$.
 Our approach lets us reuse the already established substitution lemmas for $\Int$.
