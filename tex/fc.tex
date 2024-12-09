@@ -655,13 +655,14 @@ we can statically handle any effect separated from the handler only by $\KwLet$ 
 The previous chapter has demonstrated how reduction can be used for optimization.
 Now we have to show that it doesn't change the result of a program.
 
-\section{Internal parallel reduction and standard reduction}
+\section{Internal parallel reduction}
 In studying interplay of evaluation and reduction,
 it will be useful to isolate reductions that are \textit{not} evaluation steps: \textit{internal} reductions.
 Furthermore, in later inductive arguments it will be useful that rewrite steps do not multiply.
 To this end, we will define \textit{internal parallel reduction} $\Int$ (figure \ref{internal}),
-which can perform reductions in many places of the term at once.
-This lets us define \textit{standard} reduction as the composition of many evaluation steps and
+which can perform internal reductions in many places of the term at once.
+In non-evaluation positions we allow arbitrary reductions,
+more specifically the composition of many evaluation steps and
 an internal parallel reduction: $↦^* · \Int$.
 
 \begin{figure}
@@ -751,7 +752,11 @@ an internal parallel reduction: $↦^* · \Int$.
 	If $e → e'$ and $e'$ evals to a value, then $e$ evals to a value.
 \end{corollary}
 
-We can derive (but don't need) semi-standardization and factorization:
+We can derive (but don't need) standardization\footnote{
+	The name refers to a \textit{standard order} of reductions,
+	which often also means an ordering of the individual $→$ reductions within $\Int$.
+	So this weaker property is also known as \textit{semi}-standardization.
+} a.k.a.\ factorization:
 $$→^* = (↦ ∪ \Int)^* ⊆ {↦^* · \Int^*}$$
 
 \section{Commutation}
@@ -786,7 +791,7 @@ where $\A.d$ and $↦$ do the same thing: $⟨\A⟨e⟩⟩$.
 
 We can derive (but don't need) the full property of commutation of $→$ and $↦$:
 $${←^* · ↦^*} ⊆ {↦^* · ←^*}$$
-Usually, proofs of adequacy 2 use confluence (commutation of $→$ with itself) and semi-standardization \cite{Plotkin75, crary2009}.
+Usually, proofs of adequacy 2 use confluence (commutation of $→$ with itself) and standardization \cite{Plotkin75, crary2009}.
 But confluence is harder to prove.
 
 We perhaps could have shown ${← · ↦} ⊆ {↦^= · ←^*}$ directly, without mentioning $\Int$.
