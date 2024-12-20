@@ -1078,7 +1078,8 @@ labeling of reductions and a form of local confluence, viz.
 \node at (d) [above=0.2cm, left=0.2cm] {$*$};
 \end{tikzpicture}
 \end{center}
-It is not easily applied in our case.
+This vastly general method subsumes and combines commonly used results such as the Hindley-Rosen lemma and Newman's lemma.
+Unfortunately, it is not easily applied in our case.
 At first, let's label reductions by their names,
 we can refine later.
 Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
@@ -1104,6 +1105,22 @@ Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previou
 \end{enumerate}
 %An idea to try is ordering by the depth at which reduction occurs.
 
+Another promising approach is to use a \textit{super}-parallel reduction, that is one reducing upward-created redexes.
+For example, for $\Let{x}{e}{t}$ we would first reduce $e$ into $e'$ and $t$ into $t'$,
+and then check if a new redex (such as $\KwLet{}.\S$ and $\KwLet{}.\KwLet{}$) is formed.
+A consequence of this approach is that the generalization of $\KwLet{}.\S$ to larger contexts $E$
+falls out naturally, making for a somewhat simpler proof of confluence for the $λμ$-calculus.
+Also, this lets us prove confluence of $\KwLet{}.\KwLet{}$ in a fine-grained CBV $λ$-calculus,
+as the previously described problem of consecutive $\KwLet{}.\KwLet{}$ redexes disappears
+and a length-generalized $\KwLet{}$ reassociation suffices.
+However, the combination of these two features still isn't easy.
+We conjecture that an extension of structural substitution that reduces newly created redexes is necessary. Moreover, careful design is necessary to include our tail-of-reset reductions.
+
+Finally, to reduce the number of cases resulting from using parallel reduction,
+we can use maximal parallel reductions (i.e., reducing all redexes), called
+\textit{complete developments}.
+Instead of the diamond property, we can prove a simpler triangle property,
+or just the Z property.
 
 \chapter{Abella mechanization}
 
