@@ -1103,7 +1103,11 @@ Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previou
 %		ordered by $\KwLet{}.\S$
 %		($\KwLet{}.\KwLet{}^e > \KwLet{}.\KwLet{}^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
 \end{enumerate}
-%An idea to try is ordering by the depth at which reduction occurs.
+% par(λ.v, let.v, d.v, d.S, k.S, let.let, A.d, A.v) > selford(let.S, dl.S)
+% seems to work
+% An idea to try is ordering by the depth at which reduction occurs.
+% wrong: not that simple because of the let.S-let.S case, need to refine
+% depth relative to some delimiter also not right because of k.S-let.S case
 
 Another promising approach is to use a \textit{super}-parallel reduction, that is one reducing upward-created redexes.
 For example, for $\Let{x}{e}{t}$ we would first reduce $e$ into $e'$ and $t$ into $t'$,
