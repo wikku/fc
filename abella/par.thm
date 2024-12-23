@@ -98,7 +98,6 @@ Theorem float_ass : forall A B C AB BC, nabla x, float A B AB -> float (B x) C (
 %  intros. case H1.
 %    case H2.
 %  % false?
-Quit.
 
 Theorem float_par_comm : forall E E' T T' LET, nabla x, float E T LET -> par E E' -> par (T x) (T' x) -> exists LET', par LET LET' /\ float E' T' LET'.
   induction on 1. intros.
@@ -145,6 +144,9 @@ Theorem float_par_comm : forall E E' T T' LET, nabla x, float E T LET -> par E E
 %        % need: float E' LET' E1 /\ float E'1 LET'1 E1
 %Quit.
 
+Theorem float_val : forall E1 E2 T1 T2 LET T' T1T' T2T', nabla x, float E1 T1 LET -> float E2 T2 LET -> float (T1 x) T' (T1T' x) -> float (T2 x) T' (T2T' x) -> exists LETT, float E1 T1T' LETT /\ float E2 T2T' LETT.
+skip.
+
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
   (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
@@ -162,9 +164,8 @@ Theorem pars_diam :
         apply IH to H3 H6. apply IH to H4 H7. case H11. permute (n1 n2) H13. apply float_par_comm to H9 H15 H13. apply float_ass to H16 H18. search.
       case H8.
         apply IH to H3 H6. apply IH to H4 H7. case H10. permute (n1 n2) H12. apply float_par_comm to H9 H15 H12. apply float_ass to H16 H18. search.
-        apply IH to H3 H6. apply IH to H4 H7. case H11. case H12. permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to H9 H16 H13. apply float_par_comm to H10 H19 H14.
-      
-    Quit.
+        apply IH to *H3 *H6. apply IH to *H4 *H7. case H11. case H12. permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to H9 H16 H13. apply float_par_comm to H10 H19 H14.
+            apply float_val to H17 H20 H22 H24. search.
     case H2.
       case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. search.
       apply IH1 to H3 H5. apply IH1 to H4 H6. search.
@@ -177,8 +178,3 @@ Theorem pars_diam :
   intros. case H1.
     case H2. search.
     case H2. apply IH to H3 H4. search.
-  intros. case H1.
-    case H2.
-      apply IH to H5 H6. search.
-      case H5. 
-    
