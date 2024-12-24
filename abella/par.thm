@@ -27,6 +27,10 @@ Define float : expr -> (val -> expr) -> expr -> prop by
   float E T (let E T);
   float (let E L) T (let E LT) := nabla x, float (L x) T (LT x).
 
+Define mfloat : expr -> (val -> expr) -> expr -> prop by
+  mfloat E T (let E T) := (forall E' T', E = let E' T' -> false);
+  mfloat (let E L) T (let E LT) := nabla x, mfloat (L x) T (LT x).
+
 Theorem float_subv : forall E T LET U, nabla (x : val), float (E x) (T x) (LET x) -> float (E U) (T U) (LET U).
   induction on 1.
   intros. case H1.
@@ -93,6 +97,61 @@ Theorem float_ass : forall A B C AB BC, nabla x, float A B AB -> float (B x) C (
     search.
     permute (n1 n2) H2. apply IH to H3 H2. search.
 
+%  (float m (float n A B) C) = float n A (float m B C)
+% float A FA -> float B FB -> exists FAB, float (FA B) FAB -> FAB C = FA (FB C)
+
+%Theorem float_ass2 : forall A B C AB BC ABC, nabla x, float A B AB -> float (B x) C (BC x) -> float AB C ABC -> float A BC ABC.
+%  % FALSE:                                               (let A B)        (let (B x) C)      (let (let A B) C)  (let A (let (B x)) C)
+%  intros.
+%  case H1.
+%    case H3.
+%    Quit.
+%
+
+%Theorem float_ass2 : forall A B C AB BC ABC, nabla x, float A B AB -> float (B x) C (BC x) -> float AB C ABC -> float A BC ABC.
+%  % FALSE:                                               (let A B)        (let (B x) C)      (let (let A B) C)  (let A (let (B x)) C)
+%  intros.
+%  case H1.
+%    case H3.
+%    Quit.
+%
+
+%Theorem float_ass2 : forall A B C AB BC ABC, nabla x, float A B AB -> float (B x) C (BC x) -> mfloat AB C ABC -> float A BC ABC.
+%  % FALSE:                                               (let A B)        (let (B x) C)      (let A x\ mlet (B x) C)  (let A (let (B x)) C)
+% intros.
+% case H1.
+%   case H3.
+%     apply H4 to _.
+%   Quit.
+Theorem mfloat_det : forall A B AB1 AB2, mfloat A B AB1 -> mfloat A B AB2 -> AB1 = AB2.
+  induction on 1. intros.
+  case H1.
+    case H2.
+      search.
+      apply H3 to _.
+    case H2.
+      apply H4 to _.
+      apply IH to H3 H4. search.
+
+Theorem float_ass2 : forall A B C AB BC ABC, nabla x, float A B AB -> mfloat (B x) C (BC x) -> mfloat AB C ABC -> float A BC ABC.
+  induction on 1. intros.
+  case H1.
+    case H3.
+      apply H4 to _.
+      apply mfloat_det to H2 H4. search.
+    case H3.
+      apply H5 to _.
+      permute (n1 n2) H2. apply IH to H4 H2 H5. search.
+
+
+%Theorem float_ass2 : forall A B C AB BC ABC, nabla x, float A B AB -> float (B x) C (BC x) -> float A BC ABC -> float AB C ABC.
+%  induction on 1. intros.
+%  case H1.
+%    case H3.
+%      search.
+%      % wrong!
+%  Quit.
+
 %Theorem float_ass : forall A1 A2 B1 B2 C AB BC1 BC2, nabla x, float A1 B1 AB -> float A2 B2 AB -> float (B1 x) C (BC1 x) -> float (B2 x) C (BC2 x) -> exists ABC, float A1 BC1 ABC /\ float A2 BC2 ABC.
 %  induction on 1.
 %  intros. case H1.
@@ -104,6 +163,13 @@ Theorem float_par_comm : forall E E' T T' LET, nabla x, float E T LET -> par E E
   case H1.
     search.
     case H2. permute (n1 n2) H3. apply IH to H4 H6 H3. apply float_ass to H7 H9. search.
+
+%Theorem float_par_comm2 : forall E E' T T' LET, nabla x, float E T LET -> par E E' -> par (T x) (T' x) -> exists LET', par LET LET' /\ mfloat E' T' LET'.
+%  induction on 1. intros.
+%  case H1.
+%    Quit.
+%    search.
+%    case H2. permute (n1 n2) H3. apply IH to H4 H6 H3. apply float_ass to H7 H9. search.
 
 %Theorem float_par_cong : forall E E' T T' LET LET', nabla x, float E T LET -> par E E' -> par (T x) (T' x) -> float E' T' LET' -> par LET LET'.
 % false since second float may float less than first?
@@ -147,6 +213,21 @@ Theorem float_par_comm : forall E E' T T' LET, nabla x, float E T LET -> par E E
 Theorem float_val : forall E1 E2 T1 T2 LET T' T1T' T2T', nabla x, float E1 T1 LET -> float E2 T2 LET -> float (T1 x) T' (T1T' x) -> float (T2 x) T' (T2T' x) -> exists LETT, float E1 T1T' LETT /\ float E2 T2T' LETT.
 skip.
 
+Theorem mfloat_float : forall A B AB, mfloat A B AB -> float A B AB.
+  induction on 1. intros.
+  case H1.
+    search.
+    apply IH to H2. search.
+
+Theorem float_diam :
+  forall E1 E2 T1 T2 LET1 LET2 E1' E2' E T, nabla x, float E1 T1 LET1 -> float E2 T2 LET2 -> par E1 E1' -> par E2 E2' -> mfloat E1' T E -> mfloat E2' T E -> par (T1 x) (T x) -> par (T2 x) (T x) -> exists LET, par LET1 LET /\ par LET2 LET.
+  induction on 1. intros.
+  case H1.
+    case H2.
+      apply mfloat_float to H5. apply mfloat_float to H6. search.
+      case H4. permute (n1 n2) H8. apply float_par_comm to *H9 *H11 *H8.
+      Quit.
+
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
   (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
@@ -158,13 +239,22 @@ Theorem pars_diam :
     case H2.
       apply IH1 to H3 H4. search.
       case H4. apply IH1 to H3 H5. search.
-    case H2. case H5.
+    case H2. apply IH to *H3 *H6. apply IH to *H4 *H7.% apply float_par_comm to H5 H9 H11. apply float_par_comm to H8 H10 H12.
+    Quit.
+    case H2.% case H5.
+    Quit.
       case H8.
         apply IH to H3 H6. apply IH to H4 H7. search.
         apply IH to H3 H6. apply IH to H4 H7. case H11. permute (n1 n2) H13. apply float_par_comm to H9 H15 H13. apply float_ass to H16 H18. search.
       case H8.
         apply IH to H3 H6. apply IH to H4 H7. case H10. permute (n1 n2) H12. apply float_par_comm to H9 H15 H12. apply float_ass to H16 H18. search.
-        apply IH to *H3 *H6. apply IH to *H4 *H7. case H11. case H12. permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to H9 H16 H13. apply float_par_comm to H10 H19 H14.
+        apply IH to *H3 *H6. apply IH to *H4 *H7. case H11. case H12.
+            % permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to H9 H16 H13. apply float_par_comm to H10 H19 H14.
+            %permute (n1 n2) H13. permute (n1 n2) H14. apply float_par_comm to *H9 *H16 *H13. apply float_par_comm to *H10 *H19 *H14.
+            %apply float_ass to H17 H22. apply float_ass to H20 H24.
+            % have: float E'2 L D6, float E' L1 D6. NO!
+            % need: par (LT n1) (LT' n1), par (LT1 n1) (LT1' n1), float E'2 LT' E3, float E'3 LT1' E3
+            Quit.
             apply float_val to H17 H20 H22 H24. search.
     case H2.
       case H3. apply IH1 to H4 H5. apply IH to H7 H6. apply par_subv to H11 H9. search.
