@@ -6,6 +6,10 @@ Define float : expr -> ((val -> expr) -> expr) -> prop by
   float E (t\ let E t);
   float (let E L) (t\ let E (L' t)) := nabla x, float (L x) (t\ L' t x).
 
+Define mfloat : expr -> ((val -> expr) -> expr) -> prop by
+  mfloat E (t\ let E t) := forall E' T', E = let E' T' -> false;
+  mfloat (let E L) (t\ let E (L' t)) := nabla x, mfloat (L x) (t\ L' t x).
+
 Theorem float_subv : forall E L U, nabla (x : val), float (E x) (L x) -> float (E U) (L U).
   induction on 1.
   intros. case H1.
@@ -63,6 +67,26 @@ Theorem float_par : forall E E' L, par E E' -> float E L -> exists L', float E' 
     search.
     case H1. apply IH to H5 H3. apply float_ass to H6 H7. exists t\L'1 y\L'2 y t. split. search. intros. permute (n1 n2) H10. apply H8 to H10. search.
 
+%Theorem float_par : forall E E' L, par E E' -> float E L -> exists L', mfloat E' L' /\ forall T T', nabla x, par (T x) (T' x) -> par (L T) (L' T').
+%  induction on 1. intros.
+%  case H2.
+%    Quit.
+%    search.
+%    case H1. apply IH to H5 H3. apply float_ass to H6 H7. exists t\L'1 y\L'2 y t. split. search. intros. permute (n1 n2) H10. apply H8 to H10. search.
+
+%Theorem float_val : forall E1 E2 E L1 L2, par E1 E -> par E2 E -> float E1 L1 -> float E2 L2 -> exists L, forall T T', nabla x, par (T x) (T' x) -> par (L2 T) (L T') /\ par (L1 T) (L T').
+%  induction on 3. intros.
+%  case H3.
+%    case H4.
+%      search.
+%      case H2. apply float_par to H7 H5. apply float_ass to H8 H9. exists t\L'1 y\L'2 y t. intros. split. permute (n1 n2) H12. apply H10 to H12. search. search.
+%    case H4.
+%      case H1. apply float_par to H7 H5. apply float_ass to H8 H9. exists t\L'1 y\L'2 y t. intros. split. search. permute (n1 n2) H12. apply H10 to H12. search.
+%      case H1. case H2.
+%  Quit.
+
+%Theorem floats : forall E L1 L2, float E L1 -> float E L2 -> zsss
+
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
   (forall V V1 V2, parv V V1 -> parv V V2 -> exists V3, parv V1 V3 /\ parv V2 V3).
@@ -74,7 +98,7 @@ Theorem pars_diam :
     case H2.
       apply IH1 to H3 H4. search.
       case H4. apply IH1 to H3 H5. search.
-    case H2. apply IH to *H3 *H6. apply IH to *H4 *H7. apply float_par to H9 H5. apply float_par to H10 H8.
+    case H2. apply IH to *H3 *H6. apply IH to *H4 *H7. apply float_par to H9 H5. apply float_par to H10 H8. apply H14 to H11. apply H16 to H12.
     Quit.
     case H2.% case H5.
     Quit.
