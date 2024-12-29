@@ -304,9 +304,6 @@ Theorem integ_inted :
     apply stang_stand to H3 with U = U. search.
     apply stang_stand to H4 with U = U. search.
 
-Theorem int_ret : forall E V, int g E (ret V) -> exists V', E = ret V'.
-  intros. case H1. search.
-
 Theorem subvs :
   (forall M E E' U U', nabla x, int (M x) (E x) (E' x) -> intv U U' -> int (M U) (E U) (E' U')) /\
   (forall E E' U U', nabla x, intv (E x) (E' x) -> intv U U' -> intv (E U) (E' U')) /\
