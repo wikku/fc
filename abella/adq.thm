@@ -132,7 +132,7 @@ Theorem steps_sublet : forall E E' T, nabla (k : expr -> expr), many step (E k) 
   induction on 1. intros. case H1. search. apply step_sublet to H2 with T = T. apply IH to H3 with T = T. search.
 
 
-Theorem step_subks :
+Theorem step_contrks :
   (forall E E', nabla (k l : expr -> expr), step (E k l) (E' k l) -> step (E k k) (E' k k)) /\
   (forall E E', nabla (k l : expr -> expr), stepc (E k l) (E' k l) -> stepc (E k k) (E' k k)).
   induction on 1 1. split.
@@ -154,10 +154,10 @@ Theorem step_subks :
     search.
     apply IH1 to H2. search.
 
-Split step_subks as step_subk, stepc_subk.
+Split step_contrks as step_contrk, stepc_contrk.
 
-Theorem steps_subk : forall E E', nabla (k l : expr -> expr), many step (E k l) (E' k l) -> many step (E k k) (E' k k).
-  induction on 1. intros. case H1. search. apply step_subk to H2. apply IH to H3. search.
+Theorem steps_contrk : forall E E', nabla (k l : expr -> expr), many step (E k l) (E' k l) -> many step (E k k) (E' k k).
+  induction on 1. intros. case H1. search. apply step_contrk to H2. apply IH to H3. search.
 
 Theorem steps_cong_let :
   forall E E' T, many step E E' -> many step (let E T) (let E' T).
@@ -425,7 +425,7 @@ Theorem int_subdllets :
   search.
 Split int_subdllets as int_subdllet, stan_subdllet.
 
-Theorem subks :
+Theorem contrks :
   (forall M E E', nabla (k l : expr -> expr), int (M k l) (E k l) (E' k l) -> int (M k k) (E k k) (E' k k)) /\
   (forall E E', nabla (k l : expr -> expr), intv (E k l) (E' k l) -> intv (E k k) (E' k k)) /\
   (forall M E E', nabla (k l : expr -> expr), stan (M k l) (E k l) (E' k l) -> stan (M k k) (E k k) (E' k k)) /\
@@ -451,7 +451,7 @@ Theorem subks :
     search.
     apply IH2 to H2. search.
   intros. case H1.
-    apply steps_subk to H2. apply IH to H3. search.
+    apply steps_contrk to H2. apply IH to H3. search.
   intros. case H1.
     apply IH4 to H2. search.
     apply IH4 to H2. search.
@@ -462,7 +462,7 @@ Theorem subks :
     apply IH4 to H2. apply IH2 to H3. search.
     apply IH4 to H2. apply IH2 to H3. apply IH2 to H4. search.
 
-Split subks as int_subk, intv_subk, stan_subk.
+Split contrks as int_contrk, intv_contrk, stan_contrk.
 
 Theorem stang_stanM : forall M E E', stan g E E' -> md M -> stan M E E'.
   intros. case H2.
@@ -536,7 +536,7 @@ Theorem posts :
       case H4. apply stan_subv to H5 H7. case H8. apply steps_cong_let to H9 with T = T2. search.
       apply IH to H4 H7 _. case H8. apply steps_cong_let to H9 with T = T1. apply steps_cong_let to H11 with T = T2. search.
     backchain stang_stanM. case H2.
-      apply IH1 to H4 H5. apply stan_subk to H7. case H8. search.
+      apply IH1 to H4 H5. apply stan_contrk to H7. case H8. search.
       apply IH to H4 H5 _. case H6. apply steps_cong_k to H7. search.
     case H2.
     case H2. case H4. apply IH to H6 H2 _. case H7. apply steps_app to H5 H8. search.
@@ -581,7 +581,7 @@ Theorem qscomms :
         apply IH1 to H8 H7. apply stan_subdlet to _ H11. apply stang_stanM to H12 _. search.
         case H7. apply stan_subdlet to _ H8. apply stang_stanM to H10 _. search.
         case H7. apply IH1 to H8 H11. assert nabla x, intv U U' /\ stan g (T1 x) (T1' x) /\ stan (d U) (T x) (T2' x). apply stan_subdllet to H14 H13. apply stang_stanM to H15 _. search.
-    case H1. apply IH1 to H5 H4. apply stan_subk to H7. apply stang_stanM to H8 _. search.
+    case H1. apply IH1 to H5 H4. apply stan_contrk to H7. apply stang_stanM to H8 _. search.
     case H1. apply IH to H6 H4 _. case H8. apply steps_cong_delim to H9 with U = U. apply step?_cong_delim to H7 with U = U'. search.
     case H1.
       apply IH to H5 H4 _. case H8. apply steps_cong_let to H9 with T = T. apply step?_cong_let to H7 with T = T'. search.
