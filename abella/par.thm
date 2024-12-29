@@ -1,6 +1,10 @@
 % vim: et
 Specification "fc".
 
+Define rfloat : ((val -> expr) -> expr) -> ((val -> expr) -> expr) -> prop by
+  rfloat (t\ let E T) (t\ let E T);
+  rfloat (t\ let (let E T1) (T2 t)) (t\ let E (T' t)) := nabla x, rfloat (t\ let (T1 x) (T2 t)) (t\ T' t x);
+  rfloat (t\ let E (T t)) (t\ let E (T' t)) := nabla x, rfloat (t\ T t x) (t\ T' t x).
 
 Define float : expr -> ((val -> expr) -> expr) -> prop by
   float E (t\ let E t);
@@ -54,6 +58,13 @@ Theorem pars_subv :
 
 Split pars_subv as par_subv, parv_subv, part_subv.
 
+Theorem rfloat_ass : forall L L' M M', nabla x, rfloat L L' -> rfloat (M x) (M' x) -> rfloat (t\ L' x\ M x t) (t\ L' x\ M' x t).
+  induction on 1. intros.
+  case H1.
+    search.
+    permute (n1 n2) H2. apply IH to H3 H2. search.
+    permute (n1 n2) H2. apply IH to H3 H2. search.
+
 
 Theorem float_ass : forall A B L M, nabla x, float A L -> float (B x) (M x) -> float (L B) (t\ L (y\ M y t)).
   induction on 1. intros.
@@ -61,11 +72,33 @@ Theorem float_ass : forall A B L M, nabla x, float A L -> float (B x) (M x) -> f
     search.
     permute (n1 n2) H2. apply IH to H3 H2. search.
 
+Define parl : ((val -> expr) -> expr) -> ((val -> expr) -> expr) -> prop by
+  parl (t\ let E t) (t\ let E' t) := par E E';
+  parl (t\ let E (T t)) (t\ let E' (T' t)) := par E E' /\ nabla x, parl (t\ T t x) (t\ T' t x).
+
 Theorem float_par : forall E E' L, par E E' -> float E L -> exists L', float E' L' /\ forall T T', nabla x, par (T x) (T' x) -> par (L T) (L' T').
   induction on 2. intros.
   case H2 (keep).
     search.
     case H1. apply IH to H5 H3. apply float_ass to H6 H7. exists t\L'1 y\L'2 y t. split. search. intros. permute (n1 n2) H10. apply H8 to H10. search.
+
+%Theorem float_par2 : forall E E' L L' T T', nabla x, par E E' -> float E L -> float E' L' -> par (T x) (T' x) -> par (L T) (L' T').
+%  induction on 2. intros.
+%  case H2 (keep).
+%    search.
+%    case H1. case H3.
+%      skip. % reject by asserting L' longer than L
+%
+%
+%      
+%      
+%    Quit.
+
+%Theorem float_par2 : forall E E' L L' T T', nabla x, par E E' -> float E' L' -> par (T x) (T' x) -> par (L T) (L' T').
+%  induction on 2. intros.
+%  case H2 (keep).
+%    
+%    Quit.
 
 %Theorem float_par : forall E E' L, par E E' -> float E L -> exists L', mfloat E' L' /\ forall T T', nabla x, par (T x) (T' x) -> par (L T) (L' T').
 %  induction on 1. intros.
@@ -82,10 +115,45 @@ Theorem float_par : forall E E' L, par E E' -> float E L -> exists L', float E' 
 %      case H2. apply float_par to H7 H5. apply float_ass to H8 H9. exists t\L'1 y\L'2 y t. intros. split. permute (n1 n2) H12. apply H10 to H12. search. search.
 %    case H4.
 %      case H1. apply float_par to H7 H5. apply float_ass to H8 H9. exists t\L'1 y\L'2 y t. intros. split. search. permute (n1 n2) H12. apply H10 to H12. search.
-%      case H1. case H2.
-%  Quit.
+%      case H1. case H2. %apply float_par to H12 H6. apply float_par to H8 H5.
+%  skip.
 
-%Theorem floats : forall E L1 L2, float E L1 -> float E L2 -> zsss
+%Theorem float_diag : forall E L1 L2, float E L1 -> float E L2 -> exists L, float E L /\
+
+%Theorem floats : forall E L1 L2, float E L1 -> float E L2 -> exists E' L L', nabla (x : val),
+%    (L1 = t\ L (x\ let E' (t x)) /\ float E' L' /\ L2 = t\ L (x\ L' (t x))) \/
+%    (L2 = t\ L (x\ let E' (t x)) /\ float E' L' /\ L1 = t\ L (x\ L' (t x))).
+%  induction on 1. intros.
+%  case H1.
+%    case H2.
+
+Define tle : ((val -> expr) -> expr) -> ((val -> expr) -> expr) -> prop by
+  tle (t\ let E t) T := float E T;
+  tle (t\ let E (T1 t)) (t\ let E (T2 t)) := nabla x, tle (t\ T1 t x) (t\ T2 t x).
+
+Theorem tle : forall E L1 L2, float E L1 -> float E L2 -> tle L1 L2 \/ tle L2 L1.
+  induction on 1. intros.
+  case H1.
+    case H2.
+      search.
+      search.
+    case H2.
+      search.
+      apply IH to H3 H4. case H5. search. search.
+
+%Define floatle : expr -> ((val -> expr) -> expr) -> ((val -> expr) -> expr) -> prop by
+%  floatl E (t\ let E t);
+%  float (let E L) (t\ let E (L' t)) := nabla x, float (L x) (t\ L' t x).
+
+%Theorem par_float : forall E E',
+%
+%Theorem par_tle : forall E T L1 L2, tle L1 L2 -> par E (L1 T) -> par E (L2 T).
+%  induction on 1. intros.
+%  case H1.
+%    case H3.
+%      search.
+%
+
 
 Theorem pars_diam :
   (forall E E1 E2, par E E1 -> par E E2 -> exists E3, par E1 E3 /\ par E2 E3) /\
@@ -98,7 +166,8 @@ Theorem pars_diam :
     case H2.
       apply IH1 to H3 H4. search.
       case H4. apply IH1 to H3 H5. search.
-    case H2. apply IH to *H3 *H6. apply IH to *H4 *H7. apply float_par to H9 H5. apply float_par to H10 H8. apply H14 to H11. apply H16 to H12.
+    case H2. apply IH to *H3 *H6. apply IH to *H4 *H7. apply float_par to H9 H5. apply float_par to H10 H8. apply tle to H13 H15.
+      
     Quit.
     case H2.% case H5.
     Quit.
