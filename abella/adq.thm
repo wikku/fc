@@ -88,55 +88,49 @@ Split step_subvs as step_subv, stepc_subv.
 Theorem steps_subv : forall E E' U, nabla (x : val), many step (E x) (E' x) -> many step (E U) (E' U).
   induction on 1. intros. case H1. search. apply step_subv to H2 with U = U. apply IH to H3 with U = U. search.
 
-Theorem step_subdelims :
-  (forall E E' U, nabla k, step (E k) (E' k) -> step (E (delim U)) (E' (delim U))) /\
-  (forall E E' U, nabla k, stepc (E k) (E' k) -> stepc (E (delim U)) (E' (delim U))).
-  induction on 1 1. split.
-  intros. case H1.
-    search.
-    search.
-    search.
-    search.
-    apply IH1 to H2 with U = U. search.
-    apply IH1 to H2 with U = (U n2). search.
-    apply IH1 to H2 with U = U. search.
-    apply IH to H2 with U = U. search.
-    apply IH to H2 with U = U. search.
-    apply IH to H2 with U = (U n2). search.
-    apply IH to H2 with U = U. search.
-  intros. case H1.
-    search.
-    apply IH1 to H2 with U = U. search.
 
-Split step_subdelims as step_subdelim, stepc_subdelim.
+Theorem step_subdcs :
+  forall D,
+  (forall O O', nabla l, step (O l) (O' l) -> step (D l (O l)) (D l (O' l))) ->
+  (forall O O', nabla l, stepc (O l) (O' l) -> step (D l (O l)) (O' l (D l))) ->
+  (forall E E', nabla k, step (E k) (E' k) -> step (E (D k)) (E' (D k))) /\
+  (forall E E', nabla k, stepc (E k) (E' k) -> stepc (E (D k)) (E' (D k))).
+  intros.
+  induction on 1 1. split.
+  intros. case H3.
+    search.
+    search.
+    search.
+    search.
+    apply IH1 to H4. search.
+    apply IH1 to H4. search.
+    apply IH1 to H4. apply H2 to H5. search.
+    apply IH to H4. search.
+    apply IH to H4. search.
+    apply IH to H4. search.
+    apply IH to H4. apply H1 to H5. search.
+  intros. case H3.
+    search.
+    apply IH1 to H4. search.
+
+Split step_subdcs as step_subdc.
+
+
+Theorem step_subdelim :
+    forall E E' U, nabla k, step (E k) (E' k) -> step (E (delim U)) (E' (delim U)).
+  intros. backchain step_subdc with E = E, E' = E', k = n1, D = (l\ delim U).
 
 Theorem steps_subdelim : forall E E' U, nabla k, many step (E k) (E' k) -> many step (E (delim U)) (E' (delim U)).
   induction on 1. intros. case H1. search. apply step_subdelim to H2 with U = U. apply IH to H3 with U = U. search.
 
-Theorem step_sublets :
-  (forall E E' T, nabla (k : expr -> expr), step (E k) (E' k) -> step (E (o\ k (let o T))) (E' (o\ k (let o T)))) /\
-  (forall E E' T, nabla (k : expr -> expr), stepc (E k) (E' k) -> stepc (E (o\ k (let o T))) (E' (o\ k (let o T)))).
-  induction on 1 1. split.
-  intros. case H1.
-    search.
-    search.
-    search.
-    search.
-    apply IH1 to H2 with T = T. search.
-    apply IH1 to H2 with T = (T n2). search.
-    apply IH1 to H2 with T = T. search.
-    apply IH to H2 with T = T. search.
-    apply IH to H2 with T = T. search.
-    apply IH to H2 with T = (T n2). search.
-    apply IH to H2 with T = T. search.
-  intros. case H1.
-    search.
-    apply IH1 to H2 with T = T. search.
 
-Split step_sublets as step_sublet, stepc_sublet.
+Theorem step_sublet :
+    forall E E' T, nabla (k : expr -> expr), step (E k) (E' k) -> step (E (o\ k (let o T))) (E' (o\ k (let o T))).
+  intros. backchain step_subdc with E = E, E' = E', k = n1, D = (k\ o\ k (let o T)).
 
 Theorem steps_sublet : forall E E' T, nabla (k : expr -> expr), many step (E k) (E' k) -> many step (E (o\ k (let o T))) (E' (o\ k (let o T))).
   induction on 1. intros. case H1. search. apply step_sublet to H2 with T = T. apply IH to H3 with T = T. search.
+
 
 Theorem step_subks :
   (forall E E', nabla (k l : expr -> expr), step (E k l) (E' k l) -> step (E k k) (E' k k)) /\
