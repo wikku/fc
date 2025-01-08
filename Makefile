@@ -1,7 +1,7 @@
 .PHONY: clean
 
-fc.tar.gz: abella/adq.html abella/conf.html tex/fc.pdf
-	tar -czf fc.tar.gz abella/adq.thm abella/adq.html abella/conf.thm abella/conf.html tex/fc.pdf
+fc.zip: abella/adq.html abella/conf.html tex/fc.pdf
+	zip fc.zip abella/adq.thm abella/adq.html abella/conf.thm abella/conf.html tex/fc.pdf
 
 abella/adq.html: abella/adq.thm
 	abella_doc abella/adq.thm
