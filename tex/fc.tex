@@ -57,6 +57,11 @@
   \end{center}
 }
 
+\newcommand{\mkapp}[2]{\textsf{mkapp}\:#1\:#2}
+\newcommand{\mkdelim}[2]{\textsf{mkdelim}\:#1\:#2}
+\newcommand{\mkplug}[2]{\textsf{mkplug}\:#1\:#2}
+\newcommand{\mklet}[2]{\textsf{mklet}\:#1\:#2}
+
 \newcommand{\Par}[1]{\stackrel{#1}{\Rrightarrow}}
 \newcommand{\Rap}[1]{\stackrel{#1}{\Lleftarrow}}
 \newcommand{\Int}{\Rightarrow}
@@ -157,6 +162,7 @@
 \newunicodechar{≤}{\le}
 \newunicodechar{≡}{\equiv}
 \newunicodechar{≈}{\approx}
+\newunicodechar{●}{\bullet}
 
 
 % cursed
@@ -1130,6 +1136,69 @@ we can use maximal parallel reductions (i.e., reducing all redexes), called
 \textit{complete developments}.
 Instead of the diamond property, we can prove a simpler triangle property,
 or just the Z property.
+
+\section{Z property}
+
+\begin{figure}
+
+\begin{align*}
+	&x^● = x \\
+	&(λx.\,e)^● = λx.\,e^● \\
+	&(u\:v)^● = \mkapp{u^●}{v^●} \\
+	&(\Let{x}{e}{t})^● = \mklet{e^●}{x.\,t^●} \\
+	&(\S κ.\,e)^● = \S κ.\,e^● \\
+	&⟨e/v⟩^● = \mkdelim{e^●}{v^●} \\
+	&κ⟦e⟧^● = \mkplug{κ}{e^●} \\
+	&\Ask(κ)^● = \Ask(κ)
+%\end{align*}
+\\ \\
+%\begin{align*}
+	&\mkapp{(λx.\,e)}{v} = e\subst{x}{v} \\
+	&\mkapp{u}{v} = u\:v \\
+	&\\
+	&\mklet{v}{x.\,t} = t\subst{x}{v} \\
+	&\mklet{(\S κ.\,e)}{x.\,t} = \S κ.\,e\subst{κ}{κ⟦\mklet{□}{x.\,t}⟧} \\
+	&\mklet{(\Let{y}{e}{t'})}{x.\,t} = \Let{y}{e}{\mklet{t'}{x.\,t}} \\
+	&\mklet{e}{x.\,t} = \Let{x}{e}{t} \\
+	&\\
+	&\mkdelim{v}{u} = v \\
+	&\mkdelim{(\S κ.\,e)}{u} = e\subst{κ}{\mkdelim{□}{u}} \\
+	&\mkdelim{L[\S κ.\,e]}{u} = ⟨L[\A\,e\subst{κ}{\mkdelim{□}{u}}]/u⟩ \\
+	&\mkdelim{L[\A⟨e/u⟩]}{u} = ⟨L[e]/u⟩ \\
+	&\mkdelim{L[\A\,v]}{u} = ⟨L[v]/u⟩ \\
+	&\mkdelim{e}{u} = ⟨e/u⟩ \\
+	&\\
+	&\mkplug{κ}{\S κ'.\,e} = e\subst{κ'}{κ} \\
+	&\mkplug{κ}{e} = κ⟦e⟧
+\end{align*}
+
+\caption{
+	Complete superdevelopments.
+	The functions are defined by the first pattern that matches.
+}
+
+\end{figure}
+
+\begin{theorem}[Z property]
+	If $a → b$, then $b →^* a^● →^* b^●$.
+\end{theorem}
+\begin{proof}
+	Induction on $a → b$.
+	\begin{enumerate}
+		\item $(λx.\,e)\,v → e\subst{x}{v} \stackrel{IH}{→^*} ((λx.\,e)\,v)^● = e^●\subst{x}{v^●} →^* (e\subst{x}{v})^●$
+		\item $\Let{x}{v}{t} → t\subst{x}{v} \stackrel{IH}{→^*} (\Let{x}{v}{t})^● = t^●\subst{x}{v^●} →^* (t\subst{x}{v})^●$
+		\item $⟨v╱u⟩ → v →^* ⟨v/u⟩^● = v^●$
+		\item $\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧}$
+		\item $⟨\S κ.\,e ╱ v⟩ → e\subst{κ}{⟨□╱v⟩}$
+		\item $κ⟦\S κ'.\,e⟧ → e\subst{κ'}{κ}$
+		\item $⟨L[\S κ.\,e]╱v⟩ → ⟨L[A\,e\subst{κ}{⟨□╱v⟩}]╱v⟩$
+		\item $⟨L[\A⟨e╱v⟩]╱v⟩ → ⟨L[e]╱v⟩$
+		\item $⟨L[\A\,u]╱v⟩ → ⟨L[u]╱v⟩$
+		\item $\Let{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$
+	\end{enumerate}
+\end{proof}
+
+
 
 \chapter{Abella mechanization}
 
