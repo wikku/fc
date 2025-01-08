@@ -344,7 +344,7 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 		\Let{x}{\S κ.\,e}{t} &→ \S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧} \tagmath{\KwLet{}.\S} \\
 		⟨\S κ.\,e ╱ v⟩ &→ e\subst{κ}{⟨□╱v⟩} \tagmath{d.\S} \\
 		κ⟦\S κ'.\,e⟧ &→ e\subst{κ'}{κ} \tagmath{k.\S} \\
-		⟨L[\S κ.\,e]╱v⟩ &→ ⟨L[A\,e\subst{κ}{⟨□╱v⟩}]╱v⟩ \tagmath{dL.\S} \\
+		⟨L[\S κ.\,e]╱v⟩ &→ ⟨L[\A\,e\subst{κ}{⟨□╱v⟩}]╱v⟩ \tagmath{dL.\S} \\
 		⟨L[\A⟨e╱v⟩]╱v⟩ &→ ⟨L[e]╱v⟩ \tagmath{\A.d} \\
 		⟨L[\A\,u]╱v⟩ &→ ⟨L[u]╱v⟩ \tagmath{\A.v} \\
 		\Let{x}{\Let{y}{e}{t_1}}{t_2} &→ \Let{y}{e}{\Let{x}{t_1}{t_2}} \tagmath{\KwLet{}.\KwLet{}}
