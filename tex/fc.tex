@@ -478,22 +478,23 @@ We may assume common features such as arithmetic for presentation purposes.
 \subsection{Structural reduction}
 \label{strred}
 
-The rule $\KwLet{}.\S$ has utility beyond taking apart the context $E$ when finely simulating the
+Successive applications of $\KwLet{}.\S$ take apart a context $E$,
+and when followed by $k.\S$ or $d.\S$, we have simulated the
 evaluation rule for continuation capture.
+But $\KwLet{}.\S$ is also useful on its own, when there is no delimiter to find.
 Consider the following snippet:
 $$ \Let{x}{\S κ.\,κ⟦40⟧}{x+2} → \S κ.\,κ⟦\Let{x}{40}{x+2}⟧ → \S κ.\,κ⟦40+2⟧ → \S κ.\,κ⟦42⟧$$
-There is no delimiter to find for the $\S$, but we do know a prefix of the continuation
-that $\S$ may capture, and we can put this knowledge to good use.
+Here, we have applied knowledge about the \textit{prefix} of a continuation that \textit{may} be captured.
 
-The above example also shows the power of the $κ⟦e⟧$ expression former.
-We can consider a similar example with the value-capturing $\shiftz$ syntax:
+The above example wouldn't be possible without the $κ⟦e⟧$ expression former.
+We can consider a similar example in the value-capturing $\shiftz$ syntax:
 $$\Let{x}{\shiftz\,k.\,k\,40}{f\,x}$$
-If $\shiftz$ captures the continuation, $f$ will be applied to $40$, but there is nothing we can do with that knowledge in this syntax.
+If $\shiftz$ captures the continuation, $f$ will be applied to $40$, but there is nothing we can do with that.
 A naïve attempt would be:
 $$\shiftz\,k.\, k\,(f\,40)$$
 But this is incorrect: $f\,40$ won't run inside the captured continuation, it will be evaluated separately and
 then the result will be passed to $k$.
-This changes the behavior if $f$ also uses $\shiftz$.
+This changes behavior if $f$ also uses $\shiftz$.
 
 The rule $d.\S$ deals with the easy case where an $\S$ is in direct contact with a delimiter.
 The rule $k.\S$, \textit{renaming} in $λμ$-parlance, is more interesting,
@@ -591,7 +592,7 @@ Inspired by the $λμ$-calculus, we could consider an $η$-reduction of the foll
 $$\S κ.\,κ⟦e⟧ → e$$
 In words, capturing a continuation and then immediately installing it
 amounts to doing nothing.
-However, the rewrite changes program behavior if the program originally got stuck on searching for a delimiter.
+However, this rewrite changes program behavior if the program originally got stuck on searching for a delimiter.
 We therefore perform the reduction in tail-of-reset contexts to ensure this doesn't happen.
 The resulting rule $\A.d$ can be of a slightly simplified form,
 since the $dL.\S$ reduction always applies:
