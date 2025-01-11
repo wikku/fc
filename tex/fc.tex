@@ -1593,10 +1593,9 @@ We also don't see how they could deal with the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
 unless they add a $κ⟦\Let{x}{e}{t}⟧ → \Let{x}{e}{κ⟦t⟧}$ reduction, which is similar to theirs
 $x(\Let{x}{e}{t}) → \Let{x}{e}{xt}$ and seems to be valid in the undelimited setting.
 
-The proof for the $\shiftz$ calculus with delimiter distribution in \cite{ppdp21} relies on a dubious reduction to local confluence,
-and so we believe it is also incorrect.
-%which is not a valid argument (take $\Rightarrow=→$ for a counterexample, it is known that local confluence does not imply confluence). Diamond property is needed instead of local confluence.
-
+The proof for the $\shiftz$ calculus with delimiter distribution in \cite{ppdp21} doesn't explain
+the step from local confluence to confluence, an apparent hole in the reasoning.
+However, confluence follows directly from decreasing diagrams with ${→^*_a} > {→^*_p} > {→^*_i}$.
 
 \chapter{Future work}
 
