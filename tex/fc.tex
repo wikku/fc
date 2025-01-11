@@ -1040,15 +1040,20 @@ We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes 
 
 \section{Towards a proof for the full calculus}
 The difficulties lead us to search for another approach to proving confluence.
+There are some promising leads, but all of them require significant work,
+especially to have the reassurance of machine verification.
 
 There is a way of defining
 parallel reduction indirectly, by first establishing a theory of residuals.
 This involves contracting previously marked sets of redexes in a term.
 Because of the situations where redexes are torn apart, this might be impossible.
 
-A more promising approach relies on proving termination of reductions.
-De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}
-should be rather easily adaptable to include $k.\S$ and $d.\S$.
+A modular approach using commutation does not appear easy.
+The previously described critical pairs of $\KwLet{}.\S$ with $\KwLet{}.\KwLet{}$, $dL.\S$, $\A.d$, and $\A.v$
+demonstrate a lack of commutation between them, so they have to be considered jointly.
+One approach is to prove them strongly normalizing,
+building on De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}.
+It is rather easily adaptable to include $k.\S$ and $d.\S$.
 The tail-of-reset reductions would involve more work.
 The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
 Then, the standard argument by Newman's lemma and Hindley-Rosen's lemma should work.
@@ -1089,38 +1094,19 @@ labeling of reductions and a form of local confluence, viz.
 \node at (d) [above=0.2cm, left=0.2cm] {$*$};
 \end{tikzpicture}
 \end{center}
-This vastly general method subsumes and combines commonly used results such as the Hindley-Rosen lemma and Newman's lemma.
-Unfortunately, it is not easily applied in our case.
-At first, let's label reductions by their names,
-we can refine later.
-Consider the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair illustrated previously.
-%We can try labeling reductions with their names at first.
-\begin{enumerate}
-	\item
-		The most natural approach
-		is to make the follow-up $\KwLet{}.\S$ on the left smaller than the preceding one.
-		For that, we could apply self-labeling
-		($\KwLet{}.\S^e > \KwLet{}.\S^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$).
-		But now the $\KwLet{}.\S$ on the right has no relation to the initial one on the left.
-		We can set $\KwLet{}.\KwLet{} > \KwLet{}.\S$ to fix that and make the right side decreasing.
-		We still have the issue of many $\KwLet{}.\KwLet{}$ steps on the left,
-		which could be solved by parallelizing it (not easy).
-	\item
-		Alternatively, we could try $\KwLet{}.\S > \KwLet{}.\KwLet{}$.
-		We would also have to make the $\KwLet{}.\KwLet{}$s on the left smaller than the initial one,
-		with no easy solution.
-%		One approach is to again parallelize the $\KwLet{}.\KwLet{}$ reduction and
-%		refine the order on $\KwLet{}.\KwLet{}$ by self-labeling
-%		ordered by $\KwLet{}.\S$
-%		($\KwLet{}.\KwLet{}^e > \KwLet{}.\KwLet{}^{e'}$ iff $e \xrightarrow{\KwLet{}.\S}^+ e'$),
-\end{enumerate}
-% par(λ.v, let.v, d.v, d.S, k.S, let.let, A.d, A.v) > selford(let.S, dl.S)
-% seems to work
-% An idea to try is ordering by the depth at which reduction occurs.
-% wrong: not that simple because of the let.S-let.S case, need to refine
-% depth relative to some delimiter also not right because of k.S-let.S case
+This vastly general method subsumes and combines, among others, the Hindley-Rosen lemma and Newman's lemma.
+Indeed, one such combination looks promising.
+We could define a parallel reduction with the diamond property $\Par{}$
+containing $λ.v$, $\KwLet{}.v$, $d.v$, $d.\S$, $k.\S$, $\KwLet{}.\KwLet{}$
+and prove strong normalization of the remaining reductions ${\xrightarrow{Str}} = \KwLet.\S ∪ dL.\S ∪ \A.d ∪ \A.v$.
+Previous critical pair analyses suggest that the following holds:
+$${\Rap{} · \xrightarrow{Str}} ⊆ {\xrightarrow{Str}^* · \xleftarrow{Str}^* · \Rap{} · \xleftarrow{Str}^*}$$
+The diagram is decreasing if ${\Par{}} > {\xrightarrow{Str}}$ and $\xrightarrow{Str}$ is self-labeled by the initial term
+(${e \xrightarrow{Str}} > {e' \xrightarrow{Str}}$ iff $e \xrightarrow{Str}^+ e'$).
+The proof schema is Exercise 14.2.25 in Terese \cite{Terese}.
 
-Another promising approach is to use a \textit{super}-parallel reduction, that is one reducing upward-created redexes.
+\textit{Super}-parallel reductions, which reduce upward-created redexes,
+may be useful.
 For example, for $\Let{x}{e}{t}$ we would first reduce $e$ into $e'$ and $t$ into $t'$,
 and then check if a new redex (such as $\KwLet{}.\S$ and $\KwLet{}.\KwLet{}$) is formed.
 A consequence of this approach is that the generalization of $\KwLet{}.\S$ to larger contexts $E$
@@ -1129,13 +1115,20 @@ Also, this lets us prove confluence of $\KwLet{}.\KwLet{}$ in a fine-grained CBV
 as the previously described problem of consecutive $\KwLet{}.\KwLet{}$ redexes disappears
 and a length-generalized $\KwLet{}$ reassociation suffices.
 However, the combination of these two features still isn't easy.
-We conjecture that an extension of structural substitution that reduces newly created redexes is necessary. Moreover, careful design is necessary to include our tail-of-reset reductions.
+Moreover, careful design is necessary to include the tail-of-reset reductions.
+Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
+or showing the Z property.
 
-Finally, to reduce the number of cases resulting from using parallel reduction,
-we can use maximal parallel reductions (i.e., reducing all redexes), called
-\textit{complete developments}.
-Instead of the diamond property, we can prove a simpler triangle property,
-or just the Z property.
+Complete developments
+can be used to show a triangle property ${\Rap{} · \Par{cd}} ⊆ {\Par{}}$.
+This is simpler to prove than the diamond property it entails,
+because there are fewer cases to consider and fewer degrees of freedom.
+The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.
+They can also be used to prove confluence without referring to ``lesser'' developments
+by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
+This can potentially hold even when (syntactic definitions of) developments
+don't have the diamond property, because in situations where we would
+want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$.
 
 \section{Z property}
 
