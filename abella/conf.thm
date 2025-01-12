@@ -171,7 +171,7 @@ Theorem pars_sublet :
 
 Split pars_sublet as par_sublet, parv_sublet, parc_sublet.
 
-Theorem pars_subk :
+Theorem pars_contrk :
   (forall R E E', nabla x (y : expr -> expr), par R (E x y) (E' x y) -> par R (E x x) (E' x x)) /\
   (forall V V', nabla x (y : expr -> expr), parv (V x y) (V' x y) -> parv (V x x) (V' x x)) /\
   (forall E E', nabla x (y : expr -> expr), parc (E x y) (E' x y) -> parc (E x x) (E' x x)).
@@ -205,7 +205,7 @@ Theorem pars_subk :
     apply IH to H2. search.
     apply IH2 to H2. apply IH to H3. search.
 
-Split pars_subk as par_subk, parv_subk, parc_subk.
+Split pars_contrk as par_contrk, parv_contrk, parc_contrk.
 
 
 Theorem pars_subdelim :
@@ -396,10 +396,10 @@ Theorem pars_diam :
     case H2. case H1. case H5. apply IH1 to H8 _ H6 H9. search.
     backchain diam_gd. case H2. case H1. case H5.
       apply IH to H8 _ _ H6 H9. search.
-      apply IH3 to H8 _ H9 H6. apply par_subk to H10. search.
+      apply IH3 to H8 _ H9 H6. apply par_contrk to H10. search.
     backchain diam_gd. case H2. case H1. case H5.
-      apply IH3 to H8 _ H6 H9. apply par_subk to H10. search.
-      apply IH2 to H8 _ H6 H9. apply par_subk to H10. apply par_subk to H11. search.
+      apply IH3 to H8 _ H6 H9. apply par_contrk to H10. search.
+      apply IH2 to H8 _ H6 H9. apply par_contrk to H10. apply par_contrk to H11. search.
     case H2. case H1. case H5.
       case H7.
       case H8. case H7. case H10. apply IH to H11 _ _ H6 H12. apply IH to H16 _ _ H13 H15. apply par_subdlet to H20 H17. apply par_subdlet to H19 H18. search.
