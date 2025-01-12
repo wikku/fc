@@ -50,26 +50,6 @@ Theorem subdelims :
 
 Split subdelims as subdelim, vsubdelim.
 
-Theorem subks :
-  (forall S E, nabla x (y : expr -> expr), eos (E x y) S -> eos (E x x) S) /\
-  (forall S V, nabla x (y : expr -> expr), vos (V x y) S -> vos (V x x) S).
-  induction on 1 1. split.
-  intros. case H1.
-    apply IH1 to H2. search.
-    apply IH1 to H2. apply IH1 to H3. search.
-    apply IH to H2. apply IH to H3. search.
-    apply IH to H2. search.
-    apply IH to H2. search.
-    apply IH to H2. search.
-    apply IH to H2. search.
-    apply IH to H2. search.
-  intros. case H1.
-    search.
-    apply IH to H2. search.
-
-Split subks as subk, vsubk.
-
-
 Kind mode type.
 Type g, d mode.
 
