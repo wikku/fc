@@ -1710,8 +1710,9 @@ it can be turned into jumps to join points \cite{cwc}.
 
 \section{Specialization}
 Some optimizations are program transformations that perhaps shouldn't be part of reduction.
-One example is specializing functions that we know will run under a particular effect interpretation,
-this is especially useful if the function is recursive.
+For example, specializing functions that we know will run under a particular effect interpretation,
+this is especially useful if the function is recursive \cite{saleh,karachalias}.
+
 A potential way to achieve this is
 to create a copy of a function with $\Ask(κ)$ replaced with that interpretation.
 %In our calculus, we can create a copy of the function with $\Ask(κ)$ replaced with that interpretation.
