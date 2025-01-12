@@ -1,6 +1,5 @@
 % vim: et
 Kind val,expr type.
-Kind lbl type.
 
 Type lam    (val -> expr) -> val.
 
