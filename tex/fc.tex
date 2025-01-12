@@ -57,6 +57,8 @@
   \end{center}
 }
 
+\newcommand*{\bulletto}{\mathrel{\ooalign{\(\to\)\cr\>\(\raisebox{.55pt}{\scalebox{0.8}{\(\bullet\)}}\)}}}
+
 \newcommand{\mkapp}[2]{\textsf{mkapp}\:#1\:#2}
 \newcommand{\mkdelim}[2]{\textsf{mkdelim}\:#1\:#2}
 \newcommand{\mkplug}[2]{\textsf{mkplug}\:#1\:#2}
@@ -1120,7 +1122,9 @@ Potential solutions may involve extensions of structural substitution which also
 or showing the Z property.
 
 Complete developments
-can be used to show a triangle property ${\Rap{} · \Par{cd}} ⊆ {\Par{}}$.
+are maximal (super)parallel reductions,
+we will write $a \bulletto b$ or $a^● = b$.
+They can be used to show a triangle property ${\Rap{} · {\bulletto}} ⊆ {\Par{}}$.
 This is simpler to prove than the diamond property it entails,
 because there are fewer cases to consider and fewer degrees of freedom.
 The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.
@@ -1128,7 +1132,7 @@ They can also be used to prove confluence without referring to ``lesser'' develo
 by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
 This can potentially hold even when (syntactic definitions of) developments
 don't have the diamond property, because in situations where we would
-want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$.
+want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$ \cite{z}.
 
 \section{Z property}
 
