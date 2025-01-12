@@ -1,20 +1,17 @@
 .PHONY: clean
 
-fc.zip: abella/adq.html abella/conf.html tex/fc.pdf
-	zip fc.zip abella/adq.thm abella/adq.html abella/conf.thm abella/conf.html tex/fc.pdf
+SRCS = $(wildcard abella/*.thm)
+HTMLS = $(patsubst abella/%.thm, abella/%.html, $(SRCS))
 
-abella/adq.html: abella/adq.thm
-	abella_doc abella/adq.thm
+fc.zip: $(HTMLS) tex/fc.pdf
+	zip fc.zip $(SRCS) $(HTMLS) tex/fc.pdf
 
-abella/conf.html: abella/conf.thm
-	abella_doc abella/conf.thm
+abella/%.html: abella/%.thm
+	abella_doc $<
 
 tex/fc.pdf: tex/fc.tex tex/refs.bib
 	cd tex && latexmk -pdf fc.tex
 
-all:
-	cd tex && latexmk -pdf fc.tex
-
 clean:
 	cd tex && latexmk -c fc.tex
-	rm abella/*.thc abella/*.json
+	rm -f abella/*.thc abella/*.json
