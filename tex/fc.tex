@@ -1476,7 +1476,7 @@ $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
 It is tempting to decompose $\S$ into its constituent parts:
 a $\keyword{letcc}$ which binds the current continuation without aborting, and an abort $\A$:
 $$\S κ.\,e ≡ \keyword{letcc}\,κ.\,\A\,e$$
-Then we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
+Then, we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
 $$\Let{x}{e}{\keyword{letcc}\,κ.\,t} → \keyword{letcc}\,κ.\,\Let{x}{e}{t}$$
 Analogous reductions have been considered for undelimited continuations \cite{sabry}.
 
