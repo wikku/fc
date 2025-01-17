@@ -554,7 +554,7 @@ of the delimiter, now captured. Loosely speaking, we can reason recursively.%
 \end{align*}
 If $e$ never evaluates to a value, then the rule rewrites dead code, which is fine.
 
-\begin{figure}
+\begin{figure}[p]
 \begin{align*}
 &\Handle \Log\,();\Let{x}{\Op()}{\Let{y}{\Op()}{f(x,y)}} \With x\,k.\,k\,\true ││ k\,\false \\
 ≡\enspace &⟨\Log\,();\Let{x}{\Op()}{\Let{y}{\Op()}{f(x,y)}} ╱ h ⟩ \\
