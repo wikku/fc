@@ -1642,16 +1642,6 @@ to create a copy of a function with $\Ask(κ)$ replaced with that interpretation
 % it doesn't replace f with f' in the specialized function's body
 %$$\Letrec{f\;x}{e_f}{\Handle f\,v \With x\,k.\,e_h} → \Letrec {f'\;x}{\Handle e_f \With x\,k.\,e_h}{f'\,v}$$
 
-\section{Branching}
-We have aimed for a minimal calculus that lets us showcase our ideas.
-To model more realistic programming languages,
-many extensions are obviously needed.
-While many features (e.g.\  pairs)
-could be handwaved away as adequately $λ$-encodable,
-some may need more careful treatment.
-One example is branching constructs such as $\keyword{case}$ expressions,
-which introduce new kinds of tail contexts
-and consequently our novel reductions would require generalization.
 
 %\hfuzz=1pt
 \printbibliography[heading=bibintoc]
