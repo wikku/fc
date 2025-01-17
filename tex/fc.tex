@@ -1356,7 +1356,7 @@ is no delimiter, but we can (subsection \ref{strred}).
 \section{shift0 axiomatization}
 Here we compare some of the equational axioms of $\shiftz$ by Materzok \cite{materzok}.
 
-\subsection*{shift0/reset}
+\subsection*{shift0/reset ($λ_{\S_0}$)}
 
 \begin{equation*}
 	\foreign{\shiftz\,k.\,⟨\Let{x}{e}{\abort\,k\,x}⟩ = e} \tag{\foreign{$η_{⟨·⟩}$}}
@@ -1374,7 +1374,8 @@ Clearly an instance of $\A.d$.
 \end{equation*}
 Expressible with $\KwLet{}.\KwLet{}$ and $\KwLet{}$ identity: $\Let{x}{e}{E[x]} ←^* E[\Let{x}{e}{x}] → E[e]$.
 
-\subsection*{shift0/dollar}
+\subsection*{shift0/dollar ($λ_\$$)}
+This calculus is largely equivalent to \cite{ppdp21}, except for rule (\foreign{$η_\$$}).
 \begin{equation*}
 	\foreign{\shiftz\,k.\,⟨e ¦ y.\,k\,y⟩ = e} \tag{\foreign{$η_\$$}}
 \end{equation*}
