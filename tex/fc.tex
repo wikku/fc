@@ -1022,7 +1022,6 @@ To complete this diagram in one parallel reduction step,
 we would need to have not only length-wise,
 but also a depth-wise generalization
 of $\KwLet$ reassociation.
-We don't provide a definition here, since we haven't managed to prove any attempt right.
 
 The other challenge is that a $\KwLet{}.\S$ reduction can tear apart a $\KwLet{}.\KwLet{}$ redex:
 $$
@@ -1121,19 +1120,20 @@ Moreover, careful design is necessary to include the tail-of-reset reductions.
 Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
 or showing the Z property.
 
-Complete developments
+Complete (super)developments
 are maximal (super)parallel reductions,
 we will write $a \bulletto b$ or $a^● = b$.
 They can be used to show a triangle property ${\Rap{} · {\bulletto}} ⊆ {\Par{}}$.
 This is simpler to prove than the diamond property it entails,
 because there are fewer cases to consider and fewer degrees of freedom.
 The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.
-They can also be used to prove confluence without referring to ``lesser'' developments
+They can also be used to prove confluence without referring to lesser developments
 by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
 This can potentially hold even when (syntactic definitions of) developments
 don't have the diamond property, because in situations where we would
 want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$ \cite{z}.
-
+%We have previously specifically generalized parallel reduction with this aim,
+%so this could be useful.
 
 \chapter{Abella mechanization}
 
