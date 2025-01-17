@@ -443,71 +443,90 @@ Theorem adq2 : forall E E' V, red E E' -> many step E (ret V) -> exists V', many
 
 %%% GENERAL TERMINATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Define is_value : expr -> prop by is_value (ret V).
+Define is_meta_stuck : expr -> prop by
+  nabla x, is_meta_stuck (app x (E x));
+  nabla (k : expr -> expr), is_meta_stuck (ask (k (E k)));
+  nabla (k : expr -> expr), is_meta_stuck (k (ret (V k)));
+  is_meta_stuck (let E T) := is_meta_stuck E;
+  is_meta_stuck (delim U E) := is_meta_stuck E;
+  nabla k, is_meta_stuck (k (E k)) := nabla k, is_meta_stuck (E k).
 
-Define is_call_stuck : expr -> prop by
-  nabla x, is_call_stuck (app x (E x));
-  is_call_stuck (let E T) := is_call_stuck E;
-  is_call_stuck (delim U E) := is_call_stuck E;
-  nabla k, is_call_stuck (k (E k)) := nabla k, is_call_stuck (E k).
-
-%Define is_control_stuck : expr -> prop by
-%  is_control_stuck (shift0 E);
-%  is_control_stuck (let E T) := is_control_stuck E.
-
-Define is_control_stuck : expr -> prop by
-  is_control_stuck E := exists E', stepc E E'.
-
-Define is_ask_stuck : expr -> prop by
-  nabla (k : expr -> expr), is_ask_stuck (ask (k (E k)));
-  is_ask_stuck (let E T) := is_ask_stuck E;
-  is_ask_stuck (delim U E) := is_ask_stuck E;
-  nabla k, is_ask_stuck (k (E k)) := nabla k, is_ask_stuck (E k).
-
-Define is_plug_stuck : expr -> prop by
-  nabla (k : expr -> expr), is_plug_stuck (k (ret (V k)));
-  is_plug_stuck (let E T) := is_plug_stuck E;
-  is_plug_stuck (delim U E) := is_plug_stuck E;
-  nabla k, is_plug_stuck (k (E k)) := nabla k, is_plug_stuck (E k).
 
 Theorem nostep : forall E, is_expr E -> (forall E', step E E' -> false)
-    -> is_value E \/ is_call_stuck E \/ is_control_stuck E \/ is_ask_stuck E \/ is_plug_stuck E.
+    -> (exists V, E = ret V) \/ is_meta_stuck E \/ (exists E'', stepc E E'').
   induction on 1.
   intros. case H1.
     case H3.
       search.
       apply H2 to _.
     apply IH to H3 _. intros. apply H2 to _. case H5.
-      case H6. apply H2 to _.
-      search.
-      case H6. search.
+      apply H2 to _.
       search.
       search.
     apply IH to H4 _. intros. apply H2 to _. case H5.
-      case H6. apply H2 to _.
+      apply H2 to _.
       search.
-      case H6. apply H2 to _.
-      search.
-      search.
+      apply H2 to _.
     search.
     search.
     apply H2 to _.
     search.
     apply IH to H3 _. intros. apply H2 to _. case H4.
-      case H5. search.
-      search.
-      case H5. apply H2 to _.
       search.
       search.
+      apply H2 to _.
+
 
 Define terminates : expr -> prop by
   terminates E := exists E', many step E E' /\ forall E'', (step E' E'' -> false).
 
 Theorem int_nostep : forall E E', int g E E' -> (forall E'', step E' E'' -> false) -> (forall E''', step E E''' -> false).
+% false: int g (delim U (shift0 k_\ delim U STK)) (delim U' STK)
 skip.
 
+Theorem meta_stuck_int : forall M E E', is_meta_stuck E -> int M E E' -> is_meta_stuck E'.
+  induction on 1.
+  intros. case H1.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2.
+      apply IH to H3 H4. search.
+      case H3.
+      case H3. apply IH to H7 H4. search.
+    case H2. apply IH to H3 H5. search.
+    case H2. apply IH to H3 H4. search.
+
+Theorem meta_stuck_stepc : forall E E', is_meta_stuck E -> stepc E E' -> false.
+  induction on 1.
+  intros. case H2.
+    case H1.
+    case H1. backchain IH.
+
+Theorem meta_stuck_step : forall E E', is_meta_stuck E -> step E E' -> false.
+  induction on 1.
+  intros. case H1.
+    case H2.
+    case H2.
+    case H2.
+      case H3.
+      case H3.
+    case H2.
+      case H3.
+      backchain IH.
+    case H2.
+      case H3.
+      backchain meta_stuck_stepc.
+      backchain IH.
+    case H2.
+      apply meta_stuck_stepc to H3 H4.
+      apply IH to H3 H4.
+
 Theorem nostep_int : forall E E', int g E E' -> (forall E''', step E E''' -> false) -> (forall E''', step E' E''' -> false).
-skip.
+  intros. assert is_expr E. skip. apply nostep to *H4 *H2. case H5.
+    case H1. case H3.
+    apply meta_stuck_int to *H6 *H1. backchain meta_stuck_step.
+    apply qscommc to *H1 *H6. backchain stepc_step.
 
 Theorem adq3 : forall E E', red E E' -> terminates E' -> terminates E.
   intros.
