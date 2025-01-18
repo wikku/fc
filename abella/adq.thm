@@ -480,23 +480,6 @@ Theorem nostep : forall E, is_expr E -> (forall E', step E E' -> false)
 Define terminates : expr -> prop by
   terminates E := exists E', many step E E' /\ forall E'', (step E' E'' -> false).
 
-Theorem int_nostep : forall E E', int g E E' -> (forall E'', step E' E'' -> false) -> (forall E''', step E E''' -> false).
-% false: int g (delim U (shift0 k_\ delim U STK)) (delim U' STK)
-skip.
-
-Theorem meta_stuck_int : forall M E E', is_meta_stuck E -> int M E E' -> is_meta_stuck E'.
-  induction on 1.
-  intros. case H1.
-    case H2. case H3. search.
-    case H2. case H3. search.
-    case H2. case H3. search.
-    case H2.
-      apply IH to H3 H4. search.
-      case H3.
-      case H3. apply IH to H7 H4. search.
-    case H2. apply IH to H3 H5. search.
-    case H2. apply IH to H3 H4. search.
-
 Theorem meta_stuck_stepc : forall E E', is_meta_stuck E -> stepc E E' -> false.
   induction on 1.
   intros. case H2.
@@ -522,6 +505,62 @@ Theorem meta_stuck_step : forall E E', is_meta_stuck E -> step E E' -> false.
       apply meta_stuck_stepc to H3 H4.
       apply IH to H3 H4.
 
+Theorem int_meta_stuck :
+  forall E E', is_meta_stuck E' -> int g E E' -> exists E'', many step E E'' /\ is_meta_stuck E''.
+  induction on 1.
+  intros. case H1.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2.
+      apply IH to H3 H4. apply steps_cong_let to H6 with T = T1. search.
+      apply IH to H3 H4. apply steps_cong_let to H7 with T = T1. apply steps_cong_let to H9 with T = T2. search.
+    case H2. case H3 (keep).
+      case H5.
+        case H6. search.
+        case H6. case H8. case H9. apply steps_cong_delim to H7 with U = U1 n1. search.
+      case H5.
+        case H6. search.
+        case H6. case H8. case H9. apply steps_cong_delim to H7 with U = U1 n1. search.
+      case H5.
+        case H6. search.
+        case H6. case H8. case H9. apply steps_cong_delim to H7 with U = U1 n1. search.
+      case H5.
+        apply IH to H6 H7. apply steps_cong_let to H9 with T = T1. apply steps_cong_delim to H11 with U = U1. search.
+        apply IH to H6 H7. apply steps_cong_let to H10 with T = T1. apply steps_cong_let to H12 with T = T2. apply steps_cong_delim to H13 with U = U1. search.
+        case H7. case H9.
+          apply IH to H6 H10. apply steps_cong_let to H12 with T = T1. apply steps_app to *H8 *H14. apply steps_cong_delim to *H15 with U = U1. search.
+          apply IH to H6 H10. apply steps_cong_let to H13 with T = T1. apply steps_cong_let to H15 with T = T2. apply steps_app to *H8 *H16. apply steps_cong_delim to H17 with U = U1. search.
+      case H5.
+        apply IH to H3 _. apply steps_cong_delim to H9 with U = U1. search.
+        case H7.
+          apply IH to H3 H9. apply steps_cong_delim to *H8 with U = U1. apply steps_cong_delim to *H10 with U = U1. apply steps_app to *H12 *H13. search.
+      case H5.
+        apply IH to H6 H7. apply steps_cong_k to H8. apply steps_cong_delim to H10 with U = U1 n1. search.
+        case H7. apply IH to H3 H9. apply steps_cong_delim to *H8 with U = U1 n1. apply steps_cong_delim to *H10 with U = U1 n1. apply steps_app to *H12 *H13. search.
+    case H2. apply IH to *H3 *H4. apply steps_cong_k to H5. search.
+
+
+Theorem int_nostep : forall E E', int g E E' -> (forall E'', step E' E'' -> false) -> terminates E.
+  intros. apply nostep to _ H2. skip. case H3.
+    case H1. unfold. exists (ret V1). split. search. intros. case H5.
+    apply int_meta_stuck to H4 H1. unfold. exists E''. split. search. intros. apply meta_stuck_step to H6 H7.
+    apply postc to H1 H4. unfold. exists E. split. search. intros. apply stepc_step to H5 H7.
+
+Theorem meta_stuck_int : forall M E E', is_meta_stuck E -> int M E E' -> is_meta_stuck E'.
+  induction on 1.
+  intros. case H1.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2. case H3. search.
+    case H2.
+      apply IH to H3 H4. search.
+      case H3.
+      case H3. apply IH to H7 H4. search.
+    case H2. apply IH to H3 H5. search.
+    case H2. apply IH to H3 H4. search.
+
+
 Theorem nostep_int : forall E E', int g E E' -> (forall E''', step E E''' -> false) -> (forall E''', step E' E''' -> false).
   intros. assert is_expr E. skip. apply nostep to *H4 *H2. case H5.
     case H1. case H3.
@@ -530,7 +569,7 @@ Theorem nostep_int : forall E E', int g E E' -> (forall E''', step E E''' -> fal
 
 Theorem adq3 : forall E E', red E E' -> terminates E' -> terminates E.
   intros.
-  apply red_stang to *H1. case H3. case H2. apply post_many to H5 H6. case H8. apply int_nostep to H10 H7. apply steps_app to H4 H9. search.
+  apply red_stang to *H1. case H3. case H2. apply post_many to H5 H6. case H8. apply int_nostep to H10 H7. case H11. apply steps_app to *H4 *H9. apply steps_app to *H14 *H12. search.
 
 Theorem adq4 : forall E E', red E E' -> terminates E -> terminates E'.
   intros.
