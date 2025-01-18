@@ -834,8 +834,13 @@ where evaluation can't proceed.
 	Stuck terms have this form:
 	$$s ::= K[x\:v] │ E[\S κ.\,e] │ K[κ⟦v⟧]$$
 \end{lemma}
-\begin{lemma} Assume $e \Int e'$. Then $e$ is stuck iff $e'$ is stuck.
+
+\begin{lemma} Assume $s \Int e$. Then $e$ is also stuck.
 \end{lemma}
+
+\begin{lemma} Assume $e \Int s$. Then $e$ evaluates to a stuck term.
+\end{lemma}
+Additional evaluation steps are necessary, once again, because of the $\A.d$ rule.
 
 \begin{theorem}[Contextual equivalence, observing termination]
 	If $e → e'$, then for all contexts $C$, $C[e]$ terminates iff $C[e']$ terminates.
