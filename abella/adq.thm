@@ -451,7 +451,6 @@ Define is_meta_stuck : expr -> prop by
   is_meta_stuck (delim U E) := is_meta_stuck E;
   nabla k, is_meta_stuck (k (E k)) := nabla k, is_meta_stuck (E k).
 
-
 Theorem nostep : forall E, is_expr E -> (forall E', step E E' -> false)
     -> (exists V, E = ret V) \/ is_meta_stuck E \/ (exists E'', stepc E E'').
   induction on 1.
@@ -475,10 +474,6 @@ Theorem nostep : forall E, is_expr E -> (forall E', step E E' -> false)
       search.
       search.
       apply H2 to _.
-
-
-Define terminates : expr -> prop by
-  terminates E := exists E', many step E E' /\ forall E'', (step E' E'' -> false).
 
 Theorem meta_stuck_stepc : forall E E', is_meta_stuck E -> stepc E E' -> false.
   induction on 1.
@@ -540,17 +535,6 @@ Theorem int_meta_stuck :
         case H7. apply IH to H3 H9. apply steps_cong_delim to *H8 with U = U1 n1. apply steps_cong_delim to *H10 with U = U1 n1. apply steps_app to *H12 *H13. search.
     case H2. apply IH to *H3 *H4. apply steps_cong_k to H5. search.
 
-Theorem int_ind : forall E E', int g E E' -> is_expr E /\ is_expr E'.
-  skip.
-
-Split int_ind as int_ind1, int_ind2.
-
-Theorem int_nostep : forall E E', int g E E' -> (forall E'', step E' E'' -> false) -> terminates E.
-  intros. apply nostep to _ H2. backchain int_ind2. case H3.
-    case H1. unfold. exists (ret V1). split. search. intros. case H5.
-    apply int_meta_stuck to H4 H1. unfold. exists E''. split. search. intros. apply meta_stuck_step to H6 H7.
-    apply postc to H1 H4. unfold. exists E. split. search. intros. apply stepc_step to H5 H7.
-
 Theorem meta_stuck_int : forall M E E', is_meta_stuck E -> int M E E' -> is_meta_stuck E'.
   induction on 1.
   intros. case H1.
@@ -564,19 +548,18 @@ Theorem meta_stuck_int : forall M E E', is_meta_stuck E -> int M E E' -> is_meta
     case H2. apply IH to H3 H5. search.
     case H2. apply IH to H3 H4. search.
 
+Theorem adq_meta_stuck1 : forall E E' S', red E E' -> many step E' S' -> is_meta_stuck S' -> exists S, many step E S /\ is_meta_stuck S.
+  intros. apply red_stang to *H1. case H4. apply post_many to *H6 *H2. case H7. apply steps_app to *H5 *H8. apply int_meta_stuck to *H3 *H9. apply steps_app to *H10 *H11. search.
 
-Theorem nostep_int : forall E E', int g E E' -> (forall E''', step E E''' -> false) -> (forall E''', step E' E''' -> false).
-  intros. apply nostep to _ *H2. backchain int_ind1. case H4.
-    case H1. case H3.
-    apply meta_stuck_int to *H5 *H1. backchain meta_stuck_step.
-    apply qscommc to *H1 *H5. backchain stepc_step.
+Theorem adq_meta_stuck2 : forall E E' S, red E E' -> many step E S -> is_meta_stuck S -> exists S', many step E' S' /\ is_meta_stuck S'.
+  intros. apply red_stang to *H1. apply strong_comm to *H4 *H2. case H6. case H7.
+    apply meta_stuck_int to *H3 *H8. search.
+    apply meta_stuck_step to *H3 *H9.
 
-Theorem adq3 : forall E E', red E E' -> terminates E' -> terminates E.
-  intros.
-  apply red_stang to *H1. case H3. case H2. apply post_many to H5 H6. case H8. apply int_nostep to H10 H7. case H11. apply steps_app to *H4 *H9. apply steps_app to *H14 *H12. search.
+Theorem adq_stepc1 : forall E E' S' Sb', red E E' -> many step E' S' -> stepc S' Sb' -> exists S Sb, many step E S /\ stepc S Sb.
+  intros. apply red_stang to *H1. case H4. apply post_many to *H6 *H2. case H7. apply steps_app to *H5 *H8. apply postc to H9 H3. search.
 
-Theorem adq4 : forall E E', red E E' -> terminates E -> terminates E'.
-  intros.
-  apply red_stang to *H1. case H2. apply strong_comm to H3 H4. case H7. case H8.
-    apply nostep_int to H9 H5. search.
-    apply H5 to _.
+Theorem adq_stepc2 : forall E E' S Sb, red E E' -> many step E S -> stepc S Sb -> exists S' Sb', many step E' S' /\ stepc S' Sb'.
+  intros. apply red_stang to *H1. apply strong_comm to *H4 *H2. case H6. case H7.
+    apply qscommc to *H8 *H3. search.
+    apply stepc_step to H3 H9.
