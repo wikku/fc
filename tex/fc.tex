@@ -1430,7 +1430,7 @@ The intended surface syntax is of the generic effect form $\Op v$,
 which is elaborated to start with an identity continuation $\Op v\,(λx.\,x)$.
 The step relation captures the evaluation context in a fine-grained manner:
 $$\Let{y}{\Op v\,(λx.\,t_1)}{t_2} ↦ \Op v\,(λx.\,\Let{y}{t_1}{t_2})$$
-This bears similarity to our approach based on structural reduction.
+This is similar to our $\KwLet{}.\S$ reduction.
 However, we don't see a way to express our optimizations without introducing $\abort$ in some form.
 
 
