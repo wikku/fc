@@ -364,6 +364,12 @@ Theorem post_many : forall E E'' E', int g E E'' -> many step E'' E' -> stan g E
     search.
     apply post to H1 H3 _. case H5. apply IH to H7 H4. case H8. apply steps_app to H6 H9. search.
 
+Theorem stan : forall E E', many red E E' -> exists E'', many step E E'' /\ many (int g) E'' E'.
+  induction on 1.
+  intros. case H1.
+    search.
+    apply red_stang to H2. case H4. apply IH to H3. apply post_many to H6 H7. case H9. apply steps_app to H5 H10. search.
+
 
 %%% COMMUTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -423,12 +429,6 @@ Theorem strong_comm : forall E1 E2 E3, stan g E1 E2 -> many step E1 E3 -> exists
 
 
 %%% ADEQUACY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Theorem stan : forall E E', many red E E' -> exists E'', many step E E'' /\ many (int g) E'' E'.
-  induction on 1.
-  intros. case H1.
-    search.
-    apply red_stang to H2. case H4. apply IH to H3. apply post_many to H6 H7. case H9. apply steps_app to H5 H10. search.
 
 Theorem adq1 : forall E E' V', red E E' -> many step E' (ret V') -> exists V, many step E (ret V).
   intros.
