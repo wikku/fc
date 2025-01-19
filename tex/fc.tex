@@ -1523,9 +1523,9 @@ We also don't see how they could deal with the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
 unless they add a $κ⟦\Let{x}{e}{t}⟧ → \Let{x}{e}{κ⟦t⟧}$ reduction, which is similar to theirs
 $x(\Let{x}{e}{t}) → \Let{x}{e}{xt}$ and seems to be valid in the undelimited setting.
 
-The proof for the $\shiftz$ calculus with delimiter distribution in \cite{ppdp21} doesn't explain
-the step from local confluence to confluence, an apparent hole in the reasoning.
-However, confluence follows from two applications of the Hindley-Rosen lemma (for the two commutations established).
+We discovered that the proof write-up in \cite{ppdp21} for the $\shiftz$ calculus with delimiter distribution
+incorrectly claims that it suffices to show local confluence of an auxiliary relation.
+However, confluence follows directly from two applications of the Hindley-Rosen lemma (for the two commutations established).
 
 \chapter{Future work}
 
