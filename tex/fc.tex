@@ -1593,8 +1593,8 @@ the extension with labels from the previous section is really necessary.
 We could potentially store labels as the values in delimiters
 and ``move the loop into userspace'':
 \begin{align*}
-	&\keyword{letrec}\;\shiftz^\ell f = \\
-	&\quad\S κ.\,\keyword{if}\;\Ask(κ)=\ell \\
+	&\keyword{letrec}\;\shiftz^\ell f \keyword{=} \\
+	&\quad\S κ.\,\keyword{if}\;\Ask(κ)\keyword{=}\ell \\
 	&\quad\quad\keyword{then}\;f\,κ \\
 	&\quad\quad\keyword{else}\;\shiftz^\ell(λκ'.\, f\,(\keyword{compose}\:κ'\,κ))
 \end{align*}
