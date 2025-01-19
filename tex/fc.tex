@@ -563,10 +563,10 @@ If $e$ never evaluates to a value, then the rule rewrites dead code, which is fi
 →\enspace &⟨\Log\,();\A\,h\,()\,(λz.\,⟨\Let{y}{\Op()}{f(z,y)}╱h⟩) ╱ h ⟩ \tagmath{dL.\S} \\
 →^*\enspace &⟨\Log\,();\A\,⟨\Let{y}{\Op()}{f(\true,y)}╱h⟩ \\
 & \quad\quad\quad ││ ⟨\Let{y}{\Op()}{f(\false,y)}╱h⟩ ╱ h ⟩ \tagmath{λ.v, \KwLet{}.v} \\
-→^*\enspace & ⟨\Log\,();\A\,\big(h\,()\,(λz.\,⟨\Let{y}{z}{f(\true,y)}/h⟩)\big) \\
-& \quad\quad\quad ││ \big(h\,()\,(λz.\, ⟨\Let{y}{z}{f(\false,y)}/h⟩)\big) ╱ h⟩ \tagmath{\KwLet{}.\S, d.\S} \\
-→^*\enspace & ⟨\Log\,();\A\,\big(⟨f(\true,\true))/h⟩ ││ ⟨{f(\true,\false)})/h⟩\big) \\
-& \quad\quad\quad ││ \big(⟨f(\false,\true)/h⟩ ││ ⟨f(\false,\false)/h⟩\big) ╱ h⟩ \tagmath{λ.v, \KwLet{}.v}
+→^*\enspace & ⟨\Log\,();\A\,\big(h\,()\,(λz.\,⟨\Let{y}{z}{f(\true,y)}╱h⟩)\big) \\
+& \quad\quad\quad ││ \big(h\,()\,(λz.\, ⟨\Let{y}{z}{f(\false,y)}╱h⟩)\big) ╱ h⟩ \tagmath{\KwLet{}.\S, d.\S} \\
+→^*\enspace & ⟨\Log\,();\A\,\big(⟨f(\true,\true))╱h⟩ ││ ⟨{f(\true,\false)})╱h⟩\big) \\
+& \quad\quad\quad ││ \big(⟨f(\false,\true)╱h⟩ ││ ⟨f(\false,\false)╱h⟩\big) ╱ h⟩ \tagmath{λ.v, \KwLet{}.v}
 \end{align*}
 \caption{
 	A program for checking satisfiability of a Boolean function $f$.
