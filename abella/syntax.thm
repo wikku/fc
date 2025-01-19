@@ -274,5 +274,6 @@ Define red : expr -> expr -> prop,
   red (ask (delim U E)) (ask (delim U' E)) := redv U U' /\ is_evctx E;
   red (ask (delim U E)) (ask (delim U E')) := is_val U /\ rede E E';
 
+  rede (let (let E T1) T2) (let E x\ let (T1 x) T2) := is_evctx E /\ nabla x, is_expr (T1 x) /\ is_expr (T2 x);
   rede (let E T) (let E' T) := rede E E' /\ nabla x, is_expr (T x);
   rede (let E T) (let E T') := is_evctx E /\ nabla x, red (T x) (T' x).

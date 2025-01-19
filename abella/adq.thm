@@ -295,6 +295,7 @@ Theorem red_stans :
     apply int_refl to H2. search.
     apply int_refl to H2. apply IH2 to H3. search.
   intros. case H1.
+    apply inte_refl to H2. apply int_refl to H3. apply int_refl to H4. search.
     apply IH3 to H2. apply int_refl to H3. search.
     apply inte_refl to H2. apply IH to H3. search.
 
