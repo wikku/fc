@@ -32,6 +32,78 @@ Define is_expr : expr -> prop,
   is_evctx hole;
   is_evctx (let E T) := is_evctx E /\ nabla x, is_expr (T x).
 
+Theorem expr_subvs :
+  (forall E V, nabla x, is_expr (E x) -> is_val V -> is_expr (E V)) /\
+  (forall E V, nabla x, is_val (E x) -> is_val V -> is_val (E V)) /\
+  (forall E V, nabla x, is_evctx (E x) -> is_val V -> is_evctx (E V)).
+  induction on 1 1 1. split.
+  intros. case H1.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    search.
+    search.
+    apply IH to H3 H2. search.
+  intros. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+Split expr_subvs as expr_subv, val_subv, evctx_subv.
+
+Theorem expr_sublets :
+  (forall E T, nabla (k : expr -> expr) x, is_expr (E k) -> is_expr (T x) -> is_expr (E (o\ k (let o T)))) /\
+  (forall E T, nabla (k : expr -> expr) x, is_val (E k) -> is_expr (T x) -> is_val (E (o\ k (let o T)))) /\
+  (forall E T, nabla (k : expr -> expr) x, is_evctx (E k) -> is_expr (T x) -> is_evctx (E (o\ k (let o T)))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n9) H2. case H1.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n9) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n9) H2. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+Split expr_sublets as expr_sublet, val_sublet, evctx_sublet.
+
+Theorem expr_subdelims :
+  (forall E U, nabla (k : expr -> expr), is_expr (E k) -> is_val U -> is_expr (E (delim U))) /\
+  (forall E U, nabla (k : expr -> expr), is_val (E k) -> is_val U -> is_val (E (delim U))) /\
+  (forall E U, nabla (k : expr -> expr), is_evctx (E k) -> is_val U -> is_evctx (E (delim U))).
+  induction on 1 1 1. split.
+  intros. permute (n2 n9) H2. case H1.
+    apply IH1 to H3 H2. apply IH1 to H4 H2. search.
+    apply IH to H3 H2. apply IH to H4 H2. search.
+    apply IH1 to H3 H2. apply IH to H4 H2. search.
+    apply IH to H3 H2. search.
+    apply IH1 to H3 H2. search.
+    apply IH1 to H3 H2. apply IH2 to H4 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH2 to H3 H2. search.
+    apply IH to H3 H2. search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n9) H2. case H1.
+    search.
+    apply IH to H3 H2. search.
+  intros. permute (n2 n9) H2. case H1.
+    search.
+    apply IH2 to H3 H2. apply IH to H4 H2. search.
+Split expr_subdelims as expr_subdelim, val_subdelim, evctx_subdelim.
+
+
 
 %%% STEP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
