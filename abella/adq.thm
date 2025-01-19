@@ -1,5 +1,3 @@
-% vim: et
-
 Import "syntax".
 
 %%% INTERNAL PARALLEL REDUCTION AND STANDARD REDUCTION %%%%%%%%%%%%%%%%%%%%%%%%%

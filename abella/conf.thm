@@ -1,4 +1,3 @@
-% vim: et
 Kind val,expr type.
 
 Type lam    (val -> expr) -> val.
