@@ -865,7 +865,7 @@ data in delimiters and without \KwLet{} reassociation.
 These two features might look like the most benign of the bunch,
 but they pose great technical difficulties.
 
-\section{Parallel reduction}
+\section{Parallel reduction in the core subcalculus}
 Parallel reduction (figure \ref{parallel}) allows us to perform reductions (figure \ref{reduction})
 in many places of the term at once.
 The tail-of-delimiter reductions are implemented by parameterizing
@@ -881,10 +881,6 @@ Moreover, we need to perform consecutive reduction steps in some situations:
 	So we are forced to perform a $dL.\S$ step on the left,
 	and so $\KwLet{}.\S$ followed by $dL.\S$ on the right.
 
-	Substituting the delimiter first and then reducing works only because
-	$κ⟦e⟧$ and $⟨e⟩$ are terms of the same size
-	and we can induct on size in the proof of diamond property.
-	This no longer holds if we add data to delimiters.
 \item
 	The redex $κ⟦\S κ'.\,e⟧$ has to be generalized to $κ⟦E[\S κ'.\,e]⟧$ for the substitution lemma to hold
 	(consider $κ:=κ⟦\Let{x}{□}{t}⟧)$.
@@ -988,14 +984,46 @@ Moreover, we need to perform consecutive reduction steps in some situations:
 \end{corollary}
 
 
-\section{The challenges of \textsf{let} reassociation}
+
+\section{Towards a proof for the full calculus}
+The common method of parallel reduction seems to fall short
+once data in delimiters and $\KwLet{}.\KwLet{}$ is introduced.
+We describe in more detail why that is and the potential tools that could be used in an eventual full proof.
+
+\subsection{Critical considerations}
 \label{problet}
 
-The $\KwLet$ reassociation reduction (a.k.a.\  $\KwLet{}$ floating, $\KwLet{}$ associativity)
-$$\RLet{x}{\Let{y}{e}{t_1}}{t_2} → \Let{y}{e}{\Let{x}{t_1}{t_2}}$$
-flattens the structure of the term by getting rid of $\KwLet$s nested on the left
-(here raised).
-It has this critical pair with itself:
+In two of the rules, we have employed a novel trick of substituting the delimiter first and then
+performing parallel reduction.
+We do this because of situations where $\KwLet{}.\S$ tears apart a $dL.\S$, $\A.d$, and $\A.v$ redex.
+It is only feasible because $κ⟦e⟧$ and $⟨e⟩$ are terms of the same size,
+letting us induct on size in the proof of diamond property.
+This no longer true if we add data to delimiters, therefore some other solution is needed
+if going for a proof through diamond property.
+
+Similarly, if we add $\KwLet{}.\KwLet{}$, those redexes too can be torn apart by $\KwLet{}.\S$:
+$$
+\begin{tikzpicture}
+	\node (E1) at (0,0) {$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$};
+	\node (E2) at (3.5,-2) {$\Let{y}{\S κ.\,e}{\Let{x}{t_1}{t_2}}$};
+	\node (E3) at (-3.5,-1.333) {$\Let{x}{\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{t_1}⟧}}{t_2}$};
+	\node (E3') at (-3.5,-2.666) {$\S κ.\,e\subst{κ}{κ⟦\Let{x}{\Let{y}{□}{t_1}}{t_2}⟧}$};
+	\node (E4) at (0,-4) {$\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{\Let{x}{t_1}{t_2}}⟧}$};
+	\path[->] (E1) edge node[above right, pos=0.6, text=gray] {$\KwLet{}.\KwLet{}$} (E2);
+	\path[->] (E1) edge node[above left, pos=0.8, text=gray] {$\KwLet{}.\S$} (E3);
+	\path[->,dashed] (E3) edge node[left, text=gray] {$\KwLet{}.\S$} (E3') (E2) edge node[below right, pos=0.3, text=gray] {$\KwLet{}.\S$} (E4);
+	\path[->>,dashed] (E3') edge node[left, xshift=-10pt, text=gray] {$\KwLet{}.\KwLet{}$} (E4); % FIXME
+\end{tikzpicture}
+$$
+We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes whole, now after structural substitution.
+One could wish for a generalization of $\KwLet{}.\S$ that first substitutes the $\KwLet{}$ frame and then reduces,
+but again this seems incompatible with induction.
+
+Moreover, $\KwLet{}.\KwLet{}$ by itself requires a generalization to have the diamond property.
+It has this critical pair with itself:\footnote{
+	Here, we raise $\KwLet{}$s nested on the left as a visual aid to parsing.
+	This is in accord with the intuition that $\KwLet{}.\KwLet{}$ flattens terms.
+}
 $$
 \begin{tikzpicture}
 	\node (E1) at (2,5) {$\RLet{x}{\RLet{y}{\Let{z}{e}{t_1}}{t_2}}{t_3}$};
@@ -1014,7 +1042,7 @@ $$
 \end{tikzpicture}
 $$
 Two steps are needed on the left to complete the diagram.
-This calls for the following generalization, which can do it in one step and \textit{does} have the diamond property:
+The following generalization is a natural solution:
 $$\Let{x}{L[t_1]}{t_2} → L[\Let{x}{t_1}{t_2}]$$
 However, this is not enough for \textit{parallel} reduction.
 Here, the redex above overlaps with two different redexes below:
@@ -1029,47 +1057,48 @@ $$
 \end{tikzpicture}
 $$
 To complete this diagram in one parallel reduction step,
-we would need to have not only length-wise,
+we would need to have not only a length-wise,
 but also a depth-wise generalization
 of $\KwLet$ reassociation.
+Such a definition would be very complex, and naturally such flattening would also have to be performed
+inside the generalized $κ⟦E[\S κ.\,e]⟧$ redexes, etc.
 
-The other challenge is that a $\KwLet{}.\S$ reduction can tear apart a $\KwLet{}.\KwLet{}$ redex:
-$$
-\begin{tikzpicture}
-	\node (E1) at (0,0) {$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$};
-	\node (E2) at (3.5,-2) {$\Let{y}{\S κ.\,e}{\Let{x}{t_1}{t_2}}$};
-	\node (E3) at (-3.5,-1.333) {$\Let{x}{\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{t_1}⟧}}{t_2}$};
-	\node (E3') at (-3.5,-2.666) {$\S κ.\,e\subst{κ}{κ⟦\Let{x}{\Let{y}{□}{t_1}}{t_2}⟧}$};
-	\node (E4) at (0,-4) {$\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{\Let{x}{t_1}{t_2}}⟧}$};
-	\path[->] (E1) edge node[above right, pos=0.6, text=gray] {$\KwLet{}.\KwLet{}$} (E2);
-	\path[->] (E1) edge node[above left, pos=0.8, text=gray] {$\KwLet{}.\S$} (E3);
-	\path[->,dashed] (E3) edge node[left, text=gray] {$\KwLet{}.\S$} (E3') (E2) edge node[below right, pos=0.3, text=gray] {$\KwLet{}.\S$} (E4);
-	\path[->>,dashed] (E3') edge node[left, xshift=-10pt, text=gray] {$\KwLet{}.\KwLet{}$} (E4); % FIXME
-\end{tikzpicture}
-$$
-We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes whole, now after structural substitution.
+\subsection{Alternative approaches}
 
-\section{Towards a proof for the full calculus}
-The difficulties lead us to search for another approach to proving confluence.
-There are some promising leads, but all of them require significant work,
-especially to have the reassurance of machine verification.
+\textit{Super}parallel reductions, which reduce upward-created redexes,
+may be useful.
+For example, for $\Let{x}{e}{t}$ we would first (superparallel) reduce $e$ into $e'$ and $t$ into $t'$,
+and then check if a new redex (such as $\KwLet{}.\S$ and $\KwLet{}.\KwLet{}$) is formed.
+A length-generalized superparallel $\KwLet{}.\KwLet{}$ does have the diamond property,
+as reducing $e$ first solves the issue described just before.
+Also, with this approach, the generalization of $\KwLet{}.\S$ to larger contexts $E$
+falls out naturally, making for a somewhat simpler proof of confluence for the $λμ$-calculus.
+However, the combination of these two features still won't let us complete the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
+pair in one step.
+Moreover, careful design is necessary to include the tail-of-reset reductions, our attempts using \textit{g}/\textit{d} modes
+as previously have failed.
+Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
+and/or showing the \textit{Z property}.
 
-There is a way of defining
-parallel reduction indirectly, by first establishing a theory of residuals.
-This involves contracting previously marked sets of redexes in a term.
-Because of the situations where redexes are torn apart, this might be impossible.
+Complete (super)developments
+are maximal (super)parallel reductions,
+we will write $a \bulletto b$ or $a^● = b$.
+They can be used to show a triangle property ${\Rap{} · {\bulletto}} ⊆ {\Par{}}$.
+This is simpler to prove than the diamond property it entails,
+because there are fewer cases to consider and fewer degrees of freedom.
+The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.\footnote{
+	Thanks to Filip Sieczkowski for showing a proof for $\KwLet{}.\KwLet{}$ using complete superdevelopments.
+}
+They can also be used to prove confluence without referring to lesser developments
+by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
+This can potentially hold even when (syntactic definitions of) developments
+don't have the diamond property, because in situations where we would
+want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$ \cite{z}.
 
-A modular approach using commutation does not appear easy.
 The previously mentioned critical pairs of $\KwLet{}.\S$ with $\KwLet{}.\KwLet{}$, $dL.\S$, $\A.d$, and $\A.v$
-demonstrate a lack of commutation between them, so they have to be considered jointly.
-One approach is to prove them strongly normalizing,
-building on De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}.
-It is rather easily adaptable to include $k.\S$ and $d.\S$.
-The tail-of-reset reductions would involve more work.
-The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
-Then, the standard argument by Newman's lemma and Hindley-Rosen's lemma should work.
-
-The method of decreasing diagrams \cite{dd} reduces the problem to a well-ordered
+demonstrate a lack of commutation between them, which hampers attempts at a modular proof.
+However, a degree of modularity can be achieved by using \textit{decreasing diagrams} \cite{dd}.
+This is a reduction of confluence to a well-ordered
 labeling of reductions and a form of local confluence, viz.
 \begin{center}
 \begin{tikzpicture}[node distance=2cm, auto, scale=1, every node/.style={scale=1}]
@@ -1116,36 +1145,14 @@ The diagram is decreasing if ${\Par{}} > {\xrightarrow{Str}}$ and $\xrightarrow{
 (${e \xrightarrow{Str}} > {e' \xrightarrow{Str}}$ iff $e \xrightarrow{Str}^+ e'$).
 The proof schema is Exercise 14.2.25 in Terese \cite{Terese}.
 
-\textit{Super}-parallel reductions, which reduce upward-created redexes,
-may be useful.
-For example, for $\Let{x}{e}{t}$ we would first reduce $e$ into $e'$ and $t$ into $t'$,
-and then check if a new redex (such as $\KwLet{}.\S$ and $\KwLet{}.\KwLet{}$) is formed.
-A consequence of this approach is that the generalization of $\KwLet{}.\S$ to larger contexts $E$
-falls out naturally, making for a somewhat simpler proof of confluence for the $λμ$-calculus.
-Also, this lets us prove confluence of $\KwLet{}.\KwLet{}$ in a fine-grained CBV $λ$-calculus,
-as the previously described problem of consecutive $\KwLet{}.\KwLet{}$ redexes disappears
-and a length-generalized $\KwLet{}$ reassociation suffices.
-However, the combination of these two features still isn't easy.
-Moreover, careful design is necessary to include the tail-of-reset reductions.
-Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
-or showing the Z property.
-
-Complete (super)developments
-are maximal (super)parallel reductions,
-we will write $a \bulletto b$ or $a^● = b$.
-They can be used to show a triangle property ${\Rap{} · {\bulletto}} ⊆ {\Par{}}$.
-This is simpler to prove than the diamond property it entails,
-because there are fewer cases to consider and fewer degrees of freedom.
-The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.\footnote{
-	Thanks to Filip Sieczkowski for showing a proof using complete superdevelopments.
-}
-They can also be used to prove confluence without referring to lesser developments
-by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
-This can potentially hold even when (syntactic definitions of) developments
-don't have the diamond property, because in situations where we would
-want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$ \cite{z}.
-%We have previously specifically generalized parallel reduction with this aim,
-%so this could be useful.
+If all else fails,
+one can jointly consider the fragment without useful commutations
+(${\KwLet{}.\S ∪ \KwLet{}.\KwLet{} ∪ dL.\S ∪ \A.d ∪ \A.v}$),
+prove it strongly normalizing and conclude confluence by Newman's lemma.
+De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}
+is rather easily adaptable to include $k.\S$ and $d.\S$.
+The tail-of-reset reductions would involve more work.
+The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
 
 \chapter{Abella mechanization}
 
