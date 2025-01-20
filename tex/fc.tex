@@ -1082,9 +1082,11 @@ As previously, $E[\S κ.\,e] \Par{d} \A\,e\subst{κ}{⟨E⟩}$ would be needed,
 but the way to check if something matches that pattern is to (superparallel) reduce it first
 and check if we get $\S κ.\,e$. But here we're reducing the original term and not a subterm,
 so such a definition would be invalid.\footnote{
-	Special casing a $\KwLet{}$ at the root doesn't work, we actually need to know if a term reduces to an $\S$
-	in general.
+	Special casing a $\KwLet{}$ at the root as the example suggests doesn't work,
+	it seems that we actually need to know if a term reduces to an $\S$ in general.
 }
+Therefore, it seems we would need a different way for the modes to propagate
+or, again, have substitution of delimiters automatically do tail-of-reset reductions.
 
 Complete (super)developments
 are maximal (super)parallel reductions,
