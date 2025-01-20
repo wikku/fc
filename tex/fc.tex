@@ -1018,8 +1018,8 @@ We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes 
 One could wish for a generalization of $\KwLet{}.\S$ that first substitutes the $\KwLet{}$ frame and then reduces,
 but, again, this seems incompatible with induction.
 
-Moreover, $\KwLet{}.\KwLet{}$ by itself requires a generalization to have the diamond property.
-It has this critical pair with itself:\footnote{
+Moreover, $\KwLet{}.\KwLet{}$ itself requires a generalization to have the diamond property,
+as demonstrated by this critical pair with itself:\footnote{
 	Here, we raise $\KwLet{}$s nested on the left as a visual aid to parsing.
 	This is in accord with the intuition that $\KwLet{}.\KwLet{}$ flattens terms.
 }
@@ -1074,10 +1074,14 @@ Also, with this approach, the generalization of $\KwLet{}.\S$ to larger contexts
 falls out naturally, making for a somewhat simpler proof of confluence for the $λμ$-calculus.
 However, the combination of these two features still won't let us complete the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
 pair in one step.
-Moreover, careful design is necessary to include the tail-of-reset reductions, our attempts using \textit{g}/\textit{d} modes
-as previously have failed.
 Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
 and/or showing the \textit{Z property}.
+Furthermore, careful design is necessary to include the tail-of-reset reductions.
+A naïve attempt using a \textit{d} mode as previously causes issues with induction.
+As previously, $E[\S κ.\,e] \Par{d} \A\,e\subst{κ}{⟨E⟩}$ would be needed,
+but the way to check if something matches that pattern is to (superparallel) reduce it first
+and check if we get $\S κ.\,e$. But here we're reducing the original term and not a subterm,
+so such a definition would be invalid.
 
 Complete (super)developments
 are maximal (super)parallel reductions,
