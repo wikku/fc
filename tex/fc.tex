@@ -994,7 +994,7 @@ We describe in more detail why that is and the tools that could potentially be u
 
 In two of the rules, we have employed a novel trick of substituting the delimiter first and then
 performing parallel reduction.
-We do this because of situations where $\KwLet{}.\S$ tears apart a $dL.\S$, $\A.d$, and $\A.v$ redex.
+We do this because of situations where $\KwLet{}.\S$ tears apart a $dL.\S$, $\A.d$, or $\A.v$ redex.
 It is only feasible because $κ⟦e⟧$ and $⟨e⟩$ are terms of the same size,
 letting us induct on size in the proof of diamond property.
 This no longer true if we add data to delimiters, therefore some other solution is needed
