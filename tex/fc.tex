@@ -1,61 +1,30 @@
-\documentclass[a4paper, 11pt,titlepage, openright, twoside]{report}
+\documentclass[a4paper, USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{silence}
 \usepackage{amsmath,amsfonts,amssymb,amsthm}
 \usepackage{bm}
 \usepackage{mathtools}
-\usepackage[inline]{enumitem}
 \usepackage{newunicodechar}
-\usepackage[margin=3cm,bindingoffset=1cm]{geometry}
 \usepackage{stmaryrd}
 \SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
 % https://tex.stackexchange.com/a/106719
 \DeclareSymbolFont{sfletters}{OML}{cmbrm}{m}{it}
-\usepackage[nopatch=footnote]{microtype}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{mathpartir}
-\usepackage{biblatex}
-%\usepackage{cleveref}
 \usepackage{tikz}
 \usepackage{tikz-cd}
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily}
 
-\usepackage[]{hyperref}
-\usepackage[all]{hypcap}
-\setlength{\parskip}{0pt}
 
-\addbibresource{refs.bib}
+%\addbibresource{refs.bib}
 
+\bibliographystyle{plainurl}
 
-\title{\textbf{A Fine Calculus for Static Delimited Control}}
-\author{Wiktor Kuchta}
+\author{Wiktor Kuchta}{affiliation}{wk@email.com}
+\title{A Fine Calculus for Static Delimited Control}
 
-\date{100 września 2024} %TODO
-
-\usepackage{titling}
-
-\renewcommand \maketitlehookb {
-  \begin{center}\large
-  Fajny rachunek dla statycznie ograniczonych operatorów sterowania
-  \end{center}
-  \vfil
-}
-
-\renewcommand \maketitlehookc {
-  \vfil
-  \begin{center}
-  \large Praca magisterska \\[0.85em]
-  \begin{tabular}[t]{rl}
-  \textbf{Promotor:} & dr hab.\ Dariusz Biernacki
-  \end{tabular}\end{center}
-  \vfil\vfil\vfil\vfil
-  \begin{center}Uniwersytet Wroc\l{}awski\\
-  Wydzia\l{} Matematyki i Informatyki\\
-  Instytut Informatyki
-  \end{center}
-}
 
 \newcommand*{\bulletto}{\mathrel{\ooalign{\(\to\)\cr\>\(\raisebox{.55pt}{\scalebox{0.8}{\(\bullet\)}}\)}}}
 
@@ -112,12 +81,6 @@
 \newcommand{\+}{\enspace}
 \newcommand{\lStr}{\textsf{Str}}
 \newcommand{\lPar}{\textsf{Par}}
-
-\newtheorem{corollary}{Corollary}
-\newtheorem{lemma}{Lemma}
-\newtheorem{theorem}{Theorem}
-\newtheorem{prop}{Proposition}
-
 
 \newunicodechar{≅}{\cong}
 \newunicodechar{│}{\mid} % Digr vv
@@ -180,11 +143,7 @@
 
 \begin{document}
 
-\maketitle
 
-
-\thispagestyle{empty}
-\cleardoublepage
 \begin{abstract}
 	We consider a variant of the call-by-value $λμ$-calculus extended with control delimiters,
 	in which $μ$ becomes the static delimited control operator $\shiftz$.
@@ -197,32 +156,9 @@
 	The proofs are verified in the Abella proof assistant.
 	We argue that the calculus is stronger than previous results in the literature and could form basis for
 	reasoning and optimizations for the aforementioned forms of control.
-%
-	\begin{center} \rule[3pt]{300pt}{1pt} \end{center}
-%
-	Rozważamy wariant rachunku $λμ$ z wołaniem przez wartość rozszerzony
-	o ograniczniki,
-	tworząc z $μ$ statycznie ograniczony operator sterowania $\shiftz$.
-	Proponujemy nowe reguły redukcji dla sytuacji,
-	w których przechwycona kontynuacja może być statycznie wyznaczona.
-	Rozszerzamy ograniczniki pozwalając im trzymać dane
-	(dając swego rodzaju wiązanie dynamiczne),
-	co pozwala nam wyrazić obsługę efektów.
-	Dowodzimy, że redukcje zachowują semantykę i są częściowo konfluentne,
-	co też zweryfikowaliśmy w asystencie dowodzenia Abella.
-	Argumentujemy, że powstały rachunek jest mocniejszy niż poprzednie wyniki w literaturze
-	i mógłby stanowić podstawę dla wnioskowania i optymalizacji dla wspomnianych operatorów sterowania.
-
 \end{abstract}
 
-
-\thispagestyle{empty}
-\cleardoublepage
-\setcounter{page}{5}
-\tableofcontents
-
-
-\chapter{Introduction}
+\section{Introduction}
 Consider a program of the following form in a language with (unnamed) exceptions:
 \begin{align*}
 	&\Try \\
@@ -267,10 +203,6 @@ $$\abort\,(k\,(x*3))\subst{x}{y*2}\subst{k}{λz.\,\Handle z \With x\;k.\,k\,(x*3
 After some simplification we obtain:
 $$\Handle \Let{y}{e}{\abort\,(y*6)} \With x\;k.\,k\,(x*3)$$
 
-\noindent{}
-\hrulefill
-
-\noindent{}
 The preceding whirlwind development may raise some questions.
 \begin{enumerate}
 	\item Is it even correct?
@@ -302,7 +234,7 @@ Delimited continuations will not be represented as call-by-value functions, but 
 as their own sort with the ability to plug in any expression, not just a value.
 This lets us use structural substitution known from the $λμ$-calculus and all the benefits it brings \cite{benefit}.
 
-\chapter{Syntax}
+\section{Syntax}
 \label{Syntax}
 
 \begin{figure}
@@ -390,7 +322,7 @@ Intuitively, they are the first and the last places where execution occurs.
 We will refer to metacontinuation formers as \textit{frames}.
 Every $E$ or $D$ is a $K$, so previous statements apply analogously.
 
-\section{Structural substitution}
+\subsection{Structural substitution}
 
 We will be using the notions of
 substitution for variables ($e\subst{x}{v}$)
@@ -419,7 +351,7 @@ here are the three forms of structural substitution used in reduction (figure \r
 	\Ask(κ)\subst{κ}{⟨□╱v⟩} &≡ v
 \end{align*}
 
-\section{Evaluation steps}
+\subsection{Evaluation steps}
 
 The evaluation step relation $↦$ is taken to be the closure of rules in figure \ref{step}
 under metacontinuations.
@@ -438,7 +370,7 @@ this greatly simplifies adequacy and it's closer in spirit to machine implementa
 We haven't formalized an abstract machine, but we will be referring to the intuitions that
 metacontinuations correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.
 
-\section{Shorthands}
+\subsection{Shorthands}
 We will be using the shorthands in figure \ref{shorthands}.
 The first two of them are common convenience features for CBV $λ$-calculi.
 The third one introduces the notation $\A$ for $\abort$.
@@ -473,7 +405,7 @@ The same extension is possible for reset, there often called \textit{dollar}.
 In previous work it has always been an integral part of syntax,
 we notice that it can be easily expressed as a $\KwLet$ frame that aborts the delimiter.
 
-\section{Reduction}
+\subsection{Reduction}
 \label{secreduction}
 We define reduction $→$ to be the closure of rules in figure \ref{reduction}
 under general contexts.
@@ -483,7 +415,7 @@ We may assume common features such as arithmetic for presentation purposes.
 
 %The first few rules are shared with evaluation, now we can use them for simplifications anywhere in the expression.
 
-\subsection{Structural reduction}
+\subsubsection{Structural reduction}
 \label{strred}
 
 Successive applications of $\KwLet{}.\S$ take apart a context $E$,
@@ -525,7 +457,7 @@ we can not only \textit{continue} them (apply to a value), but also \textit{disc
 This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} ≡ κ⟦\textsf{raise}\,\textit{exn}⟧$.
 %whereas previous formalizations have used workarounds with lambda abstractions.
 
-\subsection{Capturing the static delimiter out of order}
+\subsubsection{Capturing the static delimiter out of order}
 
 The rule $dL.\S$ says that an $\S$ in the tail position of a delimiter
 will capture that delimiter (if we get to it).
@@ -554,38 +486,7 @@ of the delimiter, now captured. Loosely speaking, we can reason recursively.%
 \end{align*}
 If $e$ never evaluates to a value, then the rule rewrites dead code, which is fine.
 
-\begin{figure}[p]
-\begin{align*}
-&\Handle \Log\,();\Let{x}{\Op()}{\Let{y}{\Op()}{f(x,y)}} \With x\,k.\,k\,\true ││ k\,\false \\
-≡\enspace &⟨\Log\,();\Let{x}{\Op()}{\Let{y}{\Op()}{f(x,y)}} ╱ h ⟩ \\
-→\enspace &⟨\Log\,();\S κ.\,\Ask(κ)\,()\,(λz.\,κ⟦\Let{x}{z}{\Let{y}{\Op()}{f(x,y)}}⟧) ╱ h ⟩ \tagmath{\KwLet{}.\S} \\
-→\enspace &⟨\Log\,();\S κ.\,\Ask(κ)\,()\,(λz.\,κ⟦\Let{y}{\Op()}{f(z,y)}⟧) ╱ h ⟩ \tagmath{\KwLet{}.v} \\
-→\enspace &⟨\Log\,();\A\,h\,()\,(λz.\,⟨\Let{y}{\Op()}{f(z,y)}╱h⟩) ╱ h ⟩ \tagmath{dL.\S} \\
-→^*\enspace &⟨\Log\,();\A\,⟨\Let{y}{\Op()}{f(\true,y)}╱h⟩ \\
-& \quad\quad\quad ││ ⟨\Let{y}{\Op()}{f(\false,y)}╱h⟩ ╱ h ⟩ \tagmath{λ.v, \KwLet{}.v} \\
-→^*\enspace & ⟨\Log\,();\A\,\big(h\,()\,(λz.\,⟨\Let{y}{z}{f(\true,y)}╱h⟩)\big) \\
-& \quad\quad\quad ││ \big(h\,()\,(λz.\, ⟨\Let{y}{z}{f(\false,y)}╱h⟩)\big) ╱ h⟩ \tagmath{\KwLet{}.\S, d.\S} \\
-→^*\enspace & ⟨\Log\,();\A\,\big(⟨f(\true,\true))╱h⟩ ││ ⟨{f(\true,\false)})╱h⟩\big) \\
-& \quad\quad\quad ││ \big(⟨f(\false,\true)╱h⟩ ││ ⟨f(\false,\false)╱h⟩\big) ╱ h⟩ \tagmath{λ.v, \KwLet{}.v}
-\end{align*}
-\caption{
-	A program for checking satisfiability of a Boolean function $f$.
-	When the operation asks for a boolean,
-	the handler
-	$h ≡ λx\,k.\,k\,\true ││ k\,\false$
-	tries both options and takes the logical OR, simulating angelic nondeterminism.
-	We use the shorthand $e_1;e_2 ≡ \Let{\_}{e_1}{e_2}$ for sequencing expressions.
-	Think of $\textit{log}$ as some function with side effects,
-	its purpose in the example is to prevent
-	the first $\KwOp$ from being in evaluation position.
-}
-\label{sat}
-\end{figure}
-
-For an extended illustration of how reduction transforms programs,
-see figure \ref{sat}.
-Proceeding similarly as in it,
-we can finally derive the coarse-grained rewrites that started it all:
+We can finally derive the coarse-grained rewrites that started it all:
 $$⟨L[E[\shiftz\,k.\,e]]⟩ →^* ⟨L[\abort\,e\subst{k}{λz.\,⟨E[z]⟩}]⟩$$
 The one for statically handling effects indeed won't fit on one line:
 \begin{alignat*}{2}
@@ -594,7 +495,7 @@ The one for statically handling effects indeed won't fit on one line:
 \end{alignat*}
 
 
-\subsection{Eta-like reductions}
+\subsubsection{Eta-like reductions}
 
 Inspired by the $λμ$-calculus, we could consider an $η$-reduction of the following form:
 $$\S κ.\,κ⟦e⟧ → e$$
@@ -636,7 +537,7 @@ if it can be statically determined:
 \end{align*}
 Naturally, this simplification can also be applied in the effect handler approach.
 
-\subsection{Let reassociation}
+\subsubsection{Let reassociation}
 
 The purpose of let reassociation ($\KwLet{}.\KwLet{}$) is to unblock other reductions.
 It is one of the ways to obtain a richer theory of open call-by-value \cite{open}.
@@ -659,13 +560,13 @@ In this way, it improves applicability of the coarse-grained rewrites derived pr
 we can statically handle any effect separated from the handler only by $\KwLet$ expressions.
 
 
-\chapter{Adequacy}
+\section{Adequacy}
 
-The previous chapter has demonstrated how reduction can be used for optimization.
+The previous section has demonstrated how reduction can be used for optimization.
 Now we have to show that it doesn't change the result of a program.
 We will call this meaning preservation property \textit{adequacy}.
 
-\section{Internal parallel reduction}
+\subsection{Internal parallel reduction}
 In studying interplay of evaluation and reduction,
 it will be useful to isolate reductions that are \textit{not} evaluation steps: \textit{internal} reductions.
 Furthermore, in later inductive arguments it will be useful that rewrite steps do not multiply.
@@ -755,7 +656,7 @@ Our approach was previously discovered by Machkasova \cite{machka}.
 % [16] E. Machkasova. Techniques for proving observational equivalence. ASCII notes that later turned
 % into [17]. Not sure about year, 1998.
 
-\section{Postponement}
+\subsection{Postponement}
 
 \begin{theorem}[Strong postponement]
 	$${\Int · ↦} ⊆ {↦^* · \Int}$$
@@ -780,7 +681,7 @@ We can derive (but don't need) standardization\footnote{
 } or, equivalently, factorization\cite{factorize}:
 $$→^* = (↦ ∪ \Int)^* ⊆ {↦^* · \Int^*}$$
 
-\section{Commutation}
+\subsection{Commutation}
 
 \begin{theorem}
  \label{quasisubcomm}
@@ -816,7 +717,7 @@ $${←^* · ↦^*} ⊆ {↦^* · ←^*}$$
 We perhaps could have shown ${← · ↦} ⊆ {↦^= · ←^*}$ directly, without mentioning $\Int$.
 Our approach lets us reuse the already established substitution lemmas for $\Int$.
 
-\section{Contextual equivalence}
+\subsection{Contextual equivalence}
 
 \begin{theorem}[Contextual equivalence, observing termination to a value]
 	\label{ctxeqv1}
@@ -850,468 +751,21 @@ These two notions of contextual equivalence do differ:
 $\S κ.\,Ω$ and $Ω$ are contextually equivalent by the first definition,
 but not the second \cite{bisim}.
 
-
-
-\chapter{Confluence}
-Confluence is the property
-that diverging reduction sequences can meet.
-In practical terms, it lets us perform reductions in any order
-and always reach the same result.
-
-We haven't managed to prove confluence for
-the entire calculus.
-We present a proof using the parallel reduction technique for the subcalculus without
-data in delimiters and without \KwLet{} reassociation.
-These two features might look like the most benign of the bunch,
-but they pose great technical difficulties.
-
-\section{Parallel reduction in the core subcalculus}
-Parallel reduction (figure \ref{parallel}) allows us to perform reductions (figure \ref{reduction})
-in many places of the term at once.
-The tail-of-delimiter reductions are implemented by parameterizing
-by two modes (ranged over by metavariable $M$):
-\textit{g}eneral and tail of \textit{d}elimiter.
-Moreover, we need to perform consecutive reduction steps in some situations:
-\begin{enumerate}
-\item
-	Consider a peak involving $\KwLet{}.\S$ and some tail-of-reset reduction:
-	$$\S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧} \Rap{d} \Let{x}{\S κ.\,e}{t} \Par{d} \Let{x}{\S κ.\,e}{t'}$$
-	To perform tail-of-reset reductions in the $t$ substituted on the left,
-	we need to perform the substitution $κ{:=}⟨□⟩$ first and then reduce.
-	So we are forced to perform a $dL.\S$ step on the left,
-	and so $\KwLet{}.\S$ followed by $dL.\S$ on the right.
-
-\item
-	The redex $κ⟦\S κ'.\,e⟧$ has to be generalized to $κ⟦E[\S κ'.\,e]⟧$ for the substitution lemma to hold
-	(consider $κ:=κ⟦\Let{x}{□}{t}⟧)$.
-	Likewise for $⟨·⟩$ instead of $κ⟦·⟧$.
-
-\item
-	Consider this peak involving the previous point and $\A.d$:
-	$$E[\S κ.\,e] \Rap{d} \A⟨E[\S κ.\,e]⟩ \Par{} \A\,e\subst{κ}{⟨E⟩}$$
-	It forces us to have the very last rule in the figure, a generalization of what follows from the first point.
-\end{enumerate}
-
-\begin{figure}
-	\begin{mathpar}
-
-	\inferrule{}
-	{x \Par{M} x}
-
-	\inferrule{e \Par{g} e'}
-	{λx.\,e \Par{M} λx.\,e'}
-
-	\inferrule{}
-	{□ \Par{M} □}
-
-	\inferrule{v \Par{g} v' \\ u \Par{g} u'}
-	{v\:u \Par{M} v'\:u'}
-
-	\inferrule{e \Par{g} e' \\ t \Par{M} t'}
-	{\Let{x}{e}{t} \Par{M} \Let{x}{e'}{t'}}
-
-	\inferrule{e \Par{g} e'}
-	{\S κ.\,e \Par{M} \S κ.\,e'}
-
-	\inferrule{e \Par{d} e'}
-	{⟨e⟩ \Par{M} ⟨e'⟩}
-
-	\inferrule{e \Par{g} e'}
-	{κ⟦e⟧ \Par{M} κ⟦e'⟧}
-
-	\inferrule{e \Par{g} e' \\ v \Par{g} v'}
-	{(λx.\,e)\:v \Par{M} e'\subst{x}{v'}}
-
-	\inferrule{t \Par{g} t' \\ v \Par{g} v'}
-	{\Let{x}{v}{t} \Par{M} t'\subst{x}{v'}}
-
-	\inferrule{v \Par{g} v'}
-	{⟨v⟩ \Par{M} v'}
-
-	\inferrule{e \Par{g} e' \\ t \Par{M} t'}
-	{\Let{x}{\S κ.\,e}{t} \Par{M} \S κ.\,e'\subst{κ}{κ⟦\Let{x}{□}{t'}⟧}}
-
-	\inferrule{e\subst{κ}{⟨□⟩} \Par{g} e'}
-	{⟨\S κ.\,e⟩ \Par{M} e'}
-
-	\inferrule{e \Par{g} e' \\ E \Par{d} E'}
-	{⟨E[\S κ'.\,e]⟩ \Par{M} e'\subst{κ'}{⟨E'⟩}}
-
-	\inferrule{e \Par{g} e' \\ E \Par{g} E'}
-	{κ⟦E[\S κ'.\,e]⟧ \Par{M} e'\subst{κ'}{κ⟦E'⟧}}
-	\\
-
-	\inferrule{e\subst{κ}{⟨□⟩} \Par{g} e'}
-	{\S κ.\,e \Par{d} \A\,e'}
-
-	\inferrule{e \Par{d} e'}
-	{\A⟨e⟩ \Par{d} e'}
-
-	\inferrule{v \Par{g} v' }
-	{\A\,v \Par{d} v'}
-
-	\inferrule{e \Par{g} e' \\ E \Par{g} E' \\ t \Par{d} t'}
-	{\Let{x}{E[\S κ.\,e]}{t} \Par{d} \A\,e'\subst{κ}{⟨\Let{x}{E'}{t'}⟩}}
-
-	\end{mathpar}
-	\caption{Parallel reduction.}
-	\label{parallel}
-\end{figure}
-
-\begin{lemma}
-	${→} ⊆ {\Par{g}} ⊆ {→^*}$
-\end{lemma}
-
-\begin{lemma}
-	${\Par{g}} ⊆ {\Par{d}}$
-\end{lemma}
-
-\begin{lemma}[Substitution]
-	\item
-	\begin{enumerate}
-		\item If $e \Par{M} e'$ and $v \Par{g} v'$, then $e\subst{x}{v} \Par{M} e'\subst{x}{v'}$;
-		\item If $e \Par{M} e'$ and $D \Par{g} D'$, then $e\subst{κ}{D} \Par{M} e'\subst{κ}{D'}$.
-	\end{enumerate}
-\end{lemma}
-
-\begin{theorem}[Diamond property]
-	${\Rap{M} · \Par{M}} ⊆ {\Par{M} · \Rap{M}}$
-\end{theorem}
-
-\begin{corollary}[Confluence]
-	${←^* · →^*} ⊆ {→^* · ←^*}$
-\end{corollary}
-
-
-
-\section{Towards a proof for the full calculus}
-The common method of parallel reduction falls short
-once data in delimiters and $\KwLet{}.\KwLet{}$ are introduced.
-We describe in more detail why that is and the tools that could potentially be used in a full proof.
-
-\subsection{Critical considerations}
-\label{problet}
-
-In two of the rules, we have employed a novel trick of substituting the delimiter first and then
-performing parallel reduction.
-We do this because of situations where $\KwLet{}.\S$ tears apart a $dL.\S$, $\A.d$, or $\A.v$ redex.
-It is only feasible because $κ⟦e⟧$ and $⟨e⟩$ are terms of the same size,
-letting us induct on size in the proof of diamond property.
-This no longer true if we add data to delimiters, therefore some other solution is needed
-if going for a proof through diamond property.
-
-Similarly, if we add $\KwLet{}.\KwLet{}$, those redexes too can be torn apart by $\KwLet{}.\S$:
-$$
-\begin{tikzpicture}
-	\node (E1) at (0,0) {$\Let{x}{\Let{y}{\S κ.\,e}{t_1}}{t_2}$};
-	\node (E2) at (3.5,-2) {$\Let{y}{\S κ.\,e}{\Let{x}{t_1}{t_2}}$};
-	\node (E3) at (-3.5,-1.333) {$\Let{x}{\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{t_1}⟧}}{t_2}$};
-	\node (E3') at (-3.5,-2.666) {$\S κ.\,e\subst{κ}{κ⟦\Let{x}{\Let{y}{□}{t_1}}{t_2}⟧}$};
-	\node (E4) at (0,-4) {$\S κ.\,e\subst{κ}{κ⟦\Let{y}{□}{\Let{x}{t_1}{t_2}}⟧}$};
-	\path[->] (E1) edge node[above right, pos=0.6, text=gray] {$\KwLet{}.\KwLet{}$} (E2);
-	\path[->] (E1) edge node[above left, pos=0.8, text=gray] {$\KwLet{}.\S$} (E3);
-	\path[->,dashed] (E3) edge node[left, text=gray] {$\KwLet{}.\S$} (E3') (E2) edge node[below right, pos=0.3, text=gray] {$\KwLet{}.\S$} (E4);
-	\path[->>,dashed] (E3') edge node[left, xshift=-10pt, text=gray] {$\KwLet{}.\KwLet{}$} (E4); % FIXME
-\end{tikzpicture}
-$$
-We need a successive $\KwLet{}.\S$ step to make the $\KwLet{}.\KwLet{}$ redexes whole, now after structural substitution.
-One could wish for a generalization of $\KwLet{}.\S$ that first substitutes the $\KwLet{}$ frame and then reduces,
-but, again, this seems incompatible with induction.
-
-Moreover, $\KwLet{}.\KwLet{}$ itself requires a generalization to have the diamond property,
-as demonstrated by this critical pair with itself:\footnote{
-	Here, we raise $\KwLet{}$s nested on the left as a visual aid to parsing.
-	This is in accord with the intuition that $\KwLet{}.\KwLet{}$ flattens terms.
-}
-$$
-\begin{tikzpicture}
-	\node (E1) at (2,5) {$\RLet{x}{\RLet{y}{\Let{z}{e}{t_1}}{t_2}}{t_3}$};
-	\node (E2) at (6,3) {$\RLet{y}{\Let{z}{e}{t_1}}{\Let{x}{t_2}{t_3}}$};
-	\node (E3) at (0,2) {$\RLet{x}{\Let{z}{e}{\Let{y}{t_1}{t_2}}}{t_3}$};
-	\node (E3') at (2,1) {$\Let{z}{e}{\RLet{x}{\Let{y}{t_1}{t_2}}}{t_3}$};
-	\node (E4) at (4,0) {$\Let{z}{e}{\Let{y}{t_1}{\Let{x}{t_2}{t_3}}}$};
-	\path[->]
-		(E1) edge (E2)
-		(E1) edge (E3);
-	\path[->,dashed]
-		(E2) edge[bend left] (E4)
-		(E3) edge (E3')
-		(E3') edge (E4);
-	%\draw [brown] (current bounding box.south west) rectangle (current bounding box.north east);
-\end{tikzpicture}
-$$
-Two steps are needed on the left to complete the diagram.
-The following generalization is a natural solution:
-$$\Let{x}{L[t_1]}{t_2} → L[\Let{x}{t_1}{t_2}]$$
-However, this is not enough for \textit{parallel} reduction.
-Here, the redex above overlaps with two different redexes below:
-$$
-\begin{tikzpicture}
-	\node (E1) at (0,0) {$\RLet{x}{\RLet{y}{\RLet{z}{\Let{w}{e}{t_1}}{t_2}}{t_3}}{t_4}$};
-	\node (E2) at (5.3,1.1) {$\RLet{x}{\RLet{z}{\Let{w}{e}{t_1}}{\Let{y}{t_2}}{t_3}}{t_4}$};
-	\node (E3) at (5.3,-1.1) {$\RLet{y}{\Let{w}{e}{\Let{z}{t_1}}{t_2}}{\Let{x}{t_3}}{t_4}$};
-	\path[->] (E1.east) edge[] (E2.south);
-	\path[->>] (E1.east) edge[] (E3.north);
-	%\draw [brown] (current bounding box.south west) rectangle (current bounding box.north east);
-\end{tikzpicture}
-$$
-To complete this diagram in one parallel reduction step,
-we would need to have not only a length-wise,
-but also a depth-wise generalization
-of $\KwLet$ reassociation.
-Such a definition would be very complex, and, naturally, such flattening would also have to be performed
-inside the generalized $κ⟦E[\S κ.\,e]⟧$ redexes, etc.
-
-\subsection{Alternative approaches}
-
-\textit{Super}parallel reductions, which reduce upward-created redexes,
-may be useful.
-For example, for $\Let{x}{e}{t}$ we would first (superparallel) reduce $e$ into $e'$ and $t$ into $t'$,
-and then check if a new redex (such as $\KwLet{}.\S$ and $\KwLet{}.\KwLet{}$) is formed.
-A length-generalized superparallel $\KwLet{}.\KwLet{}$ does have the diamond property,
-as reducing $e$ first solves the issue described just before.
-Also, with this approach, the generalization of $\KwLet{}.\S$ to larger contexts $E$
-falls out naturally, making for a somewhat simpler proof of confluence for the $λμ$-calculus.
-However, the combination of these two features still won't let us complete the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
-pair in one step.
-Potential solutions may involve extensions of structural substitution which also reduce newly created redexes
-and/or showing the \textit{Z property}.
-Furthermore, careful design is necessary to include the tail-of-reset reductions.
-A naïve attempt using a \textit{d} mode as previously causes issues with induction.
-As previously, $E[\S κ.\,e] \Par{d} \A\,e\subst{κ}{⟨E⟩}$ would be needed,
-but the way to check if something matches that pattern is to (superparallel) reduce it first
-and check if we get $\S κ.\,e$. But here we're reducing the original term and not a subterm,
-so such a definition would be invalid.\footnote{
-	Special casing a $\KwLet{}$ at the root as the example suggests doesn't work,
-	it seems that we actually need to know if a term reduces to an $\S$ in general.
-}
-Therefore, it seems we would need a different way for the modes to propagate
-or, again, have substitution of delimiters automatically do tail-of-reset reductions.
-
-Complete (super)developments
-are maximal (super)parallel reductions,
-we will write $a \bulletto b$ or $a^● = b$.
-They can be used to show a triangle property ${\Rap{} · {\bulletto}} ⊆ {\Par{}}$.
-This is simpler to prove than the diamond property it entails,
-because there are fewer cases to consider and fewer degrees of freedom.
-The latter aspect is especially important for working with the non-locally operating generalization of $\KwLet.\KwLet{}$.\footnote{
-	Thanks to Filip Sieczkowski for showing a proof for $\KwLet{}.\KwLet{}$ using complete superdevelopments.
-}
-They can also be used to prove confluence without referring to lesser developments
-by showing the Z property: $a → b$ implies $b →^* a^● →^* b^●$.
-This can potentially hold even when (syntactic definitions of) developments
-don't have the diamond property, because in situations where we would
-want to complete a diagram in one $\Par{}$ step, we now only have to show $b →^* a^●$ \cite{z}.
-
-The previously mentioned critical pairs of $\KwLet{}.\S$ with $\KwLet{}.\KwLet{}$, $dL.\S$, $\A.d$, and $\A.v$
-demonstrate a lack of commutation between them, which hampers attempts at a modular proof.
-However, a degree of modularity can be achieved by using \textit{decreasing diagrams} \cite{dd}.
-This is a reduction of confluence to a well-ordered
-labeling of reductions and a form of local confluence, viz.
-\begin{center}
-\begin{tikzpicture}[node distance=2cm, auto, scale=1, every node/.style={scale=1}]
-\useasboundingbox (-0.5, -0.5) rectangle (5.5, 3.5);
-
-\node (a) at (0, 3) {};
-\node (b) at (5, 3) {};
-\node (c) at (0, 0) {};
-\node (d) at (5, 0) {};
-
-\node (c1) at (2, 0) {}; % First split for c->d
-\node (c2) at (3, 0) {}; % Second split for c->d
-\node (b1) at (5, 2) {}; % First split for b->d
-\node (b2) at (5, 1) {}; % Second split for b->d
-
-\draw[->] (a) -- node[above] {$β$} (b); % a to b
-\draw[->] (a) -- node[left] {$α$} (c); % a to c
-
-\draw[->, dashed] (c) -- node[below] {${<}α$} (c1); % c to c1
-\draw[->, dashed] (c1) -- node[below] {$β$} (c2); % c1 to c2
-\draw[->, dashed] (c2) -- node[below] {${{<}α} ∪ {{<}β}$} (d); % c2 to d
-
-\draw[->, dashed] (b) -- node[right] {${<}β$} (b1); % b to b1
-\draw[->, dashed] (b1) -- node[right] {$α$} (b2); % b1 to b2
-\draw[->, dashed] (b2) -- node[right] {${{<}α} ∪ {{<}β}$} (d); % b2 to d
-
-\node at (c1) [above=0.2cm, left=0.1cm] {$*$};
-\node at (c2) [above=0.2cm, left=0.1cm] {$=$};
-\node at (d) [above=0.4cm, left] {$*$};
-
-\node at (b1) [above=0.2cm, left] {$*$};
-\node at (b2) [above=0.2cm, left] {$=$};
-\node at (d) [above=0.2cm, left=0.2cm] {$*$};
-\end{tikzpicture}
-\end{center}
-This vastly general method subsumes and combines, among others, the Hindley-Rosen lemma and Newman's lemma.
-Indeed, one such combination looks promising.
-We could define a parallel reduction with the diamond property $\Par{}$
-containing $λ.v$, $\KwLet{}.v$, $d.v$, $d.\S$, $k.\S$, $\KwLet{}.\KwLet{}$
-and prove strong normalization of the remaining reductions ${\xrightarrow{Str}} = \KwLet.\S ∪ dL.\S ∪ \A.d ∪ \A.v$.
-Previous critical pair analyses suggest that the following holds:
-$${\Rap{} · \xrightarrow{Str}} ⊆ {\xrightarrow{Str}^* · \xleftarrow{Str}^* · \Rap{} · \xleftarrow{Str}^*}$$
-The diagram is decreasing if ${\Par{}} > {\xrightarrow{Str}}$ and $\xrightarrow{Str}$ is self-labeled by the initial term
-(${e \xrightarrow{Str}} > {e' \xrightarrow{Str}}$ iff $e \xrightarrow{Str}^+ e'$).
-The proof schema is Exercise 14.2.25 in Terese \cite{Terese}.
-
-If all else fails,
-one can jointly consider the fragment without useful commutations
-(${\KwLet{}.\S ∪ \KwLet{}.\KwLet{} ∪ dL.\S ∪ \A.d ∪ \A.v}$),
-prove it strongly normalizing and conclude confluence by Newman's lemma.
-De Groote's proof of strong normalization of $\KwLet{}.\S$ \cite{Groote}
-is rather easily adaptable to include $k.\S$ and $d.\S$.
-The tail-of-reset reductions would involve more work.
-The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
-
-\chapter{Abella mechanization}
-
-We have formalized the adequacy and partial confluence theorems in the Abella proof assistant\footnote{
-	With the yet unreleased bugfix by the author \cite{abellafix}.
-}.
-Abella follows the tradition of Church's Simple Theory of Types
-in representing object-level variable binders as meta-language lambda-abstractions.
-This approach to variable binding (known as \textit{HOAS} or \textit{lambda-tree} syntax)
-allows reasoning closer to informal pen-and-paper arguments, as it eliminates
-much of the noise related to variables and substitution present in other approaches.
-
-\section{Higher-order abstract syntax}
-
-As an example, we represent expressions in the lambda-calculus in Abella by defining constants \lstinline{lam}, \lstinline{app} of the following types:
-\begin{lstlisting}
-Kind expr   type.
-Type lam    (expr -> expr) -> expr.
-Type app    expr -> expr -> expr.
-\end{lstlisting}
-The object-level expression $λx.\,x\,x$ is represented as \lstinline{lam (x\ app x x)},
-where \lstinline{x\ ...} is Abella's notation for lambda-abstractions.
-We can drop the parentheses and write \lstinline{lam x\ app x x}.
-Since the meta-language is typed, strong normalization holds and we can't have troublemakers such
-as self-application on the meta level.
-
-With the definition of reduction below, we obtain a \textit{higher-order rewriting system}:
-\begin{lstlisting}
-Define red : expr -> expr -> prop by
-  red (app (lam M) N) (M N);
-  red (app M N) (app M' N) := red M M';
-  red (app M N) (app M N') := red N N';
-  red (lam E) (lam E') := nabla x, red (E x) (E' x).
-\end{lstlisting}
-The first rule is the $β$-reduction, wherein substitution is realized as application in the meta-language.
-Congruence rules defined by Prolog-like clauses follow,
-the last of which introduces the \textit{nabla} ($\nabla$) quantifier.
-
-The meta-expression $\nabla x.\,…$ in Abella's logic introduces a fresh nominal constant $x$.
-In practice, nabla lets us operate on object-level terms with free variables:
-in the congruence rule for object-level $λ$-abstractions,
-we descend under the binder by substituting a fresh nominal constant for the bound variable.
-Unlike most formalizations of the $λ$-calculus, we don't have a constant like \lstinline{lam} or \lstinline{app} for variables.
-This embodies Perlis's epigram ``There is no such thing as a free variable'':
-namely, a variable is always bound
-either by the object-level \lstinline{lam x\}
-or by the meta-level \lstinline{nabla x}.
-
-Structural substitution poses no problem.
-As shown by Abel, continuations can be seen as terms of type \lstinline{expr -> expr} \cite{3rd}.
-Plugging an expression \lstinline{e} into a continuation \lstinline{k} (which we have denoted $κ⟦e⟧$) is again just
-meta-level application: \lstinline{k e}.
-Rules such as $\KwLet{}.\S$ transcribe rather directly:
-$$\Let{x}{\S κ.\,e}{t} → \S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧}$$
-\begin{center}
-\lstinline{red (let (s k\ E k) T) (s k\ E (o\ k (let o T)))}
-\end{center}
-The main differences being we don't need to name the variable bound in $t$,
-but do need to explicitly bind the hole ($□$) as a variable \lstinline{o} in
-the substituted extended continuation.
-Because of $η$-equivalence in the meta-language,
-we can even write \lstinline{s E} instead of \lstinline{s k\ E k} on the left.
-The $β$-equivalence below shows that the structural substitution does the right thing:
-\begin{center}
-	\lstinline{(o\ k (let o T)) E = k (let E T)}
-\end{center}
-%This suggests the view of the $κ⟦e⟧$ syntax as the point where the plug meta-operation $K[e]$ gets stuck.
-
-\section{The power of nabla}
-
-HOAS doesn't need the $\nabla$ quantifier.
-Indeed, it's not available in Abella's \textit{specification logic} $λ$-Prolog.
-Abella takes a two-level approach, where the weaker specification logic
-embeds into the stronger \textit{reasoning logic}.
-The lack of $\nabla$ in the specification logic is a source of free theorems (e.g.\, about substitution)
-that can be used in the reasoning logic.
-
-Even though the lack of $\nabla$ precludes us from matching on free variables,
-there is a general workaround that lets us work with terms with binders:
-when we descend under a binder,
-we use a \textit{universal} quantifier \lstinline{pi} to represent the bound variable
-and add all consequences of it being a variable we will need to the local context of assumptions.
-For example, in the definition of parallel reduction for the lambda calculus,
-we add the local assumption $x \Rrightarrow x$ in the clause for $λx.\,M \Rrightarrow λx.\,M'$:
-\begin{lstlisting}
-par (lam M) (lam M') :- pi x\ par x x => par (M x) (M' x).
-\end{lstlisting}
-In Abella's reasoning logic, we can express the rule $x \Rrightarrow x$ directly:
-\begin{lstlisting}
-nabla x, par x x;
-par (lam M) (lam M') := nabla x, par (M x) (M' x);
-\end{lstlisting}
-
-Abel's work on the $λμ$-calculus is in Twelf, and the situation there
-is similar to Abella's specification logic%
-%: no $\nabla$ quantifier.
-.
-Abel encountered issues with defining parallel reduction for the $λμ$-calculus in Twelf \cite{3rd}.
-There are no issues when we take the $\nabla$ quantifier approach in Abella.
-Not only is parallel reduction definable,
-but, as noted by Accattoli \cite{pearl},
-formalizations using only the reasoning logic
-can be significantly simpler than those using the mentioned trick,
-and so this is the approach we take.
-With that, we believe our work constitutes the first mechanized proof of confluence for (a variant of) the $λμ$-calculus.
-
-\section{The formalization}
-We have introduced the concept of HOAS using $λ$- and $λμ$-calculi as running examples.
-Our calculus differs from them in naming and in the separate syntactic category of values.
-Moreover, the Abella formalization differs from the definitions in Chapter \ref{Syntax}:
-\begin{enumerate}
-	\item
-		We have an expression $\Ask(D)$ instead of a value $\Ask(κ)$,
-		and instead of extending structural substitution we have the following evaluation (and reduction) rule:
-		$$\Ask(⟨E╱v⟩) ↦ v$$
-		Working with the form $\Ask(κ)$ on paper is more convenient,
-		but it would be harder to maintain in Abella.%
-		\footnote{
-			Having $e ::= \Ask(D) │ ...$ with the explicit evaluation step is in a way analogous
-			to having $e ::= D⟦e⟧ │ ...$ with explicit evaluation steps for plugging evaluation frames
-			(which get stuck on $D ≡ κ⟦□⟧$).
-			On paper we want to avoid both, but only the latter can be subsumed by $λ$-equivalence in Abella.
-		}
-	\item
-		We don't use at-a-distance rules involving contexts, such as:
-%		$$κ⟦E[\S κ'.\,e]⟧ ↦ e\subst{κ'}{κ⟦E⟧}$$
-		$$D[\S κ'.\,e] ↦ e\subst{κ'}{D}$$
-		A direct transcription of this pattern would create hard unification problems
-		involving a unification variable applied to non-variables.
-		Furthermore, we would have to introduce a proposition that checks
-%		that a context \lstinline{expr -> expr} is an evaluation context.
-		that a context \lstinline{expr -> expr} is a $D$ context.
-		We instead introduce auxiliary relations that walk the relevant contexts, for example:
-		\begin{lstlisting}
-nabla k, step (k (E k)) (E' k k) :=
-  nabla k, stepc (E k) (E' k);
-stepc (shift0 E) E;
-stepc (let E T) (k\ E' (o\ k (let o T))) :=
-  stepc E E';
-		\end{lstlisting}
-		That is, \lstinline{stepc} extracts the body of an $\S$ in evaluation position and substitutes the context, semi-formally:
-		$$\texttt{stepc}\:E[\S κ.\,e] \:(κ.\,e\subst{κ}{κ⟦E⟧})$$
-\end{enumerate}
-
-The development is available as source files \texttt{\{syntax,adq,conf\}.thm}
-and corresponding \texttt{.html} web pages that allow stepping through proofs.
-
-\chapter{Related work}
-%We mark foreign syntax in \foreign{blue} and potential modifications to our calculus in green.
-
-\section{Distributing delimiters}
+\section{Abella mechanization}
+
+We have formalized adequacy in the Abella proof assistant.
+We build on abel's third order representation of the $λμ$-calculus.
+Abel noted issues with defining parallel reductions in Twelf,
+but they are overcome by Abella's nabla-quantification,
+an approach similar to Accattoli.
+There is a notable, yet benign difference in the formalization:
+We have an expression $\Ask(D)$ instead of a value $\Ask(κ)$,
+and instead of extending structural substitution we have the following evaluation rule:
+$$\Ask(⟨E╱v⟩) ↦ v$$
+
+\section{Related work}
+
+\subsection{Distributing delimiters}
 There is a strand of work which tackles static delimited control from the opposite direction.
 Whereas we use structural reduction so that $\S$ moves closer to the delimiter, that strand's defining feature is
 the delimiter distributing over \KwLet{} expressions so that \textit{a} delimiter can meet the control operator
@@ -1377,12 +831,12 @@ This is enough to simulate the rule for lift-handler interaction \cite[\textbf{D
 
 Our equational theory is in fact strictly more powerful:
 the delimiter-oriented reductions cannot do anything when there
-is no delimiter, but we can (subsection \ref{strred}).
+is no delimiter, but we can (subsubsection \ref{strred}).
 
-\section{shift0 axiomatization}
+\subsection{shift0 axiomatization}
 Here we compare some of the equational axioms of $\shiftz$ by Materzok \cite{materzok}.
 
-\subsection*{shift0/reset ($λ_{\S_0}$)}
+\subsubsection*{shift0/reset ($λ_{\S_0}$)}
 
 \begin{equation*}
 	\foreign{\shiftz\,k.\,⟨\Let{x}{e}{\abort\,k\,x}⟩ = e} \tag{\foreign{$η_{⟨·⟩}$}}
@@ -1400,7 +854,7 @@ Clearly an instance of $\A.d$.
 \end{equation*}
 Expressible with $\KwLet{}.\KwLet{}$ and $\KwLet{}$ identity: $\Let{x}{e}{E[x]} ←^* E[\Let{x}{e}{x}] → E[e]$.
 
-\subsection*{shift0/dollar ($λ_\$$)}
+\subsubsection*{shift0/dollar ($λ_\$$)}
 This calculus is largely equivalent to \cite{ppdp21}, except for rule (\foreign{$η_\$$}).
 \begin{equation*}
 	\foreign{\shiftz\,k.\,⟨e ¦ y.\,k\,y⟩ = e} \tag{\foreign{$η_\$$}}
@@ -1412,7 +866,7 @@ Again, expressible with $\A.d$ in $⟨L⟩$ contexts.
 \end{equation*}
 This is $(β_Ω)$ and the delimiter-distributing reduction from the previous section.
 
-\section{Delimited \texorpdfstring{$λμ$}{lambda-mu}}
+\subsection{Delimited \texorpdfstring{$λμ$}{lambda-mu}}
 
 Ariola and Downen's comprehensive study \cite{delimcomp} views delimiters
 as ``rebindable top-levels''.
@@ -1424,7 +878,7 @@ liberal variant \cite{Groote94} that doesn't
 separate out commands (named terms) $\foreign{⟦α⟧t}$ and doesn't force the body of $μ$-abstraction
 to be a command.
 
-\section{Fine-grained syntax for algebraic operations}
+\subsection{Fine-grained syntax for algebraic operations}
 The original syntax for algebraic operations involved continuations.
 What we may now express as the generic effect $arb : \mathsf{unit} → \mathsf{bool}$
 can be equivalently expressed as an algebraic operation $or : (\mathsf{unit} → τ)^2 → τ$
@@ -1451,7 +905,7 @@ This is similar to our $\KwLet{}.\S$ reduction.
 However, we don't see a way to express our optimizations without introducing $\abort$ in some form.
 
 
-\section{Expressing handlers using shift0}
+\subsection{Expressing handlers using shift0}
 Previous encodings of handlers using $\shiftz$ worked by representing the handler
 clause as an evaluation frame \textit{below} the delimiter on the stack \cite{effmondel, fscd19}.
 In the most popular version,
@@ -1482,7 +936,7 @@ it doesn't allow fine-grained reduction,
 except for dynamic binders distributing over lexical binders.
 
 
-\section{Expressing return clauses}
+\subsection{Expressing return clauses}
 Let's restate our encoding of return clauses for effect handlers (figure \ref{shorthands}):
 %$$⟨e¦x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\,e_r}⟩$$
 $$\Handle e \With x,k.\,e_h ¦ x.\,e_r ≡ \Handle\Let{x}{e}{\A\,e_r} \With x,k.\,e_h$$
@@ -1497,7 +951,7 @@ we know that the frame at the top of the stack will be the handler.
 Our solution is popping the handler with $\abort$,
 theirs is pushing a $\KwLift$ stack frame that makes effects skip the $\KwLift$-handler pair \cite[Appendix A]{hwc}.
 
-\section{Tail reductions and letcc}
+\subsection{Tail reductions and letcc}
 The central idea in our paper is embodied by the $dL.\S$ reduction:
 $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
 It is tempting to decompose $\S$ into its constituent parts:
@@ -1524,14 +978,7 @@ There are issues with this approach, though:
 
 
 
-\section{Confluence}
-
-Proofs of confluence have always been notoriously difficult
-and many early attempts for the $λ$-calculus were flawed.
-
-The proof alongside the introduction of the $λμ$-calculus \cite{parigot92} also turned out to be incorrect \cite{baba}.
-The fix involves performing multiple structural reduction steps \cite{baba,koji}, which we have employed in our formalization
-and verified that it works also with our tail-of-delimiter reductions.
+\subsection{Confluence}
 
 Herbelin and Zimmerman \cite{Herbelin} claim that a proof by parallel reduction is possible for a $λμ$-calculus with
 $\KwLet$ reassociation, but provide no details.
@@ -1540,13 +987,9 @@ We also don't see how they could deal with the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$
 unless they add a $κ⟦\Let{x}{e}{t}⟧ → \Let{x}{e}{κ⟦t⟧}$ reduction, which is similar to theirs
 $x(\Let{x}{e}{t}) → \Let{x}{e}{xt}$ and seems to be valid in the undelimited setting.
 
-We discovered that the proof write-up in \cite{ppdp21} for the $\shiftz$ calculus with delimiter distribution
-incorrectly claims that it suffices to show local confluence of an auxiliary relation.
-However, confluence follows directly from two applications of the Hindley-Rosen lemma (for the two commutations established).
+\section{Future work}
 
-\chapter{Future work}
-
-\section{Purity-aware reductions}
+\subsection{Purity-aware reductions}
 We should be able to perform much stronger optimizations
 if we know that an expression doesn't perform control effects.
 We believe a particularly elegant way to accomplish that in the untyped setting is to add
@@ -1565,7 +1008,7 @@ We could generate purity assertions during lowering from syntax with type-and-ef
 to an untyped intermediate language,
 it looks like this approach would subsume many of the previous purity-aware optimizations \cite{karachalias, saleh}.
 
-\section{Multi-prompt (labeled) control}
+\subsection{Multi-prompt (labeled) control}
 
 We believe all results transfer to multi-prompt delimited control, where we have independent sets of labeled operators $S^\ell κ.\, e$, $⟨e⟩^\ell$.
 For working with handlers of multiple effects, having the delimiter tagged with a \textit{set} of labels might be necessary,
@@ -1591,7 +1034,7 @@ $κ$ is allowed to have delimiters of different labels in the middle.
 
 
 
-\section{First-class continuations}
+\subsection{First-class continuations}
 In our encodings of effect handlers we wrap continuations into lambdas,
 therefore only values can be plugged.
 We have argued against this restriction in a reduction theory,
@@ -1618,59 +1061,5 @@ continuation to the callback $f$.
 More research is needed to determine
 if this approach is correct and see
 how well it plays with dynamically bound values, optimizations, typing rules, etc.
-
-\section{Type-and-effect system}
-A type-and-effect system for the calculus should
-preserve typability when translating (as in figure \ref{shorthands})
-from conventional typed calculi for algebraic effects.
-
-%A guarantee of no unhandled effects would let us perform $\A.d$ in any context.
-
-\section{Sheep effect handlers}
-It should be clear that the central idea of this work, the tail-of-delimiter reductions,
-doesn't apply to \textit{dynamic} delimited control.
-These are the operators that remove the delimiter after capture,
-for example \textsf{control\textsubscript{0}}:
-$$⟨E[\mathsf{control_0} κ.\,e]⟩ ↦ e\subst{κ}{E}$$
-The only hope for optimizations seems to be purity-aware reductions,
-which could move the delimiter directly to the operator. The same applies to the related \textit{shallow} effect handlers.
-There is, however, an option between shallow and deep handlers: \textit{sheep} handlers \cite{sheep},
-where the delimiter is static,
-but the dynamically bound interpretation of the effect can be used at most once
-and has to be manually reinstated every time a continuation is installed.
-For illustration,
-the syntax could be $\S κ\,x.\,e$ and $κ⟦e╱x⟧$, where $x$ represents the value in the delimiter (and $\Ask(κ)$ is removed).
-
-\section{Downgrading delimiters}
-In the process of optimization,
-a delimiter might become only needed for the dynamically bound value
-and not for general control.
-Such a delimiter could be implemented more efficiently,
-just as exception handlers are less costly than effect handlers.
-
-\section{Tail aborts}
-An $\abort$ in the tail position of a delimiter
-doesn't have to search for it,
-it only has to pop exactly one stack frame.
-This is a potential low-level optimization that can't be expressed in our calculus.
-Perhaps when control is fully statically determined,
-it can be turned into jumps to join points \cite{cwc}.
-
-\section{Specialization}
-Some optimizations are program transformations that perhaps shouldn't be part of reduction.
-For example, specializing functions that we know will run under a particular effect interpretation,
-this is especially useful if the function is recursive \cite{saleh,karachalias}.
-
-A potential way to achieve this is
-to create a copy of a function with $\Ask(κ)$ replaced with that interpretation.
-%In our calculus, we can create a copy of the function with $\Ask(κ)$ replaced with that interpretation.
-
-% the scheme by \ref{sahel, karachalias} does work (initially i thought it doesnt)
-% it doesn't replace f with f' in the specialized function's body
-%$$\Letrec{f\;x}{e_f}{\Handle f\,v \With x\,k.\,e_h} → \Letrec {f'\;x}{\Handle e_f \With x\,k.\,e_h}{f'\,v}$$
-
-
-%\hfuzz=1pt
-\printbibliography[heading=bibintoc]
 
 \end{document}
