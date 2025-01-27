@@ -1166,7 +1166,7 @@ The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
 
 We have formalized the adequacy and partial confluence theorems in the Abella proof assistant\footnote{
 	With the yet unreleased bugfix by the author \cite{abellafix}.
-}.
+} \cite{abella}.
 Abella follows the tradition of Church's Simple Theory of Types
 in representing object-level variable binders as meta-language lambda-abstractions.
 This approach to variable binding (known as \textit{HOAS} or \textit{lambda-tree} syntax)
@@ -1289,6 +1289,7 @@ Moreover, the Abella formalization differs from the definitions in Chapter \ref{
 %		$$κ⟦E[\S κ'.\,e]⟧ ↦ e\subst{κ'}{κ⟦E⟧}$$
 		$$D[\S κ'.\,e] ↦ e\subst{κ'}{D}$$
 		A direct transcription of this pattern would create hard unification problems
+		(outside of Miller's pattern fragment \cite{miller91})
 		involving a unification variable applied to non-variables.
 		Furthermore, we would have to introduce a proposition that checks
 %		that a context \lstinline{expr -> expr} is an evaluation context.
