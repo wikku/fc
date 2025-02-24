@@ -311,10 +311,10 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 	\text{continuation variables} && κ \\
 	\text{values} &&v,u &::= x │ λx.\,e │ \Ask(κ) \\
 	\text{expressions} &&e,t &::= v │ v\:v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e ╱ v⟩ │ κ⟦e⟧  \\
-	\text{evaluation contexts}&&E   &::= □ │ \Let{x}{E}{t} \\
+	\text{pure evaluation contexts}&&E   &::= □ │ \Let{x}{E}{t} \\
 	\text{tail contexts}&&L &::= □ │ \Let{x}{e}{L} \\
-	\text{delim.\ continuations}&&D &::= ⟨E╱v⟩ │ κ⟦E⟧ \\
-	\text{metacontinuations}&&K   &::= □ │ \Let{x}{K}{t} │ κ⟦K⟧ │ ⟨K╱v⟩
+	\text{delimited evaluation contexts}&&D &::= ⟨E╱v⟩ │ κ⟦E⟧ \\
+	\text{evaluation contexts}&&K   &::= □ │ \Let{x}{K}{t} │ κ⟦K⟧ │ ⟨K╱v⟩
 \end{align*}
 \caption{Syntax.}
 \label{syntax}
@@ -381,14 +381,18 @@ The value $\Ask (κ)$ refers to the value carried by the delimiter which delimit
 Contexts are expressions with a hole ($□$), with $C[e]$ denoting substituting (or plugging)
 the expression $e$ for the hole in $C$.
 In general, this is variable-capturing substitution,
-but not for metacontinuations $K$ since they don't bind variables.
+but not for evaluation contexts $K$, since they don't bind variables.
 We can also plug a context into a context, as in $C[C']$,
 to form another context.
-Metacontinuations $K$ use the $□$ to mark the \textit{evaluation position},
+Evaluation contexts $K$ use the $□$ to mark the \textit{evaluation position},
 whereas tail contexts $L$ mark the \textit{tail position}.
 Intuitively, they are the first and the last places where execution occurs.
-We will refer to metacontinuation formers as \textit{frames}.
-Every $E$ or $D$ is a $K$, so previous statements apply analogously.
+We will refer to evaluation context formers as \textit{frames}.
+Previous statements apply analogously to
+\textit{pure} ($E$) and \textit{delimited} ($D$) evaluation contexts.\footnote{
+	An evaluation context is a particular syntactic manifestation of the broader concept of a continuation.
+	%To wit, we could mean continuations informally, or represented as functions in CPS denotational semantics, or with a particular optimized representation in an abstract machine...
+}
 
 \section{Structural substitution}
 
@@ -422,7 +426,7 @@ here are the three forms of structural substitution used in reduction (figure \r
 \section{Evaluation steps}
 
 The evaluation step relation $↦$ is taken to be the closure of rules in figure \ref{step}
-under metacontinuations.
+under evaluation contexts.
 The first two rules are standard beta reductions.
 The third rule pops the delimiter once computation inside is finished.
 The fourth one is responsible for capturing the delimited continuation
@@ -436,7 +440,7 @@ We have taken the coarse-grained steps as the operational semantics because
 this greatly simplifies adequacy and it's closer in spirit to machine implementations.
 
 We haven't formalized an abstract machine, but we will be referring to the intuitions that
-metacontinuations correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.\footnote{
+evaluation contexts correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.\footnote{
 	An abstract machine for $\shiftz$ appears in \cite{subtyping}.
 }
 
@@ -1441,7 +1445,7 @@ The equality for handling \cite{handlers} shouldn't be surprising:
 $$\Handle \Op(\overline{v_i}) \With \Op(\overline{k_i}).\,t = t\overline{\subst{k_i}{λx.\,\Handle v_i\:x \With \Op(\overline{k_i}).\,t}}$$
 The connection of algebraic operations and control wasn't explicitly noted at first,
 but can be seen in the naturality condition for algebraic operations,
-which states that evaluation contexts commute with operations \cite{logic, handling}:
+which states that (pure) evaluation contexts commute with operations \cite{logic, handling}:
 $$E[\Op(\overline{λx_i.\,t_i})] = \Op(\overline{λx_i.\,E[t_i]})$$
 
 The calculus in \cite{hia} has an intermediate approach,
