@@ -235,7 +235,7 @@ How to \textit{optimize} the program, so that we only perform one multiplication
 We can ask the same question for \textit{effect handlers}.
 This generalization allows us to capture the \textit{continuation} of the \textit{operation} (a.k.a.\,\textit{generic effect}) we are handling
 and bind it as a variable.
-The conventional evaluation step rule is:
+The conventional evaluation step rule is \cite{leijen}:
 $$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λz.\,\Handle E[z] \With x\;k.\,e} $$
 This is a form of \textit{static delimited control}:
 \textit{control} refers to capture of continuations
@@ -261,7 +261,7 @@ and $y$ is not even in scope.
 
 Since we know the clause that will run for the specific operation,
 instead of performing the operation
-we could \textit{abort} the handler and execute the clause specialized with the specific substitutions.
+we could \textit{abort} \cite{kameyama} the handler and execute the clause specialized with the specific substitutions.
 That is, rewrite the $\Op (y*2)$ into:
 $$\abort\,(k\,(x*3))\subst{x}{y*2}\subst{k}{λz.\,\Handle z \With x\;k.\,k\,(x*3)}$$
 After some simplification we obtain:
@@ -285,7 +285,7 @@ In a real implementation, when we get to an operation, we immediately begin the 
 The syntax does not reflect that, it doesn't say what happens next. It's just an operation name and a payload value.
 
 We will therefore base our calculus for optimizations on the other static delimited control operator:
-$\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) is:
+$\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) is \cite{subtyping}:
 $$⟨E[\shiftz\,k.\,e]⟩ ↦ e\subst{k}{λy.\,⟨E[y]⟩}$$
 Here, the $\shiftz$ assumes the active role by initiating capture of continuation $k$ and carrying the expression $e$ that says what to do with it,
 while the delimiter is passive---it merely delimits.
@@ -365,10 +365,10 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 The grammar of the calculus is in figure \ref{syntax}.
 We base it on a fine-grained call-by-value $λ$-calculus,
 meaning that the subterms of application $v\:u$ are values
-and computations have to be sequenced with $\KwLet$.
+and computations have to be sequenced with $\KwLet$ \cite{fgcbv}.
 The expression $\S κ.\,e$ captures the delimited continuation as $κ$,
 a generalization of $\shiftz$.\footnote{
-$\S$ is similar to $μ$ in the $λμ$-calculus.
+	$\S$ is similar to $μ$ in the $λμ$-calculus \cite{parigot92}.
 }
 The \textit{reset} or \textit{delimiter} $⟨e╱v⟩$ delimits continuations captured in $e$ and carries a value $v$.
 The \textit{plug} construct $κ⟦e⟧$ installs continuation $κ$ and resumes with execution of $e$.%
@@ -436,7 +436,9 @@ We have taken the coarse-grained steps as the operational semantics because
 this greatly simplifies adequacy and it's closer in spirit to machine implementations.
 
 We haven't formalized an abstract machine, but we will be referring to the intuitions that
-metacontinuations correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.
+metacontinuations correspond to machine stacks and $\S$ captures the stack up to the closest reset frame.\footnote{
+	An abstract machine for $\shiftz$ appears in \cite{subtyping}.
+}
 
 \section{Shorthands}
 We will be using the shorthands in figure \ref{shorthands}.
@@ -1506,7 +1508,7 @@ a $\keyword{letcc}$ which binds the current continuation without aborting, and a
 $$\S κ.\,e ≡ \keyword{letcc}\,κ.\,\A\,e$$
 Then, we could simulate $dL.\S$ using a reduction that pushes $\keyword{letcc}$ out of the tail:
 $$\Let{x}{e}{\keyword{letcc}\,κ.\,t} → \keyword{letcc}\,κ.\,\Let{x}{e}{t}$$
-Analogous reductions have been considered for undelimited continuations \cite{sabry}.
+Analogous reductions have been considered for call/cc \cite{sabry} and shift/reset \cite{kameyama}.
 
 There are issues with this approach, though:
 \begin{enumerate}
