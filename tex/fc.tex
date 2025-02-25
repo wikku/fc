@@ -1435,7 +1435,7 @@ The original syntax for algebraic operations involved continuations.
 What we may now express as the generic effect $arb : \mathsf{unit} → \mathsf{bool}$
 can be equivalently expressed as an algebraic operation $or : (\mathsf{unit} → τ)^2 → τ$
 with the equivalences $arb\,() = or(λ\_.\,\true, λ\_.\,\false)$ and
-$or(k_1,k_2) = \mathsf{if}\;arb\,()\;\mathsf{then}\; k_1 () \;\mathsf{else}\;k_2 ()$ \cite{alggen}%
+$or(k_1,k_2) = \mathsf{if}\;arb\,()\;\mathsf{then}\; k_1 () \;\mathsf{else}\;k_2 ()$ \cite{alggen}.%
 % exponent as footnote
 \let\thefootnote\relax\footnotetext{\textsuperscript{2}$2 ≅ \mathsf{bool}$}
 % beware, footnote numbering broken
