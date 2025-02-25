@@ -1001,9 +1001,9 @@ In two of the rules, we have employed a novel trick of substituting the delimite
 performing parallel reduction.
 We do this because of situations where $\KwLet{}.\S$ tears apart a $dL.\S$, $\A.d$, or $\A.v$ redex.
 It is only feasible because $κ⟦e⟧$ and $⟨e⟩$ are terms of the same size,
-letting us induct on size in the proof of diamond property.
-This no longer true if we add data to delimiters, therefore some other solution is needed
-if going for a proof through diamond property.
+letting us induct on size in the proof of the diamond property.
+This is no longer true if we add data to delimiters, therefore some other solution is needed
+if going for a proof through the diamond property.
 
 Similarly, if we add $\KwLet{}.\KwLet{}$, those redexes too can be torn apart by $\KwLet{}.\S$:
 $$
@@ -1084,7 +1084,7 @@ and/or showing the \textit{Z property}.
 Furthermore, careful design is necessary to include the tail-of-reset reductions.
 A naïve attempt using a \textit{d} mode as previously causes issues with induction.
 As previously, $E[\S κ.\,e] \Par{d} \A\,e\subst{κ}{⟨E⟩}$ would be needed,
-but the way to check if something matches that pattern is to (superparallel) reduce it first
+but the natural way to check if something matches that pattern is to (superparallel) reduce it first
 and check if we get $\S κ.\,e$. But here we're reducing the original term and not a subterm,
 so such a definition would be invalid.\footnote{
 	Special casing a $\KwLet{}$ at the root as the example suggests doesn't work,
