@@ -229,13 +229,13 @@ Consider a program of the following form in a language with (unnamed) exceptions
 	&\quad \Let{y}{\textit{expr}}{\Raise (y*2)} \\
 	&\KwWith\; x.\,x*3
 \end{align*}
-If the execution gets to $\Raise (y*2)$, the handler will catch the exception and produce the result $y*2*3$.
+If execution gets to $\Raise (y*2)$, the handler will catch the exception and produce the result $y*2*3$.
 How to \textit{optimize} the program, so that we only perform one multiplication, $y*6$?
 
 We can ask the same question for \textit{effect handlers}.
 This generalization allows us to capture the \textit{continuation} of the \textit{operation} (a.k.a.\,\textit{generic effect}) we are handling
 and bind it as a variable.
-The conventional evaluation step rule is \cite{leijen}:
+The conventional evaluation step rule \cite{leijen} is:
 $$\Handle E[\Op v] \With x\;k.\,e ↦  e\subst{x}{v}\subst{k}{λz.\,\Handle E[z] \With x\;k.\,e} $$
 This is a form of \textit{static delimited control}:
 \textit{control} refers to capture of continuations
@@ -285,7 +285,7 @@ In a real implementation, when we get to an operation, we immediately begin the 
 The syntax does not reflect that, it doesn't say what happens next. It's just an operation name and a payload value.
 
 We will therefore base our calculus for optimizations on the other static delimited control operator:
-$\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) is \cite{subtyping}:
+$\shiftz$. The conventional rule for $\shiftz$ and its delimiter \textsf{reset} (written $⟨·⟩$) \cite{subtyping} is:
 $$⟨E[\shiftz\,k.\,e]⟩ ↦ e\subst{k}{λy.\,⟨E[y]⟩}$$
 Here, the $\shiftz$ assumes the active role by initiating capture of continuation $k$ and carrying the expression $e$ that says what to do with it,
 while the delimiter is passive---it merely delimits.
@@ -782,7 +782,7 @@ We can derive (but don't need) standardization\footnote{
 	The name refers to a \textit{standard order} of reductions,
 	which often also means an ordering of the individual $→$ reductions within $\Int$.
 	So this weaker property is also known as \textit{semi}-standardization.
-} or, equivalently, factorization\cite{factorize}:
+} or, equivalently, factorization \cite{factorize}:
 $$→^* = (↦ ∪ \Int)^* ⊆ {↦^* · \Int^*}$$
 
 \section{Commutation}
