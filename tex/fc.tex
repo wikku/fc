@@ -1625,9 +1625,11 @@ if this approach is correct and see
 how well it plays with dynamically bound values, optimizations, typing rules, etc.
 
 \section{Type-and-effect system}
-A type-and-effect system for the calculus should
+Type-and-effect systems for $\shiftz$ are highly complex \cite{subtyping, fscd19},
+and would be even more so with our generalization to $\S$ and the addition of data to delimiters.
+Any future work in this direction ideally should
 preserve typability when translating (as in figure \ref{shorthands})
-from conventional typed calculi for algebraic effects.
+from some existing type system for algebraic effects \cite{leijen, hwc}.
 
 %A guarantee of no unhandled effects would let us perform $\A.d$ in any context.
 
