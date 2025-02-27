@@ -1171,7 +1171,7 @@ The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
 We have formalized the adequacy and partial confluence theorems in the Abella proof assistant\footnote{
 	With the yet unreleased bugfix by the author \cite{abellafix}.
 } \cite{abella}.
-Abella follows the tradition of Church's Simple Theory of Types
+Abella follows the tradition of Church's Simple Theory of Types \cite{Church}
 in representing object-level variable binders as meta-language lambda-abstractions.
 This approach to variable binding (known as \textit{HOAS} or \textit{lambda-tree} syntax)
 allows reasoning closer to informal pen-and-paper arguments, as it eliminates
@@ -1208,7 +1208,7 @@ In practice, nabla lets us operate on object-level terms with free variables:
 in the congruence rule for object-level $λ$-abstractions,
 we descend under the binder by substituting a fresh nominal constant for the bound variable.
 Unlike most formalizations of the $λ$-calculus, we don't have a constant like \lstinline{lam} or \lstinline{app} for variables.
-This embodies Perlis's epigram ``There is no such thing as a free variable'':
+This embodies Perlis's epigram ``There is no such thing as a free variable'' \cite{Perlis}:
 namely, a variable is always bound
 either by the object-level \lstinline{lam x\}
 or by the meta-level \lstinline{nabla x}.
@@ -1236,7 +1236,7 @@ The $β$-equivalence below shows that the structural substitution does the right
 \section{The power of nabla}
 
 HOAS doesn't need the $\nabla$ quantifier.
-Indeed, it's not available in Abella's \textit{specification logic} $λ$-Prolog.
+Indeed, it's not available in Abella's \textit{specification logic} $λ$-Prolog \cite{Nadathur}.
 Abella takes a two-level approach, where the weaker specification logic
 embeds into the stronger \textit{reasoning logic}.
 The lack of $\nabla$ in the specification logic is a source of free theorems (e.g.\, about substitution)
