@@ -133,6 +133,7 @@
 \newunicodechar{ι}{\iota} % Digr i*
 \newunicodechar{κ}{\kappa}
 \newunicodechar{λ}{\lambda}
+\newunicodechar{Λ}{\Lambda}
 \newunicodechar{μ}{\mu}
 \newunicodechar{ν}{\nu}
 \newunicodechar{ρ}{\rho}
@@ -1420,15 +1421,29 @@ This is $(β_Ω)$ and the delimiter-distributing reduction from the previous sec
 \section{Delimited \texorpdfstring{$λμ$}{lambda-mu}}
 
 Ariola and Downen's comprehensive study \cite{delimcomp} views delimiters
-as ``rebindable top-levels''.
-The operational semantics contains reductions which appear to peek under binders
-(\foreign{$μ \hat{\mathsf{tp}}.\,⟦\hat{\mathsf{tp}}⟧v ↦ v$})
-and encodings of operators such as $\shiftz$ are much more complicated.
-We wonder if these are consequences of using Parigot's original syntax instead of de Groote's more
+as ``rebindable top-levels'' $\hat{\mathsf{tp}}$.
+Their key addition to the $λμ$-calculus is the peculiar reduction that appears to peek under a binder
+(\foreign{$μ \hat{\mathsf{tp}}.\,⟦\hat{\mathsf{tp}}⟧v ↦ v$}).
+They consider only operational rules, rather than observational equivalences or optimizations.
+In this approach, the encodings of operators such as $\shiftz$ end up rather complex.
+
+In another paper from the same year \cite{compositional},
+instead of using Parigot's original syntax they use de Groote's more
 liberal variant \cite{Groote94} that doesn't
 separate out commands (named terms) $\foreign{⟦α⟧t}$ and doesn't force the body of $μ$-abstraction
 to be a command.
-In any case, they don't have optimizations for static delimited control.
+They show that after this relaxation, the concept of $\mathsf{tp}$ variables is unnecessary.
+In intermediate steps, they rely upon $\tilde{μ}$, an operator ``opposite'' to $μ$.
+It is used for building \textit{co-terms}, which can be plugged just like continuation variables,
+in effect making delimiters with return clauses.
+It's treated as syntax sugar, since it can be expressed using the other language constructs similarly
+to our encoding of return clauses (figure \ref{shorthands}),
+namely with a $μ$-abstraction that ignores its argument in the tail position of a plug.
+In the end, they show equational correspondence of their calculus $Λμ_v$ with $λ_\$$.
+In their encoding, reset $⟨e⟩$ is essentially expressed as $κ⟦\Let{x}{e}{\A\,x}⟧$, where
+$κ$ is a fresh variable.
+While technically correct, it's perhaps not the most natural approach and it's not as easily
+extended with data in delimiters.
 
 \section{Fine-grained syntax for algebraic operations}
 The original syntax for algebraic operations involved continuations.
@@ -1503,7 +1518,7 @@ we know that the frame at the top of the stack will be the handler.
 Our solution is popping the handler with $\abort$,
 theirs is pushing a $\KwLift$ stack frame that makes effects skip the $\KwLift$-handler pair \cite[Appendix A]{hwc}.
 
-\section{Tail reductions and letcc}
+\section{Tail reductions and letcc} \label{tailred}
 The central idea in our paper is embodied by the $dL.\S$ reduction:
 $$⟨L[\S κ.\,e]⟩ → ⟨L[\A\,e\subst{κ}{⟨□⟩}]⟩$$
 It is tempting to decompose $\S$ into its constituent parts:
