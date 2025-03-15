@@ -447,7 +447,10 @@ evaluation contexts correspond to machine stacks and $\S$ captures the stack up 
 We will be using the shorthands in figure \ref{shorthands}.
 The first two of them are common convenience features for CBV $λ$-calculi.
 The third one introduces the notation $\A$ for $\abort$.
-The fourth one lets us omit data in delimiters ($╱v$) when irrelevant.
+Because $\A$ removes any surrounding context $E$, it will naturally most often be seen in a tail position.
+In the tail position of a delimiter, its function is removing only that delimiter.
+We will see this pattern arise naturally in the course of reduction.
+The fourth shorthand lets us omit data in delimiters ($╱v$) when irrelevant.
 Then, we have macros that formally justify that the calculus can express the relevant
 control operators in their standard form.
 It is easy to check that evaluation steps simulate the standard evaluation rules for the simulated constructs,
@@ -476,7 +479,8 @@ The return clause extends the delimited continuation
 with a fragment that doesn't run inside the delimiter.
 The same extension is possible for reset, there often called \textit{dollar}.
 In previous work it has always been an integral part of syntax,
-we notice that it can be easily expressed as a $\KwLet$ frame that aborts the delimiter.
+we notice that it can be easily expressed as a $\KwLet$ frame that aborts the delimiter
+(another instance of the pattern mentioned previously).
 
 \section{Reduction}
 \label{secreduction}
@@ -534,6 +538,8 @@ This is trivial to express with plug: $\textsf{discontinue}\,κ\,\textit{exn} �
 
 The rule $dL.\S$ says that an $\S$ in the tail position of a delimiter
 will capture that delimiter (if we get to it).
+We therefore substitute that delimiter for $κ$. This makes the bound variable unused,
+therefore $\S$ can be replaced with $\A$ for concision.
 The rewrite is \textit{at a distance}, as the pattern involves a context $L$.
 We still deem it fine-grained,
 as the outer context $⟨L╱v⟩$ remains intact and the rewrite occurs inside.
