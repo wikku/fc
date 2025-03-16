@@ -303,6 +303,13 @@ Delimited continuations will not be represented as call-by-value functions, but 
 as their own sort with the ability to plug in any expression, not just a value.
 This lets us use structural substitution known from the $λμ$-calculus and all the benefits it brings \cite{benefit}.
 
+What follows is a formal definition of our calculus, its reduction rules, and their example applications (Chapter \ref{Syntax}).
+We then prove that the reductions are correct in that they preserve operational semantics (Chapter \ref{Adequacy}).
+Chapter \ref{Confluence} is about confluence, the freedom to apply reductions in any way we want.
+We are confident in our results thanks to machine-verified proofs, described in chapter \ref{Abella}.
+This work builds on many others, which we elaborate upon in chapter \ref{Related}.
+Finally, we discuss possible extensions and modifications in chapter \ref{Future}.
+
 \chapter{Syntax}
 \label{Syntax}
 
@@ -671,6 +678,7 @@ we can statically handle any effect separated from the handler only by $\KwLet$ 
 
 
 \chapter{Adequacy}
+\label{Adequacy}
 
 The previous chapter has demonstrated how reduction can be used for optimization.
 Now we have to show that it doesn't change the result of a program.
@@ -864,6 +872,7 @@ but not the second \cite{bisim}.
 
 
 \chapter{Confluence}
+\label{Confluence}
 Confluence is the property
 that diverging reduction sequences can meet.
 In practical terms, it lets us perform reductions in any order
@@ -1174,6 +1183,7 @@ The tail-of-reset reductions would involve more work.
 The biggest challenge seems to be including $\KwLet{}.\KwLet{}$, though.
 
 \chapter{Abella mechanization}
+\label{Abella}
 
 We have formalized the adequacy and partial confluence theorems in the Abella proof assistant\footnote{
 	With the yet unreleased bugfix by the author \cite{abellafix}.
@@ -1321,6 +1331,7 @@ The development is available as source files \texttt{\{syntax,adq,conf\}.thm}
 and corresponding \texttt{.html} web pages that allow stepping through proofs.
 
 \chapter{Related work}
+\label{Related}
 %We mark foreign syntax in \foreign{blue} and potential modifications to our calculus in green.
 
 \section{Distributing delimiters}
@@ -1576,6 +1587,7 @@ incorrectly claims that it suffices to show local confluence of an auxiliary rel
 However, confluence follows directly from two applications of the Hindley-Rosen lemma (for the two commutations established).
 
 \chapter{Future work}
+\label{Future}
 
 \section{Purity-aware reductions}
 We should be able to perform much stronger optimizations
