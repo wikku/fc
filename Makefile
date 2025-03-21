@@ -3,8 +3,8 @@
 SRCS = $(wildcard abella/*.thm)
 HTMLS = $(patsubst abella/%.thm, abella/%.html, $(SRCS))
 
-fc.zip: $(HTMLS) tex/fc.pdf
-	zip fc.zip $(SRCS) $(HTMLS) tex/fc.pdf
+fc.zip: $(HTMLS) tex/fc.pdf README.md
+	zip fc.zip $(SRCS) $(HTMLS) tex/fc.pdf README.md
 
 abella/%.html: abella/%.thm
 	abella_doc $<
