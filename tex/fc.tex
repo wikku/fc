@@ -306,9 +306,9 @@ This lets us use structural substitution known from the $λμ$-calculus and all 
 What follows is a formal definition of our calculus, its reduction rules, and their example applications (Chapter \ref{Syntax}).
 We then prove that the reductions are correct in that they preserve operational semantics (Chapter \ref{Adequacy}).
 Chapter \ref{Confluence} is about confluence, the freedom to apply reductions in any way we want.
-We are confident in our results thanks to machine-verified proofs, described in chapter \ref{Abella}.
-This work builds on many others, which we elaborate upon in chapter \ref{Related}.
-Finally, we discuss possible extensions and modifications in chapter \ref{Future}.
+We are confident in our results thanks to machine-verified proofs, described in Chapter \ref{Abella}.
+This work builds on many others, which we elaborate upon in Chapter \ref{Related}.
+Finally, we discuss possible extensions and modifications in Chapter \ref{Future}.
 
 \chapter{Syntax}
 \label{Syntax}
@@ -370,7 +370,7 @@ Finally, we discuss possible extensions and modifications in chapter \ref{Future
 \end{figure}
 
 
-The grammar of the calculus is in figure \ref{syntax}.
+The grammar of the calculus is in Figure \ref{syntax}.
 We base it on a fine-grained call-by-value $λ$-calculus,
 meaning that the subterms of application $v\:u$ are values
 and computations have to be sequenced with $\KwLet$ \cite{fgcbv}.
@@ -419,7 +419,7 @@ The latter is defined as follows on the two expression formers that use $κ$:
 		$\Ask(κ)\subst{κ}{κ'⟦E⟧} ≡ \Ask(κ')$
 \end{enumerate}
 As further illustration, 
-here are the three forms of structural substitution used in reduction (figure \ref{reduction}):
+here are the three forms of structural substitution used in reduction (Figure \ref{reduction}):
 \begin{align*}
 	κ⟦e⟧\subst{κ}{κ'} &≡ κ'⟦e\subst{κ}{κ'}⟧ \\
 	\Ask(κ)\subst{κ}{κ'} &≡ \Ask(κ') \\
@@ -431,7 +431,7 @@ here are the three forms of structural substitution used in reduction (figure \r
 
 \section{Evaluation steps}
 
-The evaluation step relation $↦$ is taken to be the closure of rules in figure \ref{step}
+The evaluation step relation $↦$ is taken to be the closure of rules in Figure \ref{step}
 under evaluation contexts.
 The first two rules are standard beta reductions.
 The third rule pops the delimiter once computation inside is finished.
@@ -441,7 +441,7 @@ To an extent we accommodate open evaluation,
 namely evaluating under continuation variables and capturing of continuation variables.
 
 We could have opted for fine-grained evaluation steps,
-those would be exactly the first six reduction rules (figure \ref{reduction}).
+those would be exactly the first six reduction rules (Figure \ref{reduction}).
 We have taken the coarse-grained steps as the operational semantics because
 this greatly simplifies adequacy and it's closer in spirit to machine implementations.
 
@@ -451,7 +451,7 @@ evaluation contexts correspond to machine stacks and $\S$ captures the stack up 
 }
 
 \section{Shorthands}
-We will be using the shorthands in figure \ref{shorthands}.
+We will be using the shorthands in Figure \ref{shorthands}.
 The first two of them are common convenience features for CBV $λ$-calculi.
 The third one introduces the notation $\A$ for $\abort$.
 Because $\A$ removes any surrounding context $E$, it will naturally most often be seen in a tail position.
@@ -491,7 +491,7 @@ we notice that it can be easily expressed as a $\KwLet$ frame that aborts the de
 
 \section{Reduction}
 \label{secreduction}
-We define reduction $→$ to be the closure of rules in figure \ref{reduction}
+We define reduction $→$ to be the closure of rules in Figure \ref{reduction}
 under general contexts.
 In this section we will demonstrate how reduction in the calculus
 can be used for optimization.
@@ -601,7 +601,7 @@ If $e$ never evaluates to a value, then the rule rewrites dead code, which is fi
 \end{figure}
 
 For an extended illustration of how reduction transforms programs,
-see figure \ref{sat}.
+see Figure \ref{sat}.
 Proceeding similarly as in it,
 we can finally derive the coarse-grained rewrites that started it all:
 $$⟨L[E[\shiftz\,k.\,e]]⟩ →^* ⟨L[\abort\,e\subst{k}{λz.\,⟨E[z]⟩}]⟩$$
@@ -688,7 +688,7 @@ We will call this meaning preservation property \textit{adequacy} \cite{crary200
 In studying interplay of evaluation and reduction,
 it will be useful to isolate reductions that are \textit{not} evaluation steps: \textit{internal} reductions.
 Furthermore, in later inductive arguments it will be useful that rewrite steps do not multiply.
-To this end, we will define \textit{internal parallel reduction} $\Int$ (figure \ref{internal}),
+To this end, we will define \textit{internal parallel reduction} $\Int$ (Figure \ref{internal}),
 which can perform internal reductions in many places of the term at once.
 In non-evaluation positions we allow arbitrary reductions,
 more specifically zero or more evaluation steps followed by
@@ -886,7 +886,7 @@ These two features might look like the most benign of the bunch,
 but they pose great technical difficulties.
 
 \section{Parallel reduction in the core subcalculus}
-Parallel reduction (figure \ref{parallel}) allows us to perform reductions (figure \ref{reduction})
+Parallel reduction (Figure \ref{parallel}) allows us to perform reductions (Figure \ref{reduction})
 in many places of the term at once.
 The tail-of-delimiter reductions are implemented by parameterizing
 by two modes (ranged over by metavariable $M$):
@@ -1400,7 +1400,7 @@ This is enough to simulate the rule for lift-handler interaction \cite[\textbf{D
 
 Our equational theory is in fact strictly more powerful:
 the delimiter-oriented reductions cannot do anything when there
-is no delimiter, but we can (subsection \ref{strred}).
+is no delimiter, but we can (Subsection \ref{strred}).
 
 \section{shift0 axiomatization}
 Here we compare some of the equational axioms of $\shiftz$ by Materzok \cite{materzok}.
@@ -1458,7 +1458,7 @@ In intermediate steps, they rely upon $\tilde{μ}$, an operator ``opposite'' to 
 It is used for building \textit{co-terms}, which can be plugged just like continuation variables,
 in effect making delimiters with return clauses.
 It's treated as syntax sugar, since it can be expressed using the other language constructs similarly
-to our encoding of return clauses (figure \ref{shorthands}),
+to our encoding of return clauses (Figure \ref{shorthands}),
 namely with a $μ$-abstraction that ignores its argument in the tail position of a plug.
 In the end, they show equational correspondence of their calculus $Λμ_v$ with $λ_\$$.
 In their encoding, reset $⟨e⟩$ is essentially expressed as $κ⟦\Let{x}{e}{\A\,x}⟧$, where
@@ -1525,7 +1525,7 @@ except for dynamic binders distributing over lexical binders.
 
 
 \section{Expressing return clauses}
-Let's restate our encoding of return clauses for effect handlers (figure \ref{shorthands}):
+Let's restate our encoding of return clauses for effect handlers (Figure \ref{shorthands}):
 %$$⟨e¦x.\,e_r⟩ ≡ ⟨\Let{x}{e}{\A\,e_r}⟩$$
 $$\Handle e \With x,k.\,e_h ¦ x.\,e_r ≡ \Handle\Let{x}{e}{\A\,e_r} \With x,k.\,e_h$$
 A similar equivalence has been proven for typed algebraic effects \cite{hwc}:
@@ -1577,7 +1577,7 @@ and verified that it works also with our tail-of-delimiter reductions.
 
 Herbelin and Zimmerman \cite{Herbelin} claim that a proof by parallel reduction is possible for a $λμ$-calculus with
 $\KwLet$ reassociation, but provide no details.
-As shown in section \ref{problet}, parallelizing this reduction is not trivial.
+As shown in Section \ref{problet}, parallelizing this reduction is not trivial.
 We also don't see how they could deal with the $\KwLet{}.\S$-$\KwLet{}.\KwLet{}$ critical pair
 unless they add a $κ⟦\Let{x}{e}{t}⟧ → \Let{x}{e}{κ⟦t⟧}$ reduction, which is similar to theirs
 $x(\Let{x}{e}{t}) → \Let{x}{e}{xt}$ and seems to be valid in the undelimited setting.
@@ -1599,7 +1599,7 @@ The purity assertion ensures that $e$ does not attempt to capture the continuati
 Formally, the $\KwLet{}.\S$ reduction is allowed only for impure $\KwLet{}$s (without the assertion)
 and $E$ contexts are composed of impure $\KwLet{}$s.
 Then, we could add reductions such as $κ⟦\Letp{x}{e}{t}⟧ → \Letp{x}{e}{κ⟦t⟧}$.
-Many examples from section \ref{secreduction} could be strengthened or generalized:
+Many examples from Section \ref{secreduction} could be strengthened or generalized:
 we could optimize consecutive effects separated by pure expressions,
 get rid of unnecessary delimiters in the nondeterminism example,
 optimize tail-resumptive $\S$ bodies if the tail context is pure.
@@ -1666,7 +1666,7 @@ how well it plays with dynamically bound values, optimizations, typing rules, et
 Type-and-effect systems for $\shiftz$ are highly complex \cite{subtyping, fscd19},
 and would be even more so with our generalization to $\S$ and the addition of data to delimiters.
 Any future work in this direction ideally should
-preserve typability when translating (as in figure \ref{shorthands})
+preserve typability when translating (as in Figure \ref{shorthands})
 from some existing type system for algebraic effects \cite{leijen, hwc}.
 
 %A guarantee of no unhandled effects would let us perform $\A.d$ in any context.
