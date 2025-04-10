@@ -1,0 +1,311 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{silence}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{newunicodechar}
+\usepackage{etoolbox}
+\usepackage{stmaryrd}
+\usepackage{stmaryrd}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
+% https://tex.stackexchange.com/a/106719
+\DeclareSymbolFont{sfletters}{OML}{cmbrm}{m}{it}
+\DeclareMathSymbol{\slambda}{\mathord}{sfletters}{"15}
+%https://tex.stackexchange.com/a/335857
+\usepackage{mathpartir}
+\usepackage{tikz}
+\usetikzlibrary{arrows} % For advanced arrow tips
+
+
+\usepackage[nodisplayskipstretch]{setspace}
+\setlength{\parskip}{0pt}
+
+
+\title{\textbf{A Fine Calculus for Static Delimited Control}}
+\author{Wiktor Kuchta}
+
+\date{11 kwietnia 2025}
+
+\newcommand{\Par}[1]{\stackrel{#1}{\Rrightarrow}}
+\newcommand{\Rap}[1]{\stackrel{#1}{\Lleftarrow}}
+\newcommand{\Int}{\Rightarrow}
+\newcommand{\Tni}{\Leftarrow}
+\newcommand{\Stan}{↦^* · \Int}
+\newcommand{\foreign}[1]{#1}
+\newcommand{\tagit}[1]{\tag{\textit{#1}}}
+\newcommand{\tagmath}[1]{\tag{\(#1\)}}
+\newcommand{\Log}{\textsf{log}}
+\newcommand{\true}{\textsf{true}}
+\newcommand{\false}{\textsf{false}}
+\newcommand{\shiftz}{\textsf{shift0}}
+\newcommand{\abort}{\textsf{abort}}
+\newcommand{\keyword}[1]{\textsf{\textup{#1}}}
+\newcommand{\KwOp}{\keyword{op}}
+\newcommand{\Op}{\KwOp\,}
+\newcommand{\KwHandle}{\keyword{handle}}
+\newcommand{\Handle}{\KwHandle\;}
+\newcommand{\KwWith}{\keyword{with}}
+\newcommand{\With}{\;\KwWith\;}
+\newcommand{\KwRaise}{\keyword{raise}}
+\newcommand{\Raise}{\KwRaise\,}
+\newcommand{\Ask}{\textsf{ask}}
+\newcommand{\KwTry}{\keyword{try}}
+\newcommand{\Try}{\KwTry\;}
+\newcommand{\KwLet}{\keyword{let}}
+\newcommand{\Let}[3]{\keyword{let}\:#1\:\keyword{=}\:#2\:\keyword{in}\:#3}
+\newcommand{\Dlet}[3]{\keyword{dlet}\:#1\:\keyword{=}\:#2\:\keyword{in}\:#3}
+\newcommand{\Letp}[3]{\keyword{let}^p\:#1\:\keyword{=}\:#2\:\keyword{in}\:#3}
+\newcommand{\RLet}[3]{\Let{#1}{\raisebox{0.5 ex}{$#2$}}{#3}}
+\newcommand{\Letrec}[3]{\keyword{letrec}\:#1\:\keyword{=}\:#2\:\keyword{in}\:#3}
+\newcommand{\KwLift}{\keyword{lift}}
+\newcommand{\Lift}[1]{\KwLift\;#1}
+\newcommand{\subst}[2]{\{#1{:=}#2\}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\K}{\mathcal{K}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\kT}{\mathsf{T}}
+\newcommand{\kE}{\mathsf{E}}
+\newcommand{\kR}{\mathsf{R}}
+\newcommand{\Free}{\textrm{-}\mathrm{free}}
+\newcommand{\Obs}{\mathrm{Obs}}
+\newcommand{\N}{\mathbb{N}}
+\DeclareMathOperator{\dom}{dom}
+\newcommand{\+}{\enspace}
+\newcommand{\lStr}{\textsf{Str}}
+\newcommand{\lPar}{\textsf{Par}}
+\newcommand{\gray}[1]{\textcolor{gray}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+
+\newunicodechar{≅}{\cong}
+\newunicodechar{│}{\mid} % Digr vv
+\newunicodechar{╱}{\bm{/}} % Digr FD
+\newunicodechar{∷}{::} % Digr ::
+\newunicodechar{□}{\square} % Digr OS
+\newunicodechar{∅}{\emptyset} % Digr /0
+\newunicodechar{α}{\alpha}
+\newunicodechar{β}{\beta}
+\newunicodechar{δ}{\delta} % Digr d*
+\newunicodechar{ε}{\varepsilon}
+\newunicodechar{γ}{\gamma} % Digr g*
+\newunicodechar{ι}{\iota} % Digr i*
+\newunicodechar{κ}{\kappa}
+\newunicodechar{λ}{\lambda}
+\newunicodechar{Λ}{\Lambda}
+\newunicodechar{μ}{\mu}
+\newunicodechar{ν}{\nu}
+\newunicodechar{ρ}{\rho}
+\newunicodechar{σ}{\sigma}
+\newunicodechar{τ}{\tau}
+\newunicodechar{η}{\eta} % Digr y*
+\newunicodechar{Δ}{\Delta}
+\newunicodechar{Γ}{\Gamma}
+\newunicodechar{Ω}{\Omega} % digr W*
+\newunicodechar{ℕ}{\N} % Digr NN 8469 nonstandard
+\newunicodechar{⊆}{\subseteq} % Digr (_
+\newunicodechar{∪}{\cup} % Digr )U
+\newunicodechar{∈}{\in} % Digr (-
+\newunicodechar{∃}{\exists} % Digr TE
+\newunicodechar{∀}{\forall} % Digr FA
+\newunicodechar{∧}{\wedge} % Digr AN
+\newunicodechar{∨}{\vee} % Digr OR
+\newunicodechar{⊥}{\bot} % Digr -T
+\newunicodechar{⊢}{\vdash} % Digr \- 8866 nonstandard
+\newunicodechar{⊨}{\models} % Digr \= 8872 nonstandard
+\newunicodechar{⊤}{\top} % Digr TO 8868 nonstandard
+\newunicodechar{⇒}{\implies} % Digr =>
+\newunicodechar{⇔}{\iff} % Digr ==
+\newunicodechar{↦}{\mapsto} % Digr T> 8614 nonstandard
+\newunicodechar{≠}{\neq}
+\newunicodechar{⟦}{\bm{[}}
+\newunicodechar{⟧}{\bm{]}}
+\newunicodechar{≥}{\ge}
+\newunicodechar{≤}{\le}
+\newunicodechar{≡}{\equiv}
+\newunicodechar{≈}{\approx}
+\newunicodechar{●}{\bullet}
+
+
+% cursed
+\WarningFilter{newunicodechar}{Redefining Unicode}
+\newunicodechar{·}{\ifmmode\cdot\else\textperiodcentered\fi} % Digr .M
+\newunicodechar{×}{\ifmmode\times\else\texttimes\fi} % Digr *X
+\newunicodechar{→}{\ifmmode\rightarrow\else\textrightarrow\fi} % Digr ->
+\newunicodechar{←}{\ifmmode\leftarrow\else\textleftarrow\fi} % Digr <-
+\newunicodechar{…}{\ifmmode\dots\else\textellipsis\fi} % Digr .,
+\newunicodechar{⟨}{\bm{\langle}}
+\newunicodechar{⟩}{\bm{\rangle}}
+\newunicodechar{¦}{\bm{│}}
+
+
+\begin{document}
+\maketitle
+
+\begin{frame}
+	\frametitle{Flavors of delimited control}
+	\begin{align*}
+		&\shiftz\, k.\,e && ⟨□⟩ \\
+		\\
+		&\Op v && \Handle □ \With x\;k.\,e \\
+		\\
+		\uncover<2->{&\S κ.\,e && ⟨□╱v⟩}
+	\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{$\shiftz$ generalized to cont vars}
+	\begin{align*}
+		⟨\Let{x}{\S κ. \overbrace{\gray{...}\: κ⟦e⟧ \:\gray{...}}^{\text{body}}}{t}⟩
+		↦
+		\overbrace{\gray{...} \:⟨\Let{x}{e}{t}⟩ \:\gray{...}}^{\text{body after subst}}
+	\end{align*}
+
+	\pause
+	\textit{Structural substitution}, known from the $λμ$-calculus.
+
+	Formal evaluation rule:
+	$$D[\S κ.\,e] ↦ e\subst{κ}{D}$$
+\end{frame}
+
+\begin{frame}
+	\frametitle{Data in delimiters: dynamic binding}
+	\begin{align*}
+		⟨{\S κ. \overbrace{\gray{...}\: \Ask(κ) \:\gray{...}}^{\text{body}}}╱v⟩
+		↦
+		\overbrace{\gray{...} \: v \:\gray{...}}^{\text{body after subst}}
+	\end{align*}
+
+	\pause
+	Can express effect handlers:
+	\begin{align*}
+		\Op v &≡ \S κ.\,\Ask(κ)\:v\:(λx.\,κ⟦x⟧)\\
+		\Handle e \With x\,k.\,t &≡ ⟨e╱λx\,k.\,t⟩\\
+	\end{align*}
+	(Previous encodings of handlers using shift0/reset unwittingly encoded dynamic binding.)
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Grammar}
+\begin{align*}
+	 &&v,u &::= x │ λx.\,e │ \Ask(κ) \\
+	 &&e,t &::= v │ v\:v │ \Let{x}{e}{t} │ \S κ.\,e │ ⟨e ╱ v⟩ │ κ⟦e⟧  \\
+\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Fine-grained reduction}
+	\begin{align*}
+		(λx.\,e)\,v &→ e\subst{x}{v} \tagmath{λ.v} \\
+		\Let{x}{v}{t} &→ t\subst{x}{v} \tagmath{\KwLet{}.v} \\
+		⟨v╱u⟩ &→ v \tagmath{d.v} \\
+		\Let{x}{\S κ.\,e}{t} &→ \S κ.\,e\subst{κ}{κ⟦\Let{x}{□}{t}⟧} \tagmath{\KwLet{}.\S} \\
+		⟨\S κ.\,e ╱ v⟩ &→ e\subst{κ}{⟨□╱v⟩} \tagmath{d.\S} \\
+		κ⟦\S κ'.\,e⟧ &→ e\subst{κ'}{κ} \tagmath{k.\S} \\
+		⟨L[\S κ.\,e]╱v⟩ &→ ⟨L[\A\,e\subst{κ}{⟨□╱v⟩}]╱v⟩ \tagmath{dL.\S} \\
+		⟨L[\A⟨e╱v⟩]╱v⟩ &→ ⟨L[e]╱v⟩ \tagmath{\A.d} \\
+		⟨L[\A\,u]╱v⟩ &→ ⟨L[u]╱v⟩ \tagmath{\A.v} \\
+		\Let{x}{\Let{y}{e}{t_1}}{t_2} &→ \Let{y}{e}{\Let{x}{t_1}{t_2}} \tagmath{\KwLet{}.\KwLet{}}
+	\end{align*}
+
+	$$L ::= □ │ \Let{x}{e}{L}$$
+\end{frame}
+
+\begin{frame}
+	\frametitle{Correctness of reduction}
+	\tikzset{
+  every path/.style={ % Apply to all paths drawn
+    ->>,             % Use the double arrow tip
+    very thick       % Set line thickness (also makes '->>' tip bigger)
+  }
+}
+
+\begin{center}
+\begin{tikzpicture}
+  \coordinate (T) at (0, 1.5);
+  \coordinate (R) at (1.5, 0);
+  \coordinate (B) at (0, -1.5);
+  \coordinate (L) at (-1.5, 0);
+
+  \draw[->>, blue] (T) -- (R);
+  \draw[->>, orange] (L) -- (T);
+  \draw[->>, dashed, orange] (B) -- (R);
+  \draw[->>, dashed, blue] (L) -- (B);
+
+\end{tikzpicture}
+\hspace{2cm}
+\begin{tikzpicture}
+  \coordinate (T) at (0, 1.5);
+  \coordinate (TL) at (-0.75, 0.75);
+  \coordinate (R) at (1.5, 0);
+  \coordinate (B) at (0, -1.5);
+  \coordinate (BR) at (0.75, -0.75);
+  \coordinate (L) at (-1.5, 0);
+
+  \draw[->>, blue] (T) -- (R);
+  \draw[->>, blue] (T) -- (TL);
+  \draw[->>, orange] (TL) -- (L);
+  \draw[->>, dashed, blue] (R) -- (BR);
+  \draw[->>, dashed, orange] (BR) -- (B);
+  \draw[->>, dashed, blue] (L) -- (B);
+
+\end{tikzpicture}
+\end{center}
+
+Postponement and commutation of \textcolor{blue}{evaluation} and \textcolor{orange}{nonevaluation}.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Confluence}
+	\tikzset{
+  every path/.style={ % Apply to all paths drawn
+    ->>,             % Use the double arrow tip
+    very thick       % Set line thickness (also makes '->>' tip bigger)
+  }
+}
+\begin{center}
+\begin{tikzpicture}
+  \coordinate (T) at (0, 1.5);
+  \coordinate (R) at (1.5, 0);
+  \coordinate (B) at (0, -1.5);
+  \coordinate (L) at (-1.5, 0);
+
+  \draw[->> ] (T) -- (L);
+  \draw[->> ] (T) -- (R);
+  \draw[->>, dashed ] (R) -- (B);
+  \draw[->>, dashed ] (L) -- (B);
+
+\end{tikzpicture}
+\end{center}
+
+Now considering any pairs of reductions: much harder.
+
+\end{frame}
+
+\begin{frame}
+
+	\frametitle{Abella formalization}
+	Higher-order encoding of continuation variables:
+	$$\texttt{Type shift0     ((expr -> expr) -> expr) -> expr.}$$
+
+	First mechanization of parallel reductions and rewriting properties for $λμ$-calculus.
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Explain and improve upon distributing delimiters}
+\begin{align*}
+⟨\Let{x}{e}{t} ¦ y.\,t_r⟩
+&≡ ⟨\Let{y}{\Let{x}{e}{t}}{\A\,t_r}⟩ \\
+&→ ⟨\Let{x}{e}{\Let{y}{t}{\A\,t_r}}⟩ \\
+&← ⟨\Let{x}{e}{\A⟨\Let{y}{t}{\A\,t_r}⟩}⟩ \\
+&≡ ⟨e ¦ x.\, ⟨t ¦ y.\,t_r⟩⟩
+\end{align*}
+
+\end{frame}
+
+\end{document}
